@@ -206,6 +206,7 @@ Cualquier otro pie está prohibido, en particular `Co-Authored-By:` y las marcas
 | `docs/decisiones/` | ADR nuevo o cambio de estado | `docs(adr)` |
 | `evidencias/` | Salida registrada de una prueba | `docs(evidence)` |
 | README, convenciones, glosario, `CONTRIBUTING.md`, `CLAUDE.md` | Documentación general | `docs` |
+| `.claude/` (skills, plugins y configuración de Claude Code) | Herramientas de trabajo | `chore` |
 | `.gitignore`, ficheros de editor, limpieza | Mantenimiento | `chore` |
 
 Reglas que se derivan de la tabla:

@@ -13,6 +13,18 @@ Lee y aplica:
 - [`docs/glosario.md`](docs/glosario.md): la palabra exacta para cada concepto. No uses los sinónimos de la columna «No usar».
 - [`docs/decisiones/`](docs/decisiones/): decisiones ya tomadas. No las contradigas; si algo debe cambiar, propón un ADR nuevo.
 
+## Skills y plugins del repositorio
+Skills propias (`.claude/skills/`), que **solo se ejecutan cuando el usuario las invoca**:
+- `/seccion <sección>`: redacta una sección del documento de la fase I y se detiene a esperar revisión.
+- `/adr <decisión>`: redacta un ADR con la plantilla del repo y lo guarda al aprobarlo.
+- `/commit [push]`: agrupa y redacta los commits según `CONTRIBUTING.md`, y sube solo si se pide.
+
+Plugins con ámbito de proyecto (`.claude/settings.json`):
+- `pyright-lsp`: comprobación de tipos de Python. Necesita `pyright-langserver` en el PATH.
+- `context7`: documentación actualizada de librerías (grpcio, FastAPI…). Consúltala antes de usar una
+  API de una librería en vez de fiarte de la memoria. Es un servicio externo: no le envíes secretos
+  ni código privado, solo nombres de librerías y preguntas.
+
 ## Reglas que no se negocian
 - **Código en inglés, documentación en español** (ADR 0001). Identificadores en ASCII.
 - Término nuevo → primero al glosario, después al código o a los documentos.

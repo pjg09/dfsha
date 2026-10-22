@@ -148,6 +148,7 @@ Las carpetas se crean cuando hacen falta, no antes.
 
 ```
 dfsha/
+├── .claude/               # skills (/seccion, /adr, /commit) y plugins de Claude Code
 ├── CLAUDE.md               # instrucciones para sesiones de Claude Code
 ├── CONTRIBUTING.md         # reglas de commits, autoría y release
 ├── docs/
