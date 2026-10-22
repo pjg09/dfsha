@@ -1,0 +1,72 @@
+# ── Claude Code: configuración e instrucciones locales ──────────────────────
+CLAUDE.local.md
+.claude/settings.local.json
+
+# ── Secretos (CONTRIBUTING.md §8): nunca se versionan ───────────────────────
+# Claves y certificados con clave privada (incluye labsuser.pem del Learner Lab)
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.csr
+*.srl
+id_rsa*
+id_ed25519*
+secrets/
+# Credenciales de AWS y variables de entorno con valores reales
+.aws/
+credentials
+.env
+.env.*
+!.env.example
+
+# ── Python ──────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.ipynb_checkpoints/
+# El código generado desde proto/ (*_pb2.py, *_pb2_grpc.py, *_pb2.pyi) NO se ignora todavía:
+# versionarlo o generarlo al construir es una decisión pendiente (ADR propio).
+
+# ── Node (herramientas locales; el release usa npx en CI) ───────────────────
+node_modules/
+
+# ── Ejecución local del clúster ─────────────────────────────────────────────
+# Logs y temporales de los nodos cuando se ejecutan fuera de Docker
+*.log
+logs/
+tmp/
+*.tmp
+# Archivos grandes generados para pruebas de carga (se regeneran con un script)
+bench/datos/
+# Overrides locales de Docker Compose
+docker-compose.override.yml
+compose.override.yaml
+
+# Las evidencias de las pruebas mínimas (§5.2 del enunciado) SÍ se versionan, logs incluidos
+!evidencias/**
+
+# ── Editores y sistema operativo ────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+# Ficheros de bloqueo y copias de Office y draw.io
+~$*
+*.bkp
+.$*
