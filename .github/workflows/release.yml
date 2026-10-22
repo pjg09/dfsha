@@ -30,6 +30,11 @@ jobs:
       - name: semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # El commit de CHANGELOG.md usa la identidad del proyecto, no semantic-release-bot (CONTRIBUTING.md §1)
+          GIT_AUTHOR_NAME: Pedro
+          GIT_AUTHOR_EMAIL: pedroj1229@gmail.com
+          GIT_COMMITTER_NAME: Pedro
+          GIT_COMMITTER_EMAIL: pedroj1229@gmail.com
         run: >-
           npx --yes
           -p semantic-release@25.0.9
