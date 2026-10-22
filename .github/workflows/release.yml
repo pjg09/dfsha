@@ -1,0 +1,39 @@
+# Release automático en cada push a main (ADR 0005).
+# semantic-release lee los commits (Conventional Commits) desde la última etiqueta vX.Y.Z,
+# calcula la versión, actualiza CHANGELOG.md, crea la etiqueta y publica el release en GitHub.
+# Configuración de versiones y secciones: .releaserc.json
+name: release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write # etiquetas, release y commit de CHANGELOG.md
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # historial y etiquetas completos para calcular la versión
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >-
+          npx --yes
+          -p semantic-release@25.0.9
+          -p @semantic-release/changelog@7.0.0
+          -p @semantic-release/git@11.0.1
+          -p conventional-changelog-conventionalcommits@9.3.1
+          semantic-release
