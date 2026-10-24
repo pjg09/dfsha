@@ -101,7 +101,7 @@ dice qué tipo y qué ámbito lleva cada área.
 
 | Ámbito | Abarca |
 |---|---|
-| `design` | Documento de diseño de la fase I (`docs/fase-1/`) y sus diagramas |
+| `design` | Documento de diseño de la fase I (`docs/fase-1/`) |
 | `report` | Informe técnico final de la fase II (`docs/fase-2/`) |
 | `adr` | Registro de decisiones (`docs/decisiones/`) |
 | `evidence` | Evidencias de las pruebas mínimas (`evidencias/`) |
@@ -203,6 +203,7 @@ Cualquier otro pie está prohibido, en particular `Co-Authored-By:` y las marcas
 | `.github/`, `.releaserc.json` | Automatización del repositorio | `ci` |
 | `docs/fase-1/` | Documento de diseño | `docs(design)` |
 | `docs/fase-2/` | Informe final | `docs(report)` |
+| `docs/diagramas/` | Diagramas, comunes a todos los documentos | En el mismo commit que el documento que los usa, con su ámbito; si cambian solos, `docs` |
 | `docs/decisiones/` | ADR nuevo o cambio de estado | `docs(adr)` |
 | `evidencias/` | Salida registrada de una prueba | `docs(evidence)` |
 | README, convenciones, glosario, `CONTRIBUTING.md`, `CLAUDE.md` | Documentación general | `docs` |
@@ -284,7 +285,9 @@ Reglas:
 ## 8. Qué no se commitea
 - Secretos: credenciales de AWS, `*.pem`, claves privadas, certificados con su clave, `.env` con valores reales.
   Si alguno llega a un commit, **se rota**: borrarlo después no lo saca del historial.
-- IP literales en código o configuración (RNF7). Solo pueden aparecer en `evidencias/`.
+- IP literales en código o configuración (RNF7). Solo pueden aparecer en `evidencias/`. Única excepción:
+  la dirección fija del servicio de hora de Amazon (`169.254.169.123`), solo en el script de despliegue de
+  `aws` (ADR 0033), porque es la de un servicio de AWS que no cambia, no la de un nodo.
 - `CLAUDE.local.md` (ignorado en `.gitignore`).
 - `CHANGELOG.md` editado a mano.
 

@@ -33,7 +33,7 @@ Reglas:
 | Paquetes y módulos Python | `snake_case` (Python no admite guiones en `import`) | `dfsha/datanode/block_store.py` |
 | Tests | `tests/test_<módulo>.py` (pytest exige el prefijo) | `tests/test_replication.py` |
 | Ficheros `.proto` | `snake_case.proto`, en una carpeta que coincide con el paquete | `proto/dfsha/v1/metadata.proto` |
-| Registro de decisiones (ADR) | `NNNN-titulo-en-kebab.md`, numeración correlativa que nunca se reutiliza | `docs/decisiones/0005-consistencia-de-replicas.md` |
+| Registro de decisiones (ADR) | `NNNN-titulo-en-kebab.md`, numeración correlativa que nunca se reutiliza | `docs/decisiones/NNNN-politica-de-replicacion.md` |
 | Diagramas | `NN-nombre.<ext>` para la fuente editable; la exportación lleva el mismo nombre | `docs/diagramas/02-despliegue.mmd` → `02-despliegue.png` |
 | Evidencias de pruebas | Carpeta `AAAA-MM-DD-<escenario>` | `evidencias/2026-11-05-caida-datanode/` |
 | Resultados de experimentos | `AAAA-MM-DD-<experimento>.csv` | `bench/resultados/2026-11-06-latencia-lectura.csv` |
@@ -78,8 +78,9 @@ Reglas:
 |---|---|---|
 | Variables de entorno | `UPPER_SNAKE` con prefijo `DFSHA_` | `DFSHA_METADATA_ADDR`, `DFSHA_REPLICATION_FACTOR` |
 | Claves en YAML/TOML | `snake_case`, iguales al campo Python que alimentan | `replication_factor: 3` |
-| Direcciones | Siempre `host:puerto` en variables terminadas en `_addr` | `DFSHA_METADATA_ADDR=metadata-1:50051` |
-| Entornos | `local` (Docker Compose en una máquina) y `aws` (varias EC2) | `deploy/local/`, `deploy/aws/` |
+| Direcciones | Siempre `host:puerto` en variables terminadas en `_addr` | `DFSHA_DATANODE_ADDR=datanode-1:50052` |
+| Listas de direcciones | `host:puerto` separados por comas, en variables terminadas en `_addrs` (ADR 0021) | `DFSHA_METADATA_ADDRS=metadata-1:50051,metadata-2:50051,metadata-3:50051` |
+| Entornos | `local` (Docker Compose en una máquina, solo para desarrollo) y `aws` (varias EC2, el producto y las evidencias). Mismas imágenes y configuración en los dos (ADR 0030) | `deploy/local/`, `deploy/aws/` |
 
 ## 3. Verbos canónicos
 
@@ -98,10 +99,11 @@ derecha no se usan.
 | Descartar una escritura en curso | `abort` | `cancel`, `rollback` |
 | Dar de alta un nodo en el clúster | `register` | `join`, `enroll` |
 | Comprobar algo sin modificarlo | `verify` | `check`, `validate` (salvo validar entradas de usuario: `validate`) |
+| Avisar al servidor de metadatos de algo observado | `report` | `notify`, `signal`, `send` |
 
 Excepción: los nombres de las **primitivas y comandos del enunciado** se conservan
 tal cual: `ls`, `cd`, `mkdir`, `rmdir`, `rm`, `put`, `get`, `open`, `close`, `read`, `write`,
-`lock`, `unlock`.
+`lock`, `unlock`. También `mv`, que no está en el enunciado pero es un comando equivalente de RF1 (ADR 0025).
 
 ## 4. Nombres de host y recursos de red
 
@@ -148,7 +150,7 @@ Las carpetas se crean cuando hacen falta, no antes.
 
 ```
 dfsha/
-├── .claude/               # skills (/seccion, /adr, /commit) y plugins de Claude Code
+├── .claude/               # skills (/adr, /commit) y plugins de Claude Code
 ├── CLAUDE.md               # instrucciones para sesiones de Claude Code
 ├── CONTRIBUTING.md         # reglas de commits, autoría y release
 ├── docs/
@@ -157,7 +159,7 @@ dfsha/
 │   ├── convenciones.md     # este documento
 │   ├── glosario.md
 │   ├── decisiones/         # ADR (registro de decisiones del enunciado §2)
-│   ├── diagramas/
+│   ├── diagramas/          # fuentes y exportaciones de diagramas, comunes a todos los documentos
 │   ├── fase-1/             # documento de diseño individual
 │   └── fase-2/             # informe final
 ├── proto/dfsha/v1/         # contratos gRPC
