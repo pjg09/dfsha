@@ -4,6 +4,7 @@ DFSha: Sistema de archivos distribuido con alta disponibilidad, arquitectura cli
 ## Documentación
 
 - [Enunciado](docs/enunciado.md): transcripción del enunciado oficial, con la arquitectura asignada.
+- [Aclaraciones del profesor](docs/aclaraciones.md): respuestas a las dudas sobre el enunciado (A1–A8).
 - [Consejos de diseño](docs/consejos-diseno.md): condicionantes extraídos de clase, labs y AWS (C1–C30).
 - [Convenciones](docs/convenciones.md): idioma, nombres, hosts, Git y versiones.
 - [Glosario](docs/glosario.md): términos del proyecto y sus identificadores.

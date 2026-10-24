@@ -8,6 +8,7 @@ servicio distribuido entre servidores (S2S)**. Proyecto individual, aprobado por
 Lee y aplica:
 - [`CONTRIBUTING.md`](CONTRIBUTING.md): reglas de commits, autoría, ramas y release.
 - [`docs/enunciado.md`](docs/enunciado.md): el enunciado oficial transcrito. Es la referencia de requisitos (RF, RNF), entregables y rúbrica.
+- [`docs/aclaraciones.md`](docs/aclaraciones.md): respuestas del profesor que completan el enunciado (A1–A8). Tienen su mismo rango.
 - [`docs/consejos-diseno.md`](docs/consejos-diseno.md): condicionantes de diseño (C1–C30) sacados de clase, labs y AWS. Tenlos en cuenta al diseñar y cítalos por su identificador.
 - [`docs/convenciones.md`](docs/convenciones.md): idioma, nombres por tipo de artefacto, hosts, Git y versiones.
 - [`docs/glosario.md`](docs/glosario.md): la palabra exacta para cada concepto. No uses los sinónimos de la columna «No usar».
