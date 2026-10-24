@@ -1,0 +1,12 @@
+stateDiagram-v2
+  direction LR
+  state "Escritura en curso" as EnCurso
+  state "Confirmada" as Confirmada
+  state "Abortada" as Abortada
+  [*] --> EnCurso: AllocateBlocks bajo un arrendamiento
+  EnCurso --> EnCurso: WriteBlock, avisos de bloque recibido, UpdateLease
+  EnCurso --> EnCurso: CommitFile con bloques sin W avisos (QUORUM_NOT_REACHED, se reintenta)
+  EnCurso --> Confirmada: CommitFile aceptado (una entrada del log)
+  EnCurso --> Abortada: AbortFile, arrendamiento caducado o VERSION_CONFLICT
+  Confirmada --> [*]: versión nueva visible para los open() posteriores
+  Abortada --> [*]: bloques huérfanos, borrados por la recolección de basura

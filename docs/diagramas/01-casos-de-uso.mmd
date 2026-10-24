@@ -1,0 +1,24 @@
+flowchart LR
+  usuario["👤 Usuario"]
+  app["⚙️ Aplicación cliente"]
+  admin["👤 Administrador"]
+  subgraph dfsha["Sistema DFSha"]
+    direction TB
+    cu1(["CU1 · Autenticarse"])
+    cu2(["CU2 · Gestionar el espacio de nombres<br/>ls · cd · mkdir · rmdir · rm · mv"])
+    cu3(["CU3 · Cargar un archivo (put)"])
+    cu4(["CU4 · Recuperar un archivo (get)"])
+    cu5(["CU5 · Leer parte de un archivo<br/>open · read · close"])
+    cu6(["CU6 · Escribir parte de un archivo<br/>open · lock · write · close"])
+    cu7(["CU7 · Borrar un archivo"])
+    cu8(["CU8 · Dar de alta un usuario"])
+    cu9(["CU9 · Desplegar el clúster<br/>y guardar las copias de seguridad"])
+    cu10(["CU10 · Mantener las réplicas<br/>latidos · re-replicación · verificación"])
+  end
+  meta["🖥️ Servidor de metadatos"]
+  dn["🖥️ Nodo de datos"]
+  usuario --- cu1 & cu2 & cu3 & cu4 & cu7
+  app --- cu1 & cu5 & cu6
+  admin --- cu8 & cu9
+  cu10 --- meta & dn
+  cu7 -. "incluye: recolección de basura" .-> cu10

@@ -1,0 +1,18 @@
+sequenceDiagram
+  autonumber
+  participant C as client-1
+  participant M3 as metadata-3 (seguidor)
+  participant M1 as metadata-1 (líder)
+  participant H as /etc/hosts del sistema operativo
+  participant D2 as datanode-2
+  Note over C,M3: el cliente solo conoce DFSHA_METADATA_ADDRS
+  C->>M3: OpenFile(/informes/2026.pdf, READ)
+  M3-->>C: UNAVAILABLE + NODE_NOT_LEADER, leader_addr = metadata-1:50051
+  C->>M1: OpenFile(/informes/2026.pdf, READ)
+  M1-->>C: file_handle, versión 4
+  C->>M1: GetBlockLocations(todos los bloques)
+  M1-->>C: nombres de los nodos de datos (datanode-2:50052, ...), nunca direcciones IP
+  C->>H: resolver datanode-2
+  H-->>C: IP privada (generada por el despliegue)
+  C->>D2: ReadBlock(b0, token)
+  D2-->>C: bloque 0

@@ -1,0 +1,23 @@
+sequenceDiagram
+  autonumber
+  participant P1 as Proceso P1
+  participant L as Líder de metadatos
+  participant P2 as Proceso P2
+  P1->>L: LockBlocks(bloque 3)
+  L-->>P1: lease-1, caduca en 30 s
+  P2->>L: LockBlocks(bloques 2 a 4)
+  L-->>P2: ABORTED + LOCK_CONFLICT (respuesta inmediata)
+  P1->>L: AllocateBlocks([3]) y envío del bloque nuevo
+  P1->>L: CommitFile(índice 3)
+  L-->>P1: versión v+1
+  P1->>L: UnlockBlocks(lease-1)
+  P2->>L: LockBlocks(bloques 2 a 4), reintento con espera
+  L-->>P2: lease-2, current_version = v+1
+  Note over P2: abrió la versión v, así que vuelve a abrir y lee el bloque 3 de v+1 antes de aplicar su cambio
+  P2->>L: CommitFile(índices 2 a 4)
+  L-->>P2: versión v+2
+  opt Variante: P1 muere con el arrendamiento
+    Note over L: lease-1 caduca a los 30 s y P2 puede escribir
+    P1->>L: CommitFile tardío
+    L-->>P1: ABORTED + LEASE_EXPIRED
+  end

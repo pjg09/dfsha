@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>04-particion</title>
+<style>
+  body { margin: 0; padding: 24px; background: #fff; font-family: Arial, Helvetica, sans-serif; color: #222; width: 1100px; }
+  h2 { font-size: 22px; margin: 0 0 10px; font-weight: normal; }
+  .file { display: flex; border: 2px solid #444; height: 70px; margin-bottom: 8px; }
+  .file div { display: flex; align-items: center; justify-content: center; flex-direction: column; font-size: 19px; border-right: 2px solid #444; background: #eee; }
+  .file div:last-child { border-right: 0; }
+  .b16 { flex: 16; } .b8 { flex: 8; }
+  .cap { font-size: 16px; color: #555; margin-bottom: 26px; }
+  table { border-collapse: collapse; width: 100%; font-size: 19px; }
+  th, td { border: 1.5px solid #666; padding: 12px 10px; text-align: center; }
+  th { background: #e6e6e6; font-weight: bold; }
+  td.p { background: #444; color: #fff; font-weight: bold; }
+  td.s { background: #cfcfcf; }
+  td.n { color: #aaa; }
+  .legend { margin-top: 14px; font-size: 17px; }
+  .legend span { display: inline-block; width: 22px; height: 16px; vertical-align: middle; margin: 0 6px 0 18px; border: 1px solid #666; }
+</style></head><body>
+<h2>Archivo <b>/informes/2026.pdf</b> · 40 MiB · versión 4 · bloques de 16 MiB</h2>
+<div class="file">
+  <div class="b16"><b>Bloque 0</b><small>16 MiB · b-0c41…</small></div>
+  <div class="b16"><b>Bloque 1</b><small>16 MiB · b-91d3…</small></div>
+  <div class="b8"><b>Bloque 2</b><small>8 MiB · b-e27a…</small></div>
+</div>
+<div class="cap">La versión 4 es la lista ordenada [b-0c41…, b-91d3…, b-e27a…]. El último bloque puede ser más pequeño.</div>
+<table>
+  <tr><th>Bloque</th><th>datanode-1</th><th>datanode-2</th><th>datanode-3</th><th>datanode-4</th><th>datanode-5</th></tr>
+  <tr><th>0</th><td class="n">—</td><td class="p">primaria</td><td class="n">—</td><td class="s">secundaria</td><td class="s">secundaria</td></tr>
+  <tr><th>1</th><td class="s">secundaria</td><td class="n">—</td><td class="s">secundaria</td><td class="p">primaria</td><td class="n">—</td></tr>
+  <tr><th>2</th><td class="p">primaria</td><td class="s">secundaria</td><td class="s">secundaria</td><td class="n">—</td><td class="n">—</td></tr>
+  <tr><th>Réplicas</th><td>2</td><td>2</td><td>2</td><td>2</td><td>1</td></tr>
+</table>
+<div class="legend"><span style="background:#444"></span>réplica primaria: recibe el bloque del cliente y lo reenvía
+<span style="background:#cfcfcf"></span>réplica secundaria</div>
+<div class="legend" style="margin-left:18px">Tres nodos distintos por bloque, elegidos por espacio libre; la primaria rota entre bloques consecutivos.</div>
+</body></html>

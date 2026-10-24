@@ -1,0 +1,19 @@
+flowchart TB
+  ca["CA interna del proyecto<br/>un certificado por nombre de host"]
+  c["client-1<br/>cifra cada bloque con AES-256-GCM<br/>con la clave de datos del archivo"]
+  m["Servidores de metadatos<br/>contraseñas con scrypt · tokens HMAC-SHA256<br/>clave de envoltura: secreto en el disco raíz,<br/>nunca en el volumen ni en la copia"]
+  me[("Volumen EBS de cada<br/>servidor de metadatos, cifrado<br/>log e instantáneas<br/>con claves de datos envueltas")]
+  s3[("S3 privado y cifrado<br/>copia de seguridad<br/>de los metadatos")]
+  d["Nodo de datos<br/>solo guarda texto cifrado<br/>verifica tokens de bloque y hashes"]
+  d2["Otro nodo de datos"]
+  e[("Volumen EBS del<br/>nodo de datos, cifrado<br/>con aws/ebs · bloques<br/>ya cifrados")]
+  c -- "TLS + token de acceso<br/>open() entrega la clave de datos" --> m
+  c == "TLS + token de bloque<br/>bloques ya cifrados" ==> d
+  d -- "TLS mutuo<br/>latidos, avisos, informes" --> m
+  d == "TLS mutuo<br/>reenvío y re-replicación" ==> d2
+  d --- e
+  me --- m
+  me -. "copia al final de cada sesión" .-> s3
+  ca -. "certificados" .-> m
+  ca -. "certificados" .-> d
+  ca -. "certificado de la CA para verificar" .-> c

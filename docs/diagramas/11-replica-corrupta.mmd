@@ -1,0 +1,20 @@
+sequenceDiagram
+  autonumber
+  participant C as client-1
+  participant D1 as datanode-1 (réplica corrupta)
+  participant D3 as datanode-3
+  participant L as Líder de metadatos
+  participant D5 as datanode-5
+  C->>D1: ReadBlock(b1, token)
+  D1-->>C: datos... y al final DATA_LOSS + BLOCK_CORRUPTED
+  D1->>L: ReportCorruptReplica(b1, datanode-1)
+  Note over L: marca la réplica de datanode-1 como corrupta y deja de entregarla
+  C->>D3: ReadBlock(b1, token) en otra réplica
+  D3-->>C: bloque correcto
+  D3->>L: ReportHeartbeat
+  L-->>D3: orden REPLICATE(b1 hacia datanode-5)
+  D3->>D5: WriteBlock(b1) por TLS mutuo
+  D5->>L: ReportBlockReceived(b1)
+  D1->>L: ReportHeartbeat
+  L-->>D1: orden DELETE(b1)
+  Note over C,D5: si el aviso viniera de un cliente, el líder ordenaría antes VERIFY a datanode-1 y solo marcaría la réplica si el nodo lo confirma

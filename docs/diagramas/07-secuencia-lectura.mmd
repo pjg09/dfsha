@@ -1,0 +1,24 @@
+sequenceDiagram
+  autonumber
+  participant C as client-1
+  participant L as Líder de metadatos
+  participant D2 as datanode-2
+  participant D1 as datanode-1
+  participant D3 as datanode-3
+  C->>L: OpenFile(/informes/2026.pdf, READ)
+  L-->>C: file_handle (versión 4), clave de datos
+  C->>L: GetBlockLocations(todos los bloques)
+  L-->>C: block_id, block_sha256, ubicaciones y tokens de lectura de los 3 bloques
+  par bloque 0
+    C->>D2: ReadBlock(b0, token)
+    D2-->>C: cabecera + 16 MiB
+  and bloque 1
+    C->>D1: ReadBlock(b1, token)
+    D1--xC: sin respuesta (vence el plazo)
+    C->>D3: ReadBlock(b1, token) en otra réplica
+    D3-->>C: cabecera + 16 MiB
+  and bloque 2
+    C->>D3: ReadBlock(b2, token)
+    D3-->>C: cabecera + 8 MiB
+  end
+  Note over C: compara cada hash con el del servidor de metadatos, descifra con AES-GCM y concatena en orden

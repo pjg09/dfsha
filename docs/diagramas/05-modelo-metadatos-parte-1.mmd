@@ -1,0 +1,34 @@
+erDiagram
+  DIRECTORIO ||--o{ DIRECTORIO : contiene
+  DIRECTORIO ||--o{ ARCHIVO : contiene
+  USUARIO ||--o{ ARCHIVO : "es propietario de"
+  ARCHIVO ||--|{ VERSION_DE_ARCHIVO : tiene
+  ARCHIVO ||--o{ ARRENDAMIENTO : "sobre un rango de"
+  ARRENDAMIENTO["ARRENDAMIENTO (ver parte 2)"]
+  USUARIO {
+    string user_id PK
+    string username
+    bytes password_scrypt
+    bytes salt
+    bool is_admin
+  }
+  DIRECTORIO {
+    string path PK
+    string owner FK
+  }
+  ARCHIVO {
+    string file_id PK
+    string path
+    string owner FK
+    uint64 block_size_bytes
+    uint64 current_version
+    bytes wrapped_data_key
+  }
+  VERSION_DE_ARCHIVO {
+    string file_id FK
+    uint64 version PK
+    uint64 size_bytes
+    timestamp committed_at
+    string state "vigente o sustituida"
+    timestamp expires_at "fin del periodo de gracia"
+  }

@@ -1,0 +1,19 @@
+sequenceDiagram
+  autonumber
+  participant C as client-1
+  participant L as Líder de metadatos
+  participant R as Lector con el archivo abierto
+  participant D as Nodos de datos
+  C->>L: DeleteFile(/informes/2026.pdf)
+  alt hay un arrendamiento de escritura activo
+    L-->>C: ABORTED + LOCK_CONFLICT
+  else sin escritores
+    Note over L: una entrada del log quita la ruta y marca la versión como sustituida, con caducidad en 10 min
+    L-->>C: OK (el archivo ya no aparece en ls)
+  end
+  R->>D: ReadBlock(bloques de la versión abierta)
+  D-->>R: datos (el periodo de gracia protege al lector)
+  Note over L: pasados 10 min, los bloques sin ninguna versión viva son huérfanos
+  D->>L: ReportHeartbeat
+  L-->>D: órdenes DELETE(b0, b1, b2)
+  Note over D: borra los bloques del almacén

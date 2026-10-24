@@ -1,0 +1,21 @@
+stateDiagram-v2
+  state "Sin latido desde la elección" as SinLatido
+  state "Vivo" as Vivo
+  state "Sospechoso" as Sospechoso
+  state "Caído" as Caido
+  [*] --> SinLatido: alta del nodo o elección de líder
+  SinLatido --> Vivo: latido
+  Vivo --> Vivo: latido cada 3 s
+  Vivo --> Sospechoso: 9 s sin latido
+  Sospechoso --> Vivo: latido
+  Sospechoso --> Caido: 30 s sin latido
+  SinLatido --> Caido: 30 s desde la elección (al salir del modo seguro)
+  Caido --> Vivo: vuelve a darse de alta y envía su informe de bloques
+  note right of Sospechoso
+    No recibe escrituras nuevas.
+    Sus réplicas siguen en las ubicaciones.
+  end note
+  note right of Caido
+    Se quita de las ubicaciones.
+    Sus bloques se re-replican.
+  end note

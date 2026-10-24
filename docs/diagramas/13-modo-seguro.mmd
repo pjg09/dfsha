@@ -1,0 +1,23 @@
+stateDiagram-v2
+  state "Seguidor" as Seguidor
+  state "Candidato" as Candidato
+  state "Líder en modo seguro" as ModoSeguro
+  state "Líder en funcionamiento normal" as Normal
+  [*] --> Seguidor
+  Seguidor --> Candidato: no recibe mensajes del líder (temporizador aleatorio)
+  Candidato --> Seguidor: otro gana la elección
+  Candidato --> ModoSeguro: gana con la mayoría (2 de 3)
+  ModoSeguro --> Normal: cada bloque tiene una réplica en un nodo con latido
+  ModoSeguro --> Normal: tope de 60 s (registra los bloques perdidos)
+  ModoSeguro --> Seguidor: pierde la mayoría
+  Normal --> Seguidor: pierde la mayoría
+  note right of ModoSeguro
+    Atiende lecturas y mensajes de los nodos de datos.
+    Rechaza cambios de metadatos con SAFE_MODE_ACTIVE.
+    Sin re-replicación ni borrados.
+    Los arrendamientos no caducan.
+  end note
+  note right of Normal
+    Los arrendamientos vuelven a tener su TTL completo.
+    Los plazos de caída cuentan desde la elección.
+  end note

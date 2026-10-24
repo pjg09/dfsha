@@ -1,0 +1,26 @@
+sequenceDiagram
+  autonumber
+  participant C as client-1
+  participant P as datanode-2 (primaria)
+  participant S1 as datanode-4
+  participant S2 as datanode-5 (desconectado)
+  participant L as Líder de metadatos
+  participant D3 as datanode-3
+  C->>P: WriteBlock(b)
+  par reenvío en paralelo
+    P->>S1: WriteBlock(b)
+    S1->>L: ReportBlockReceived(b)
+    S1-->>P: OK
+  and
+    P-xS2: WriteBlock(b), sin respuesta
+  end
+  P->>L: ReportBlockReceived(b)
+  P-->>C: stored_on = datanode-2, datanode-4 (W = 2)
+  C->>L: CommitFile
+  L-->>C: versión v+1, cuyas ubicaciones solo incluyen datanode-2 y datanode-4
+  Note over L: los lectores que abren ahora ven v+1 y nunca piden b a datanode-5
+  Note over L: 30 s sin latidos de datanode-5, se declara caído
+  P->>L: ReportHeartbeat
+  L-->>P: orden REPLICATE(b hacia datanode-3)
+  P->>D3: WriteBlock(b) por TLS mutuo
+  D3->>L: ReportBlockReceived(b), vuelve a haber 3 réplicas

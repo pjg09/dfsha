@@ -1,0 +1,23 @@
+sequenceDiagram
+  autonumber
+  participant C as client-1
+  participant L as Líder de metadatos
+  participant D as Nodos de datos
+  C->>L: OpenFile(ruta, WRITE)
+  L-->>C: file_handle (versión base v)
+  C->>L: LockBlocks(bloques 1 y 2)
+  L-->>C: lease_id, current_version = v
+  C->>D: ReadBlock(bloques 1 y 2 de la versión v)
+  D-->>C: bloques 1 y 2
+  Note over C: aplica el cambio en memoria y vuelve a cifrar
+  C->>L: AllocateBlocks([1, 2])
+  L-->>C: block_id nuevos b1', b2' y sus nodos
+  C->>D: WriteBlock(b1'), WriteBlock(b2') con replicación como en la carga
+  D->>L: ReportBlockReceived (2 réplicas o más por bloque)
+  C->>L: CommitFile(índice 1 = b1', índice 2 = b2')
+  alt el arrendamiento sigue vigente y los índices 1 y 2 conservan los block_id de v
+    L-->>C: versión v+1 = [b0, b1', b2'] (b0 se reutiliza por referencia)
+  else otro escritor cambió el rango
+    L-->>C: ABORTED + VERSION_CONFLICT
+  end
+  C->>L: UnlockBlocks(lease_id)

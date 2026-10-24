@@ -1,0 +1,40 @@
+erDiagram
+  ARRENDAMIENTO ||--o| ESCRITURA_EN_CURSO : ampara
+  ESCRITURA_EN_CURSO }o--o{ BLOQUE : reserva
+  VERSION_DE_ARCHIVO }o--o{ BLOQUE : "lista ordenada de"
+  BLOQUE ||--|{ REPLICA : tiene
+  NODO_DE_DATOS ||--o{ REPLICA : guarda
+  VERSION_DE_ARCHIVO["VERSION_DE_ARCHIVO (ver parte 1)"]
+  ARRENDAMIENTO {
+    string lease_id PK
+    string file_id FK
+    uint64 first_block_index
+    uint64 block_count
+    timestamp expires_at
+  }
+  ESCRITURA_EN_CURSO {
+    string lease_id FK
+    uint64 base_version
+  }
+  BLOQUE {
+    string block_id PK
+    bytes block_sha256
+    uint64 size_bytes
+  }
+  REPLICA {
+    string block_id FK
+    string node_id FK
+    string state "confirmada o corrupta"
+  }
+  NODO_DE_DATOS {
+    string node_id PK
+    string hostname
+    uint64 capacity_bytes
+    uint64 free_bytes
+    string state "vivo, sospechoso o caído"
+  }
+  REGISTRO_DE_PETICIONES {
+    string request_id PK
+    bytes saved_response
+    timestamp expires_at
+  }

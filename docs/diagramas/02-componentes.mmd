@@ -1,0 +1,32 @@
+flowchart TB
+  subgraph cli["client-1 · contenedor dfsha-client"]
+    direction LR
+    cmd["CLI<br/>ls · cd · mkdir · put · get…"] --> lib["Biblioteca de cliente<br/>open · read · write · lock · close"]
+    lib --> cif["Cifrado de bloques<br/>AES-256-GCM"]
+    lib --> tra["Transferencia en paralelo<br/>y reintentos"]
+  end
+  subgraph meta["Servidores de metadatos · metadata-1 a metadata-3"]
+    direction TB
+    ms["MetadataService<br/>gRPC · 50051"]
+    aut["Autenticación<br/>scrypt · tokens HMAC"]
+    nsp["Espacio de nombres<br/>y versiones"]
+    arr["Arrendamientos"]
+    ubi["Ubicación, re-replicación<br/>y recolección de basura"]
+    det["Detector de fallos<br/>y modo seguro"]
+    raft[("Máquina de estados replicada<br/>log de Raft e instantáneas<br/>en su volumen EBS<br/>(consenso entre los tres)")]
+    ms --> aut & nsp & arr & ubi & det
+    nsp & arr & ubi --> raft
+  end
+  subgraph dns["Nodos de datos · datanode-1 a datanode-5"]
+    direction TB
+    ds["DataNodeService<br/>gRPC · 50052"]
+    lat["Agente de latidos<br/>e informes de bloques"]
+    ver["Verificador de bloques"]
+    alm[("Almacén de bloques<br/>y área temporal<br/>volumen EBS")]
+    ds --> alm
+    ver --> alm
+  end
+  lib -. "plano de control · gRPC + TLS<br/>OpenFile · LockBlocks · CommitFile…" .-> ms
+  tra == "plano de datos · gRPC en flujo + TLS<br/>WriteBlock · ReadBlock" ==> ds
+  lat -. "TLS mutuo · latidos, avisos, informes<br/>(la respuesta trae órdenes)" .-> ms
+  ds == "TLS mutuo · reenvío a secundarias<br/>y re-replicación" ==> otros["Otros nodos de datos"]

@@ -1,0 +1,31 @@
+sequenceDiagram
+  autonumber
+  participant C as client-1
+  participant L as Líder de metadatos
+  participant P as datanode-2 (primaria)
+  participant S1 as datanode-4
+  participant S2 as datanode-5
+  C->>L: OpenFile(/informes/2026.pdf, CREATE)
+  L-->>C: file_handle, versión, clave de datos
+  C->>L: LockBlocks(todo el archivo)
+  L-->>C: lease_id, caduca en 30 s
+  C->>L: AllocateBlocks([0, 1, 2])
+  L-->>C: block_id nuevos, 3 nodos por bloque, tokens de escritura
+  Note over C: cifra el bloque 0 con AES-256-GCM y calcula block_sha256
+  C->>P: WriteBlock(cabecera + 16 MiB en mensajes de 1 MiB)
+  par reenvío en paralelo
+    P->>S1: WriteBlock(b0)
+  and
+    P->>S2: WriteBlock(b0)
+  end
+  Note over P,S2: en cada réplica: área temporal, fsync, hash verificado, renombrado
+  P->>L: ReportBlockReceived(b0)
+  S1->>L: ReportBlockReceived(b0)
+  S1-->>P: OK
+  P-->>C: stored_on = datanode-2, datanode-4 (W = 2)
+  S2->>L: ReportBlockReceived(b0), en segundo plano
+  Note over C,S2: los bloques 1 y 2 siguen el mismo camino, en paralelo
+  C->>L: CommitFile(bloques y hashes)
+  Note over L: arrendamiento vigente, rango sin cambios y al menos 2 avisos por bloque, en una sola entrada del log
+  L-->>C: versión 4
+  C->>L: UnlockBlocks(lease_id)
