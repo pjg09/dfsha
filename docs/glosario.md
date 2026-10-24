@@ -30,6 +30,7 @@ en el glosario no significa que ya se haya decidido.
 | seguidor | `follower` | Servidor de metadatos que no es el líder: replica el log y redirige al líder (ADR 0014) | esclavo, `slave`, réplica (es otra cosa) |
 | log replicado | `replicated_log` | Secuencia ordenada de cambios de metadatos que el consenso Raft copia en la mayoría | journal, `edit_log` (salvo al citar HDFS) |
 | instantánea | `snapshot` | Copia completa del estado de los metadatos que permite recortar el log replicado | — |
+| copia de seguridad | `backup` | Instantánea de los metadatos guardada fuera de las instancias, en S3, al final de cada sesión de trabajo (ADR 0035) | respaldo |
 
 ## 2. Datos y almacenamiento
 
@@ -119,6 +120,8 @@ en el glosario no significa que ya se haya decidido.
 | latido | `heartbeat` | Mensaje periódico de un nodo de datos que demuestra que sigue vivo | ping |
 | informe de bloques | `block_report` | Lista de bloques que tiene un nodo de datos; se envía al darse de alta y periódicamente (ADR 0018) | — |
 | aviso de bloque recibido | `block_received` | Mensaje de un nodo de datos al servidor de metadatos cuando guarda una réplica verificada (ADR 0013) | — |
+| orden | `DataNodeCommand` | Instrucción que el servidor de metadatos envía a un nodo de datos en la respuesta a su latido: `REPLICATE`, `DELETE`, `VERIFY` o `SEND_BLOCK_REPORT` (ADR 0018) | comando (reservado para el CLI), tarea |
+| código de motivo | `reason` (en `google.rpc.ErrorInfo`) | Código propio en `UPPER_SNAKE` que detalla un error gRPC: `LOCK_CONFLICT`, `SAFE_MODE_ACTIVE`… Las convenciones (§1 y §2) lo llaman también «código de error» | — |
 | detector de fallos | `failure_detector` | Componente que decide si un nodo está caído | — |
 | estado del nodo | `node_state`, `NodeState` | Vivo, sospechoso o caído | — |
 | vivo / sospechoso / caído | `alive` / `suspect` / `dead` | Estados posibles de un nodo | `up`/`down`, activo/inactivo |
