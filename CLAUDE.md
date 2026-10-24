@@ -15,7 +15,6 @@ Lee y aplica:
 
 ## Skills y plugins del repositorio
 Skills propias (`.claude/skills/`), que **solo se ejecutan cuando el usuario las invoca**:
-- `/seccion <sección>`: redacta una sección del documento de la fase I y se detiene a esperar revisión.
 - `/adr <decisión>`: redacta un ADR con la plantilla del repo y lo guarda al aprobarlo.
 - `/commit [push]`: agrupa y redacta los commits según `CONTRIBUTING.md`, y sube solo si se pide.
 
