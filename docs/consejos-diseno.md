@@ -82,7 +82,7 @@ trabajadores no replica.
 → El factor de replicación se justifica por **tolerancia a fallos**, no por rendimiento. Si se
 quiere leer en paralelo desde varias réplicas, eso es otra decisión y hay que justificarla aparte.
 
-**C9 · Quórum de mayoría: Q = ⌊N/2⌋ + 1.** — `[G4]`, `[D08]`
+**C9 · Quórum de mayoría: Q = ⌊N/2⌋ + 1.** — `[G4]`
 N=3 → Q=2, tolera 1 fallo; N=5 → Q=3, tolera 2. Con una sola réplica viva de tres no se aceptan
 escrituras nuevas, **lo que no significa que se hayan perdido datos**.
 → Si se usa quórum: cuántas réplicas, cuántas fallas tolera la escritura, cuántas la lectura, y qué
@@ -240,10 +240,11 @@ lab, porque llega con horas de retraso.
 
 **C29 · Discos EBS: montaje persistente o datos perdidos sin aviso.** — `[AWS]`, `practicas/ebs-volumen/`
 Si un volumen montado a mano no está en `fstab` (por UUID y con `nofail`), tras reiniciar el punto de
-montaje es una carpeta vacía del disco raíz y se escribe allí **sin ningún error**. El volumen raíz se
+montaje es un directorio vacío del disco raíz y se escribe allí **sin ningún error**. El volumen raíz se
 borra al terminar la instancia (`DeleteOnTermination=true`).
-→ Si los nodos de datos guardan bloques en EBS, el montaje va en el script de despliegue y el nodo
-**comprueba al arrancar** que su directorio de datos está montado.
+→ Los nodos de datos (ADR 0026) y los servidores de metadatos (ADR 0035) guardan sus datos en un volumen
+EBS propio: el montaje va en el script de despliegue y cada servidor **comprueba al arrancar** que su
+directorio de datos está montado.
 
 **C30 · Grupos de seguridad.** — `[AWS]`
 El grupo que crea el asistente de lanzamiento (`launch-wizard-1` en la instancia de prueba) solo
