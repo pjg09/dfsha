@@ -200,16 +200,43 @@ TLS entre nodos, credenciales de usuario y comprobación del propietario. Ademá
 cambia en cada sesión**.
 → Es la razón práctica de RNF7 y de los nombres `<rol>-<n>` (ADR 0003). Ninguna configuración guarda IP.
 
-**C27 · Las credenciales caducan con la sesión.** — `[AWS]`
-Las sesiones del lab duran unas 4 h, y después las credenciales del CLI devuelven `ExpiredToken`.
+**C27 · Las credenciales caducan con la sesión, y al acabar la sesión se paran las instancias.** — `[AWS]`, Readme del Learner Lab (consultado el 2026-10-23)
+Las sesiones del lab duran unas 4 h, y el temporizador se amplía pulsando *Start Lab* otra vez. Al
+caducar, las credenciales del CLI devuelven `ExpiredToken`. Al acabar la sesión, el lab **para las
+instancias en marcha y en la siguiente sesión las vuelve a arrancar todas a la vez**. La IP pública
+cambia; la privada se conserva, según la documentación de AWS (sin comprobar en el lab).
 → Los scripts de despliegue tienen que ser **repetibles** y no pueden depender de una sesión
-anterior. Ningún componente de DFSha usa credenciales de AWS en tiempo de ejecución.
+anterior. Ningún componente de DFSha usa credenciales de AWS en tiempo de ejecución. El clúster tiene
+que aguantar un **arranque en frío** de todos los nodos a la vez (ADR 0031), y Docker tiene que estar
+activado al arrancar el sistema (ADR 0027).
 
-**C28 · Instancias pequeñas.** — `[AWS]`
-La t3.micro de prueba tiene **908 MiB de RAM** y 8 GiB de disco.
-→ Hay que dimensionar el número de nodos y el tamaño de los archivos de prueba con estos recursos.
-Con C17 harán falta varios nodos de datos: elegir tamaños de instancia y de volumen contando con el
-crédito del lab.
+**C28 · Límites del lab e instancias pequeñas.** — `[AWS]`, Readme del Learner Lab (consultado el 2026-10-23) y comprobaciones con el CLI de esa fecha
+- La t3.micro de prueba tiene **908 MiB de RAM** y 8 GiB de disco.
+- **Instancias:**
+  - Como máximo **9 en marcha a la vez**, sea cual sea su tamaño: las que sobran se terminan.
+  - Con 20 o más, la cuenta se desactiva y se borra todo.
+  - Máximo de 32 vCPU, tipos de nano a large y solo On-Demand.
+  - Regiones: us-east-1 y us-west-2.
+- **EBS:**
+  - Hasta 100 GB por volumen, de tipo gp2, gp3, sc1 o standard, sin IOPS provisionadas.
+  - **Se pueden cifrar** con la clave gestionada `aws/ebs`. Comprobado con un volumen de prueba: quedó
+    `available` y `Encrypted=true`, y después se borró. El cifrado por defecto de la cuenta está desactivado.
+- **IAM:** no se pueden crear roles; las instancias usan `LabInstanceProfile`.
+- **Otros servicios:**
+  - ECR: con `LabRole` solo se lee; el usuario del lab puede escribir.
+  - Session Manager funciona con `LabInstanceProfile`.
+  - Route 53 responde, y el Readme solo prohíbe registrar dominios.
+  - Service Quotas devuelve `AccessDenied`, así que el límite de vCPU solo consta en el Readme.
+- **Presupuesto:** AWS Budgets se actualiza cada 8–12 h. Si se supera el presupuesto, la cuenta se
+  desactiva y se pierde todo.
+
+→ La topología del ADR 0015 ocupa las 9 instancias y no cabe ninguna más:
+- Ni siquiera cabe la de prueba (`ubuntu-26.04`, en marcha el 2026-10-23). Hay que pararla o terminarla
+  antes de desplegar.
+- El script de despliegue cuenta las instancias en marcha antes de lanzar ninguna.
+
+Hay que dimensionar los nodos y los archivos de prueba con estos recursos. No hay que fiarse del saldo del
+lab, porque llega con horas de retraso.
 
 **C29 · Discos EBS: montaje persistente o datos perdidos sin aviso.** — `[AWS]`, `practicas/ebs-volumen/`
 Si un volumen montado a mano no está en `fstab` (por UUID y con `nofail`), tras reiniciar el punto de
@@ -232,4 +259,4 @@ abre el 22/tcp, y además a todo Internet (`0.0.0.0/0`).
 | «No basta una simulación local monolítica» | §5 | Varios contenedores en una sola máquina no cuentan como producto final. Hacen falta varias EC2 con comunicación real por red |
 | Garantías «comprobables» | §7 | «El sistema es consistente» no vale. Hay que decir cuándo se confirma y qué se puede leer |
 | Nota individual no sustituible | §6 | El documento de la fase I se califica por sí solo |
-| Matriz comparativa de propuestas individuales | §5.1 | El proyecto es individual: **confirmar con el profesor** qué la sustituye |
+| Matriz comparativa de propuestas individuales | §5.1 | Confirmado: el proyecto es individual y la matriz no aplica. Si se quiere un artefacto equivalente, que registre qué decisiones del diseño de la fase I cambian en la fase II y por qué |
