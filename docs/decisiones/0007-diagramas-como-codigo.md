@@ -1,6 +1,6 @@
 # 0007 · Diagramas como código, con Mermaid por defecto
 
-- **Estado:** Aceptada
+- **Estado:** Sustituida por 0034
 - **Fecha:** 2026-10-23
 - **Requisitos relacionados:** §4.1 (diagramas de componentes y de despliegue), §4.3 (diagramas legibles), §5.3; aclaración A3
 

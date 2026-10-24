@@ -20,7 +20,7 @@ Reglas:
 | [0004](0004-commits-convencionales-y-versionado.md) | Conventional Commits y versionado semántico con release automático | Aceptada | 2026-10-21 |
 | [0005](0005-semantic-release-en-cada-push.md) | semantic-release en cada push a `main`, empezando en 0.1.0 | Aceptada | 2026-10-21 |
 | [0006](0006-registro-de-cambios-entre-fases.md) | Tabla de cambios entre fases en lugar de la matriz comparativa | Aceptada | 2026-10-23 |
-| [0007](0007-diagramas-como-codigo.md) | Diagramas como código, con Mermaid por defecto | Aceptada | 2026-10-23 |
+| [0007](0007-diagramas-como-codigo.md) | Diagramas como código, con Mermaid por defecto | Sustituida por 0034 | 2026-10-23 |
 | [0008](0008-stack-tecnologico.md) | Python 3.12, gRPC y Docker sobre varias instancias EC2 | Aceptada | 2026-10-23 |
 | [0009](0009-bloques-inmutables-y-versiones-de-archivo.md) | Bloques inmutables y versiones de archivo: semántica de `write()` | Aceptada | 2026-10-23 |
 | [0010](0010-consistencia-de-apertura-cierre.md) | Consistencia de apertura-cierre para `read()` y `write()` | Aceptada | 2026-10-23 |
@@ -47,6 +47,8 @@ Reglas:
 | [0031](0031-modo-seguro-tras-la-eleccion-de-lider.md) | Modo seguro tras cada elección de líder | Aceptada | 2026-10-23 |
 | [0032](0032-replicas-corruptas-y-verificacion-periodica.md) | Réplicas corruptas y verificación periódica de bloques | Aceptada | 2026-10-23 |
 | [0033](0033-sincronizacion-de-relojes.md) | Sincronización de relojes entre nodos | Aceptada | 2026-10-23 |
+| [0034](0034-documento-de-la-fase-1-y-figuras.md) | Documento de la fase I en Markdown y figuras exportadas a PNG | Aceptada | 2026-10-23 |
+| [0035](0035-persistencia-de-los-metadatos.md) | Persistencia de los metadatos en un volumen EBS por servidor de metadatos | Aceptada | 2026-10-24 |
 
 ## Plantilla
 
