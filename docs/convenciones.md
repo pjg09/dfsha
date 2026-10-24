@@ -29,12 +29,12 @@ Reglas:
 ### Ficheros y carpetas
 | Artefacto | Convención | Ejemplo |
 |---|---|---|
-| Carpetas y ficheros que no son Python (docs, scripts, configuración, despliegue) | `kebab-case` | `docs/fase-1/`, `scripts/deploy-aws.sh` |
+| Directorios y archivos que no son Python (docs, scripts, configuración, despliegue) | `kebab-case` | `docs/fase-1.md`, `scripts/deploy-aws.sh` |
 | Paquetes y módulos Python | `snake_case` (Python no admite guiones en `import`) | `dfsha/datanode/block_store.py` |
 | Tests | `tests/test_<módulo>.py` (pytest exige el prefijo) | `tests/test_replication.py` |
 | Ficheros `.proto` | `snake_case.proto`, en una carpeta que coincide con el paquete | `proto/dfsha/v1/metadata.proto` |
 | Registro de decisiones (ADR) | `NNNN-titulo-en-kebab.md`, numeración correlativa que nunca se reutiliza | `docs/decisiones/NNNN-politica-de-replicacion.md` |
-| Diagramas | `NN-nombre.<ext>` para la fuente editable; la exportación lleva el mismo nombre | `docs/diagramas/02-despliegue.mmd` → `02-despliegue.png` |
+| Diagramas | `NN-nombre.<ext>` para la fuente editable (`.mmd` u otra herramienta); la exportación es PNG a escala 2 con el mismo nombre (ADR 0034). En las figuras de la fase I, `NN` es el número de la figura | `docs/diagramas/03-despliegue.mmd` → `03-despliegue.png` |
 | Evidencias de pruebas | Carpeta `AAAA-MM-DD-<escenario>` | `evidencias/2026-11-05-caida-datanode/` |
 | Resultados de experimentos | `AAAA-MM-DD-<experimento>.csv` | `bench/resultados/2026-11-06-latencia-lectura.csv` |
 
@@ -121,6 +121,7 @@ tal cual: `ls`, `cd`, `mkdir`, `rmdir`, `rm`, `put`, `get`, `open`, `close`, `re
   se resuelven por nombre (RNF7). Cómo se resuelven los nombres en AWS es una decisión de diseño y va
   en su propio ADR. Las IP solo pueden aparecer en `evidencias/`, como parte de la salida registrada.
 - Los puertos se definen **por rol y en un único sitio** de la configuración, nunca como literal en el código.
+- Puertos del clúster: `MetadataService` en 50051/tcp y `DataNodeService` en 50052/tcp (`fase-1.md` §3.6). El de Raft lo fija la implementación que se elija (ADR 0014).
 
 ### Recursos de AWS
 La cuenta del Learner Lab se comparte con otros laboratorios, así que todo lo del proyecto lleva el
@@ -132,7 +133,7 @@ prefijo `dfsha-`.
 | `hostname` dentro de la EC2 | `<rol>-<n>` (sin prefijo, igual que en Docker) | `datanode-2` |
 | Security group | `dfsha-sg-<rol>` | `dfsha-sg-datanode` |
 | Volumen EBS de datos | etiqueta `Name` = `dfsha-<rol>-<n>-data` | `dfsha-datanode-2-data` |
-| Bucket S3, si se usa | `dfsha-<uso>-<sufijo-único>` (los nombres de S3 son globales) | `dfsha-evidencias-pjg09` |
+| Bucket S3 | `dfsha-<uso>-<sufijo-único>` (los nombres de S3 son globales) | `dfsha-copias-pjg09`: copias de seguridad de los metadatos (ADR 0035) |
 
 Todos los recursos llevan además la etiqueta `project=dfsha`, para poder listarlos y borrarlos juntos.
 
@@ -155,12 +156,14 @@ dfsha/
 ├── CONTRIBUTING.md         # reglas de commits, autoría y release
 ├── docs/
 │   ├── enunciado.md        # transcripción fiel del enunciado oficial
+│   ├── aclaraciones.md     # respuestas del profesor (A1–A8), con el mismo rango que el enunciado
 │   ├── consejos-diseno.md  # condicionantes de diseño C1–C30
 │   ├── convenciones.md     # este documento
 │   ├── glosario.md
 │   ├── decisiones/         # ADR (registro de decisiones del enunciado §2)
-│   ├── diagramas/          # fuentes y exportaciones de diagramas, comunes a todos los documentos
-│   ├── fase-1/             # documento de diseño individual
+│   ├── diagramas/          # fuentes y exportaciones PNG de diagramas, comunes a todos los documentos (ADR 0034)
+│   ├── fase-1.md           # documento de diseño individual
+│   ├── referencias.md      # fuentes en formato IEEE, con la numeración de fase-1.md
 │   └── fase-2/             # informe final
 ├── proto/dfsha/v1/         # contratos gRPC
 ├── dfsha/                  # paquete Python: common/, metadata/, datanode/, client/

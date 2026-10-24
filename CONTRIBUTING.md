@@ -101,7 +101,7 @@ dice qué tipo y qué ámbito lleva cada área.
 
 | Ámbito | Abarca |
 |---|---|
-| `design` | Documento de diseño de la fase I (`docs/fase-1/`) |
+| `design` | Documento de diseño de la fase I (`docs/fase-1.md`) y sus referencias (`docs/referencias.md`) |
 | `report` | Informe técnico final de la fase II (`docs/fase-2/`) |
 | `adr` | Registro de decisiones (`docs/decisiones/`) |
 | `evidence` | Evidencias de las pruebas mínimas (`evidencias/`) |
@@ -201,7 +201,7 @@ Cualquier otro pie está prohibido, en particular `Co-Authored-By:` y las marcas
 | | Corrección de un despliegue roto | `fix(deploy)` |
 | Dependencias (`requirements*.txt`, `pyproject.toml`) | Añadir, quitar o actualizar | `build` |
 | `.github/`, `.releaserc.json` | Automatización del repositorio | `ci` |
-| `docs/fase-1/` | Documento de diseño | `docs(design)` |
+| `docs/fase-1.md`, `docs/referencias.md` | Documento de diseño y sus referencias | `docs(design)` |
 | `docs/fase-2/` | Informe final | `docs(report)` |
 | `docs/diagramas/` | Diagramas, comunes a todos los documentos | En el mismo commit que el documento que los usa, con su ámbito; si cambian solos, `docs` |
 | `docs/decisiones/` | ADR nuevo o cambio de estado | `docs(adr)` |
