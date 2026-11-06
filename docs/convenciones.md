@@ -134,6 +134,7 @@ prefijo `dfsha-`.
 | Security group | `dfsha-sg-<rol>` | `dfsha-sg-datanode` |
 | Volumen EBS de datos | etiqueta `Name` = `dfsha-<rol>-<n>-data` | `dfsha-datanode-2-data` |
 | Bucket S3 | `dfsha-<uso>-<sufijo-único>` (los nombres de S3 son globales) | `dfsha-copias-pjg09`: copias de seguridad de los metadatos (ADR 0035) |
+| Repositorio de ECR | `dfsha-<rol>`, igual que la imagen, con etiquetas inmutables (ADR 0037) | `dfsha-datanode` |
 
 Todos los recursos llevan además la etiqueta `project=dfsha`, para poder listarlos y borrarlos juntos.
 
