@@ -27,10 +27,10 @@ def store(tmp_path: Path) -> BlockStore:
 
 def _write(store: BlockStore, data: bytes, sha256: bytes | None = None) -> str:
     block_id = str(uuid.uuid4())
-    temporary = store.create_temporary(block_id, sha256 or hashlib.sha256(data).digest(), len(data))
-    temporary.append(data)
-    meta = temporary.finish()
-    store.commit(temporary, meta)
+    staging = store.create_staging(block_id, sha256 or hashlib.sha256(data).digest(), len(data))
+    staging.append(data)
+    meta = staging.finish()
+    store.commit(staging, meta)
     return block_id
 
 
@@ -72,42 +72,42 @@ def test_write_and_get(store: BlockStore) -> None:
     assert path.read_bytes() == data
     assert meta.sha256 == hashlib.sha256(data).digest()
     assert meta.size_bytes == len(data)
-    assert not any((store.data_directory / "tmp").iterdir())
+    assert not any((store.data_directory / "staging").iterdir())
 
 
 def test_wrong_hash_is_not_stored(store: BlockStore) -> None:
     block_id = str(uuid.uuid4())
-    temporary = store.create_temporary(block_id, bytes(32), 4)
-    temporary.append(b"abcd")
+    staging = store.create_staging(block_id, bytes(32), 4)
+    staging.append(b"abcd")
     with pytest.raises(DfshaError) as raised:
-        temporary.finish()
+        staging.finish()
     assert raised.value.reason is Reason.BLOCK_CORRUPTED
-    store.discard(temporary)
+    store.discard(staging)
     with pytest.raises(DfshaError) as missing:
         store.get_block(block_id)
     assert missing.value.code is grpc.StatusCode.NOT_FOUND
-    assert not any((store.data_directory / "tmp").iterdir())
+    assert not any((store.data_directory / "staging").iterdir())
 
 
 def test_more_bytes_than_announced(store: BlockStore) -> None:
-    temporary = store.create_temporary(str(uuid.uuid4()), bytes(32), 3)
+    staging = store.create_staging(str(uuid.uuid4()), bytes(32), 3)
     with pytest.raises(DfshaError) as raised:
-        temporary.append(b"abcd")
+        staging.append(b"abcd")
     assert raised.value.reason is Reason.BLOCK_CORRUPTED
-    store.discard(temporary)
+    store.discard(staging)
 
 
 def test_retry_of_same_block_is_idempotent(store: BlockStore) -> None:
     data = b"bloque inmutable"
     block_id = str(uuid.uuid4())
     for expected in (True, False):
-        temporary = store.create_temporary(block_id, hashlib.sha256(data).digest(), len(data))
-        temporary.append(data)
-        assert store.commit(temporary, temporary.finish()) is expected
+        staging = store.create_staging(block_id, hashlib.sha256(data).digest(), len(data))
+        staging.append(data)
+        assert store.commit(staging, staging.finish()) is expected
     assert store.get_block(block_id)[0].read_bytes() == data
 
 
-def test_clean_temporary_area(store: BlockStore) -> None:
-    (store.data_directory / "tmp" / "restos-de-un-bloque").write_bytes(b"x" * 10)
-    assert store.clean_temporary_area() == 1
-    assert not any((store.data_directory / "tmp").iterdir())
+def test_clean_staging_area(store: BlockStore) -> None:
+    (store.data_directory / "staging" / "restos-de-un-bloque").write_bytes(b"x" * 10)
+    assert store.clean_staging_area() == 1
+    assert not any((store.data_directory / "staging").iterdir())

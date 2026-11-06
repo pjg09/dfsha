@@ -12,7 +12,7 @@ from typing import Protocol
 import grpc
 
 from dfsha.common.errors import DfshaError, Reason
-from dfsha.datanode.block_store import BlockMeta, BlockStore, TemporaryBlock
+from dfsha.datanode.block_store import BlockMeta, BlockStore, StagingBlock
 from dfsha.v1 import datanode_pb2, datanode_pb2_grpc, metadata_pb2
 
 logger = logging.getLogger(__name__)
@@ -73,16 +73,16 @@ class _Forward:
         self,
         addr: str,
         header: datanode_pb2.WriteBlockHeader,
-        temporary: TemporaryBlock,
+        staging: StagingBlock,
         stub: datanode_pb2_grpc.DataNodeServiceStub,
         timeout_s: float,
     ) -> None:
         self.addr = addr
         self._header = header
-        self._temporary = temporary
+        self._staging = staging
         self._timeout_s = timeout_s
         # El descriptor se abre antes del renombrado: sigue valiendo cuando el bloque pasa al almacén
-        self._descriptor = os.open(temporary.path, os.O_RDONLY)
+        self._descriptor = os.open(staging.path, os.O_RDONLY)
         self.future: grpc.Future = stub.WriteBlock.future(self._requests(), timeout=timeout_s)
 
     def _requests(self) -> Iterator[datanode_pb2.WriteBlockRequest]:
@@ -90,7 +90,7 @@ class _Forward:
             yield datanode_pb2.WriteBlockRequest(header=self._header)
             offset = 0
             while True:
-                available = self._temporary.wait_for_data(offset, self._timeout_s)
+                available = self._staging.wait_for_data(offset, self._timeout_s)
                 if available is None:
                     return  # la escritura falló: la secundaria recibe un bloque incompleto y lo descarta
                 if available == 0:
@@ -138,21 +138,21 @@ class DataNodeService(datanode_pb2_grpc.DataNodeServiceServicer):
 
     def _write_block(self, request_iterator: Iterator[datanode_pb2.WriteBlockRequest]) -> datanode_pb2.WriteBlockResponse:
         header = self._read_header(request_iterator)
-        temporary = self._store.create_temporary(header.block_id, header.block_sha256, header.size_bytes)
-        forwards = [self._start_forward(addr, header, temporary) for addr in header.secondary_addrs]
+        staging = self._store.create_staging(header.block_id, header.block_sha256, header.size_bytes)
+        forwards = [self._start_forward(addr, header, staging) for addr in header.secondary_addrs]
         try:
             for request in request_iterator:
                 if request.WhichOneof("content") != "data":
                     raise DfshaError(grpc.StatusCode.INVALID_ARGUMENT, "La cabecera solo puede ir en el primer mensaje")
-                temporary.append(request.data)
-            meta = temporary.finish()
+                staging.append(request.data)
+            meta = staging.finish()
         except BaseException:
             # Bloque corrupto, cliente que se va o error de disco: nada de esto cuenta como réplica
             for forward in forwards:
                 forward.cancel()
-            self._store.discard(temporary)
+            self._store.discard(staging)
             raise
-        if self._store.commit(temporary, meta):
+        if self._store.commit(staging, meta):
             logger.info("Bloque %s guardado (%d bytes)", meta.block_id, meta.size_bytes)
         self._reporter.report_block_received(
             metadata_pb2.StoredBlock(block_id=meta.block_id, block_sha256=meta.sha256, size_bytes=meta.size_bytes)
@@ -178,12 +178,12 @@ class DataNodeService(datanode_pb2_grpc.DataNodeServiceServicer):
             raise DfshaError(grpc.StatusCode.INVALID_ARGUMENT, "La primaria no puede ser también secundaria")
         return header
 
-    def _start_forward(self, addr: str, header: datanode_pb2.WriteBlockHeader, temporary: TemporaryBlock) -> _Forward:
+    def _start_forward(self, addr: str, header: datanode_pb2.WriteBlockHeader, staging: StagingBlock) -> _Forward:
         secondary_header = datanode_pb2.WriteBlockHeader()
         secondary_header.CopyFrom(header)
         del secondary_header.secondary_addrs[:]  # las secundarias no reenvían
         stub = self._channels.get_stub(addr)
-        return _Forward(addr, secondary_header, temporary, stub, self._settings.transfer_timeout_s)
+        return _Forward(addr, secondary_header, staging, stub, self._settings.transfer_timeout_s)
 
     def _wait_for_quorum(self, meta: BlockMeta, forwards: list[_Forward]) -> datanode_pb2.WriteBlockResponse:
         """Responde en cuanto W réplicas, la primaria incluida, tienen el bloque (fase I §4.4)."""

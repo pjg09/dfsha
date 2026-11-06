@@ -5,8 +5,8 @@ Organización del directorio de datos:
 - ``dfsha-node-id``: marca con el ``node_id`` del nodo. Sin ella el nodo no arranca.
 - ``blocks/<2 primeros caracteres>/<block_id>``: el bloque, tal como llega (cifrado).
 - ``blocks/<...>/<block_id>.meta``: su hash SHA-256 y su tamaño, para servirlos sin leer el bloque.
-- ``tmp/``: área temporal. Un bloque solo pasa al almacén con un renombrado atómico, después de
-  ``fsync`` y de verificar su hash. Lo que queda en ``tmp/`` nunca cuenta como réplica.
+- ``staging/``: área temporal. Un bloque solo pasa al almacén con un renombrado atómico, después de
+  ``fsync`` y de verificar su hash. Lo que queda en ``staging/`` nunca cuenta como réplica.
 """
 
 import hashlib
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 NODE_ID_MARKER = "dfsha-node-id"
 _BLOCKS_DIRECTORY = "blocks"
-_TEMPORARY_DIRECTORY = "tmp"
+_STAGING_DIRECTORY = "staging"
 _META_SUFFIX = ".meta"
 
 
@@ -82,7 +82,7 @@ def verify_data_directory(data_directory: Path, node_id: str, require_mount_poin
         raise DataDirectoryError(f"El volumen de datos es de {marked_node_id!r}, no de {node_id!r}")
 
 
-class TemporaryBlock:
+class StagingBlock:
     """Bloque que se está recibiendo en el área temporal.
 
     Calcula el hash mientras se escribe y permite que otros hilos lean lo ya escrito
@@ -169,14 +169,14 @@ class BlockStore:
     def __init__(self, data_directory: Path) -> None:
         self.data_directory = data_directory
         self._blocks_directory = data_directory / _BLOCKS_DIRECTORY
-        self._temporary_directory = data_directory / _TEMPORARY_DIRECTORY
+        self._staging_directory = data_directory / _STAGING_DIRECTORY
         self._blocks_directory.mkdir(exist_ok=True)
-        self._temporary_directory.mkdir(exist_ok=True)
+        self._staging_directory.mkdir(exist_ok=True)
 
-    def clean_temporary_area(self) -> int:
+    def clean_staging_area(self) -> int:
         """Borra los restos de escrituras interrumpidas. Se llama al arrancar."""
         removed = 0
-        for path in self._temporary_directory.iterdir():
+        for path in self._staging_directory.iterdir():
             if path.is_file():
                 path.unlink()
                 removed += 1
@@ -184,12 +184,12 @@ class BlockStore:
             logger.info("Borrados %d bloques a medias del área temporal", removed)
         return removed
 
-    def create_temporary(self, block_id: str, expected_sha256: bytes, expected_size_bytes: int) -> TemporaryBlock:
+    def create_staging(self, block_id: str, expected_sha256: bytes, expected_size_bytes: int) -> StagingBlock:
         validate_block_id(block_id)
-        path = self._temporary_directory / f"{block_id}.{uuid.uuid4().hex}"
-        return TemporaryBlock(path, block_id, expected_sha256, expected_size_bytes)
+        path = self._staging_directory / f"{block_id}.{uuid.uuid4().hex}"
+        return StagingBlock(path, block_id, expected_sha256, expected_size_bytes)
 
-    def commit(self, temporary: TemporaryBlock, meta: BlockMeta) -> bool:
+    def commit(self, staging: StagingBlock, meta: BlockMeta) -> bool:
         """Pasa un bloque verificado al almacén con un renombrado atómico.
 
         Devuelve False si el bloque ya estaba (un reintento): los bloques son inmutables y un
@@ -197,23 +197,23 @@ class BlockStore:
         """
         block_path = self._get_block_path(meta.block_id)
         if block_path.exists():
-            temporary.path.unlink(missing_ok=True)
+            staging.path.unlink(missing_ok=True)
             return False
         block_path.parent.mkdir(exist_ok=True)
         meta_path = block_path.with_name(block_path.name + _META_SUFFIX)
-        meta_temporary = temporary.path.with_name(temporary.path.name + _META_SUFFIX)
-        meta_temporary.write_text(json.dumps({"sha256": meta.sha256.hex(), "size_bytes": meta.size_bytes}))
-        with open(meta_temporary, "rb") as meta_file:
+        meta_staging = staging.path.with_name(staging.path.name + _META_SUFFIX)
+        meta_staging.write_text(json.dumps({"sha256": meta.sha256.hex(), "size_bytes": meta.size_bytes}))
+        with open(meta_staging, "rb") as meta_file:
             os.fsync(meta_file.fileno())
         # Primero los metadatos: si existe el bloque, existen sus metadatos
-        os.replace(meta_temporary, meta_path)
-        os.replace(temporary.path, block_path)
+        os.replace(meta_staging, meta_path)
+        os.replace(staging.path, block_path)
         _fsync_directory(block_path.parent)
         return True
 
-    def discard(self, temporary: TemporaryBlock) -> None:
-        temporary.fail()
-        temporary.path.unlink(missing_ok=True)
+    def discard(self, staging: StagingBlock) -> None:
+        staging.fail()
+        staging.path.unlink(missing_ok=True)
 
     def get_block(self, block_id: str) -> tuple[Path, BlockMeta]:
         validate_block_id(block_id)

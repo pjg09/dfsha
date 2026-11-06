@@ -58,7 +58,7 @@ def create_server(
         initialize_data_directory(node_config.data_directory, node_config.settings.node_id)
     verify_data_directory(node_config.data_directory, node_config.settings.node_id, node_config.require_mount_point)
     store = BlockStore(node_config.data_directory)
-    store.clean_temporary_area()
+    store.clean_staging_area()
     service = DataNodeService(
         node_config.settings, store, reporter or LoggingBlockReporter(), channels or ChannelPool()
     )
