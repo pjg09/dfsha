@@ -22,7 +22,7 @@ Qué hay que entregar: enunciado §5.3. Cómo se califica: enunciado §6.
 
 | Etapa | Nombre | Criterio de §6 al que aporta | Estado |
 |---|---|---|---|
-| 0 | Supuestos de AWS y del profesor | — | Pendiente |
+| 0 | Supuestos de AWS y del profesor | — | En curso |
 | 1 | Esqueleto del repositorio y contratos | Implementación RF1–RF3 | Pendiente |
 | 2 | Elección de Raft | Alta disponibilidad | Pendiente |
 | 3 | Nodo de datos y entorno local | Distribución y comunicaciones | Pendiente |
@@ -45,10 +45,10 @@ Confirmar lo que la fase I dejó sin probar, antes de escribir código que depen
 - **Learner Lab:** terminar la instancia de prueba `ubuntu-26.04`, porque el clúster ocupa las 9 plazas;
   crear y borrar un bucket de S3 cifrado (ADR 0035); comprobar si una instancia puede obtener imágenes de
   ECR o si hay que construirlas en cada una (§14); comprobar Docker en una t3.micro.
-- **Profesor:** fecha de entrega; formato y extensión del informe; si acepta las evidencias en texto en el
-  repositorio; dónde se entrega el vídeo; cómo será la defensa.
+- **Profesor:** formato y extensión del informe, si acepta las evidencias en texto en el repositorio y
+  cómo será la defensa. Respondido en A9 y A10.
 
-**Terminada cuando:** las respuestas del profesor están en `aclaraciones.md` (A9 en adelante), lo
+**Terminada cuando:** las respuestas del profesor están en `aclaraciones.md` (A9 y A10), lo
 comprobado en AWS está en `notas.md` y lo que cambie el diseño tiene su ADR (al menos, cómo llegan las
 imágenes a las instancias).
 
@@ -91,9 +91,9 @@ primaria, lo leen con el mismo hash y rechazan un bloque corrupto.
 
 **Terminada cuando:** en local, `put` de 1 GiB y `get` devuelven el mismo hash.
 
-**Punto de control de alcance.** Comparar lo avanzado con la fecha de entrega. Si no da el tiempo, la
-simplificación se declara y se lleva al profesor **ahora**, antes de implementar (enunciado §7, A7), no al
-final.
+**Punto de control de alcance.** Revisar si alguna parte del diseño ha resultado inviable de implementar.
+Si es así, la simplificación se declara y se lleva al profesor **ahora**, antes de implementarla
+(enunciado §7, A7), no al final.
 
 ### 6. Seguridad
 - Usuarios y tokens de acceso (§10.2), autorización por propietario y tokens de bloque (§10.3), TLS con
@@ -138,27 +138,30 @@ escenarios 3 y 4 (§11.3, §11.4), con sus evidencias registradas.
 ### 11. Informe técnico final
 - En `docs/fase-2/`: arquitectura, tabla de cambios frente a la fase I (ADR 0006), APIs, algoritmos,
   despliegue, pruebas, resultados y limitaciones (§5.3). Fuentes: ADR 0036.
-- Figuras actualizadas y PDF (o el formato que pida el profesor).
+- Figuras actualizadas y PDF, sin límite de extensión (A9).
 - Revisar el `README.md` siguiendo sus instrucciones desde cero: clonar, desplegar y probar.
 
 **Terminada cuando:** el PDF está generado y revisado.
 
 ### 12. Vídeo
 - Guion de 10–15 min: arquitectura, ejecución distribuida, fallos y resultados medidos (§5.3).
-- Grabación en AWS en una sola sesión del lab, ensayada antes.
+- Revisión del guion y del vídeo grabado. La grabación en AWS se hace en una sola sesión del lab,
+  ensayada antes. La entrega del vídeo la gestiona Pedro.
 
-**Terminada cuando:** el vídeo está exportado y dura entre 10 y 15 min.
+**Terminada cuando:** el vídeo está revisado y dura entre 10 y 15 min.
 
 ### 13. Entrega
 - ADR y cambio de `.releaserc.json` para la 1.0.0 (procedimiento del ADR 0005), y release `v1.0.0`.
 - Etiqueta `entrega-fase-2` (`CONTRIBUTING.md` §7.3).
-- Entrega en Teams: informe, enlace al vídeo y enlace al repositorio.
+- Entrega en Teams (la gestiona Pedro): informe, enlace al vídeo y enlace al repositorio.
 
 **Terminada cuando:** la tarea aparece entregada en Teams.
 
 ### 14. Defensa
-- Repasar cada decisión con su ADR y las preguntas probables. Tener el clúster listo para desplegarse en
-  una sesión, por si hay demostración.
+- 25 minutos: qué se hizo, cómo y por qué, con demostración en vivo y preguntas del profesor (A10).
+- Guion de la demostración, ensayado en una sesión nueva del Learner Lab: desplegar desde cero y mostrar
+  las pruebas mínimas elegidas.
+- Repasar cada decisión con su ADR y las preguntas probables.
 - Después de la defensa: terminar las instancias y borrar los volúmenes y el bucket.
 
 **Terminada cuando:** la defensa está hecha y AWS está limpio.
