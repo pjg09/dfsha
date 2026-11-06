@@ -35,7 +35,7 @@ Reglas:
 | Ficheros `.proto` | `snake_case.proto`, en una carpeta que coincide con el paquete | `proto/dfsha/v1/metadata.proto` |
 | Registro de decisiones (ADR) | `NNNN-titulo-en-kebab.md`, numeración correlativa que nunca se reutiliza | `docs/decisiones/NNNN-politica-de-replicacion.md` |
 | Diagramas | `NN-nombre.<ext>` para la fuente editable (`.mmd` u otra herramienta); la exportación es PNG a escala 2 con el mismo nombre (ADR 0034). En las figuras de la fase I, `NN` es el número de la figura | `docs/diagramas/03-despliegue.mmd` → `03-despliegue.png` |
-| Evidencias de pruebas | Carpeta `AAAA-MM-DD-<escenario>` | `evidencias/2026-11-05-caida-datanode/` |
+| Evidencias de pruebas | Directorio `AAAA-MM-DD-<escenario>` con su `README.md`; índice en `evidencias/README.md` (ADR 0036) | `evidencias/2026-11-05-caida-datanode/` |
 | Resultados de experimentos | `AAAA-MM-DD-<experimento>.csv` | `bench/resultados/2026-11-06-latencia-lectura.csv` |
 
 ### Código Python (PEP 8)

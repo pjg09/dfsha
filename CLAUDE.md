@@ -43,6 +43,14 @@ Plugins con ámbito de proyecto (`.claude/settings.json`):
 - Hosts con el patrón `<rol>-<n>` (`metadata-1`, `datanode-2`); nada de IP literales en el código (RNF7).
 - Un ADR sin commitear se puede corregir. Una vez commiteado, cualquier cambio va en un ADR nuevo que lo sustituye; del antiguo solo cambia la línea de estado.
 
+## Fase II: evidencias e informe (ADR 0036)
+- Cuando una prueba mínima de §5.2 pase en `aws`, se ejecute un experimento (ADR 0028) o se provoque un fallo, **propón registrar la evidencia en ese momento**, antes de que termine la sesión del Learner Lab. Una prueba no está hecha hasta que su evidencia está en `evidencias/` y en su índice.
+- Quita tokens, claves y credenciales de la salida antes de commitearla.
+- Si hace falta una captura que no puedes tomar tú (la consola de AWS, por ejemplo), pídesela a Pedro en ese momento, con el nombre del archivo y el directorio de `evidencias/` donde va.
+- Al terminar cada tarea que haya ejecutado algo en AWS, comprueba que todo lo ejecutado tiene su evidencia y su fila en el índice, y dilo en el resumen final. Si falta algo, dilo antes que nada.
+- Una limitación o un problema que el informe deba contar se anota en `docs/fase-2/notas.md` cuando aparece. Un cambio de diseño va en un ADR.
+- El informe técnico se redacta al final, a partir de los ADR, el código, `evidencias/`, `bench/resultados/` y `docs/fase-2/notas.md`.
+
 ## Documento de la fase I y figuras
 - `docs/fase-1.md` se edita a mano (ya no hay script que lo genere). Citas IEEE `[n]` por orden de primera aparición; tablas y figuras numeradas a mano.
 - **No cambies la numeración** de tablas, figuras ni referencias: el documento ya está maquetado fuera del repo. Lo nuevo entra como filas, viñetas o párrafos. Una fuente nueva va al final de la lista y a `referencias.md`, con su verificación.
