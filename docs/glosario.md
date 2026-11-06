@@ -26,8 +26,11 @@ en el glosario no significa que ya se haya decidido.
 | registro de nodos | `node_registry`, `NodeRegistry` | Tabla de nodos conocidos y su estado, en el servidor de metadatos | directorio de nodos |
 | descubrimiento | `discovery` | Cómo un proceso encuentra a otro sin direcciones fijas (RNF7) | `lookup` (reservado para la DHT de P2P) |
 | alta de un nodo | `register` | Un nodo se anuncia al servidor de metadatos | `join` |
-| líder | `leader` | Servidor de metadatos elegido por mayoría que ordena el log replicado y atiende las peticiones (ADR 0014) | maestro, `master`, primario |
+| líder | `leader` | Servidor de metadatos que tiene la clave de elección en etcd y atiende las peticiones (ADR 0014 y 0039). Los miembros de etcd eligen además su propio líder de Raft | maestro, `master`, primario |
 | seguidor | `follower` | Servidor de metadatos que no es el líder: replica el log y redirige al líder (ADR 0014) | esclavo, `slave`, réplica (es otra cosa) |
+| clave de elección | `election_key` | Clave de etcd, ligada a un arrendamiento de etcd, que tiene el líder mientras lo es (ADR 0039) | cerrojo de líder |
+| época del líder | `leader_epoch` | Revisión de etcd en la que se creó la clave de elección del líder; crece en cada elección (ADR 0039) | término (es el de Raft), generación |
+| ficha de cercado | `fencing_token` | Valor que acompaña a una orden para que el destinatario rechace las de un líder depuesto; en DFSha, la época del líder (ADR 0039) | token (es otra cosa) |
 | log replicado | `replicated_log` | Secuencia ordenada de cambios de metadatos que el consenso Raft copia en la mayoría | journal, `edit_log` (salvo al citar HDFS) |
 | instantánea | `snapshot` | Copia completa del estado de los metadatos que permite recortar el log replicado | — |
 | copia de seguridad | `backup` | Instantánea de los metadatos guardada fuera de las instancias, en S3, al final de cada sesión de trabajo (ADR 0035) | respaldo |
