@@ -75,7 +75,14 @@ espacio en blanco. Valores actuales: `1100,925` para la 3 y `1150,560` para la 4
   ejemplo, una clave foránea en un diagrama ER) puede quitarse para que la figura quepa.
 - Invertir el sentido de una relación sin flecha (`A --- B` frente a `B --- A`) cambia la fila en la
   que se dibuja cada nodo.
-- Las notas largas en diagramas de secuencia se cortan por los lados: hay que acortarlas o hacer que
-  abarquen dos participantes.
+- Las notas largas en diagramas de secuencia se cortan por los lados: hay que acortarlas, partirlas con
+  `<br/>` o hacer que abarquen dos participantes. Una nota que abarca dos participantes no se parte sola
+  en líneas, así que dentro de un `opt` o un `alt` estrecho se corta igual (Figura 15).
+- En un diagrama de secuencia con mensajes largos, la directiva `%%{init: {"sequence": {"width": 210}}}%%`
+  al principio del `.mmd` ensancha las columnas: los mensajes se parten en menos líneas y la figura
+  queda más baja (Figuras 8 y 15).
+- Las notas (`note right of`) de un diagrama de estados alargan mucho la figura y dejan huecos. El texto
+  cabe mejor dentro del propio estado, con líneas `Estado : texto` (Figuras 12 y 13). `direction LR`
+  no sirve: con muchas transiciones la figura sale tan ancha que la letra queda ilegible.
 - **No se entregan SVG:** `mermaid-cli` escribe el texto dentro de `foreignObject`, que Word no muestra.
 - El motor de disposición ELK no viene incluido en `mermaid-cli`: `layout: elk` se ignora sin avisar.

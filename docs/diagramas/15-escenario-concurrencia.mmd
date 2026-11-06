@@ -1,3 +1,4 @@
+%%{init: {"sequence": {"width": 210}}}%%
 sequenceDiagram
   autonumber
   participant P1 as Proceso P1
@@ -17,7 +18,7 @@ sequenceDiagram
   P2->>L: CommitFile(índices 2 a 4)
   L-->>P2: versión v+2
   opt Variante: P1 muere con el arrendamiento
-    Note over L: lease-1 caduca a los 30 s y P2 puede escribir
+    Note over L: lease-1 caduca a los 30 s<br/>y P2 puede escribir
     P1->>L: CommitFile tardío
     L-->>P1: ABORTED + LEASE_EXPIRED
   end
