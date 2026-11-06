@@ -3,7 +3,7 @@
 Respuestas del profesor a las dudas sobre el [enunciado](enunciado.md). Completan el enunciado sin
 modificarlo: `enunciado.md` sigue siendo la transcripción fiel del PDF oficial.
 
-- **Registradas:** 2026-10-22. Las comunicó Pedro en la sesión de trabajo de ese día.
+- **Registradas:** A1–A8 el 2026-10-22 y A9–A10 el 2026-11-06. Las comunicó Pedro en la sesión de trabajo de cada día.
 - **Autoridad:** junto con el enunciado, son la fuente de mayor rango del proyecto (ver el orden en
   `CLAUDE.local.md`). Si una aclaración contradice al enunciado, manda la aclaración porque es posterior.
 - **Evidencia:** si alguna respuesta llegó por escrito (correo, Teams…), conviene guardar aquí la
@@ -23,6 +23,8 @@ Cada aclaración tiene un identificador (`A1`, `A2`…) para citarla en los ADR 
 | A6 | Alcance de RNF7 | RNF7, §4.2 (escenario 4) | C6, C7 | [0021](decisiones/0021-descubrimiento-y-resolucion-de-nombres.md) |
 | A7 | Simplificaciones | RF3, §7 | C3, C12 | [0009](decisiones/0009-bloques-inmutables-y-versiones-de-archivo.md) y todas las de diseño |
 | A8 | Documentación de referencia | — | C12, C16, C17 | [0012](decisiones/0012-replicacion-y-confirmacion-por-mayoria.md), [0014](decisiones/0014-metadatos-replicados-con-raft.md), [0018](decisiones/0018-deteccion-de-fallos-y-re-replicacion.md) |
+| A9 | Informe final y evidencias | §5.2, §5.3 | — | [0036](decisiones/0036-evidencias-y-material-del-informe.md) |
+| A10 | Defensa | §5.3, §6 | — | — |
 
 ## A1 · El proyecto es individual
 
@@ -120,3 +122,30 @@ cambiado en versiones posteriores o DFSha las resuelve de otra forma:
 También sirve como fuente oficial de afirmaciones que hasta ahora solo se apoyaban en el lab HDFS, que
 no se ha ejecutado: el modelo *write-once-read-many* (C12), los latidos y el informe de bloques (C16) y
 la re-replicación (C17). El valor de 10,5 minutos de C16 no aparece en esta guía.
+
+## A9 · Informe final en PDF y evidencias en texto
+
+**Pregunta.** §5.3 pide un informe técnico final y §5.2 una evidencia por prueba, sin fijar el formato
+de ninguno de los dos.
+
+**Respuesta.**
+- El informe se entrega en **PDF**, sin límite de extensión.
+- Las evidencias en texto dentro del repositorio son válidas.
+
+**Consecuencias.** Se confirma el formato del ADR 0036 y queda resuelto su pendiente: las evidencias
+viven en `evidencias/` como texto, y el informe muestra las imprescindibles y remite al repositorio para
+el resto.
+
+## A10 · Defensa: 25 minutos con demostración en vivo
+
+**Pregunta.** §5.3 pide una defensa oral o una demostración. ¿Cómo será?
+
+**Respuesta.** Dura **25 minutos**. Hay que explicar y mostrar qué se hizo, cómo se hizo y por qué se
+tomó cada decisión. Incluye una **demostración en vivo**, y el profesor hace preguntas.
+
+**Consecuencias.**
+- El clúster tiene que poder levantarse en AWS durante la defensa, así que el script de despliegue debe
+  ser fiable desde cero en una sesión nueva del Learner Lab.
+- La demostración se prepara y se ensaya como un guion, con las pruebas mínimas que se van a enseñar.
+- Cada decisión tiene que poder explicarse con su ADR.
+
