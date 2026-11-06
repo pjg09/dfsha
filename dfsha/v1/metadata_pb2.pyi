@@ -381,10 +381,12 @@ class ReportHeartbeatRequest(_message.Message):
     def __init__(self, node_id: _Optional[str] = ..., free_bytes: _Optional[int] = ..., used_bytes: _Optional[int] = ..., active_transfers: _Optional[int] = ...) -> None: ...
 
 class ReportHeartbeatResponse(_message.Message):
-    __slots__ = ("commands",)
+    __slots__ = ("commands", "leader_epoch")
     COMMANDS_FIELD_NUMBER: _ClassVar[int]
+    LEADER_EPOCH_FIELD_NUMBER: _ClassVar[int]
     commands: _containers.RepeatedCompositeFieldContainer[DataNodeCommand]
-    def __init__(self, commands: _Optional[_Iterable[_Union[DataNodeCommand, _Mapping]]] = ...) -> None: ...
+    leader_epoch: int
+    def __init__(self, commands: _Optional[_Iterable[_Union[DataNodeCommand, _Mapping]]] = ..., leader_epoch: _Optional[int] = ...) -> None: ...
 
 class ReportBlocksRequest(_message.Message):
     __slots__ = ("node_id", "blocks")
@@ -395,10 +397,12 @@ class ReportBlocksRequest(_message.Message):
     def __init__(self, node_id: _Optional[str] = ..., blocks: _Optional[_Iterable[_Union[StoredBlock, _Mapping]]] = ...) -> None: ...
 
 class ReportBlocksResponse(_message.Message):
-    __slots__ = ("commands",)
+    __slots__ = ("commands", "leader_epoch")
     COMMANDS_FIELD_NUMBER: _ClassVar[int]
+    LEADER_EPOCH_FIELD_NUMBER: _ClassVar[int]
     commands: _containers.RepeatedCompositeFieldContainer[DataNodeCommand]
-    def __init__(self, commands: _Optional[_Iterable[_Union[DataNodeCommand, _Mapping]]] = ...) -> None: ...
+    leader_epoch: int
+    def __init__(self, commands: _Optional[_Iterable[_Union[DataNodeCommand, _Mapping]]] = ..., leader_epoch: _Optional[int] = ...) -> None: ...
 
 class ReportBlockReceivedRequest(_message.Message):
     __slots__ = ("node_id", "block")

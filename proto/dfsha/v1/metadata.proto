@@ -260,6 +260,9 @@ message ReportHeartbeatRequest {
 }
 message ReportHeartbeatResponse {
   repeated DataNodeCommand commands = 1;
+  // Época del líder que da las órdenes (ficha de cercado, ADR 0039). El nodo de datos recuerda la
+  // mayor que ha visto y descarta las órdenes con una época menor.
+  uint64 leader_epoch = 2;
 }
 
 message ReportBlocksRequest {
@@ -268,6 +271,9 @@ message ReportBlocksRequest {
 }
 message ReportBlocksResponse {
   repeated DataNodeCommand commands = 1;
+  // Época del líder que da las órdenes (ficha de cercado, ADR 0039). El nodo de datos recuerda la
+  // mayor que ha visto y descarta las órdenes con una época menor.
+  uint64 leader_epoch = 2;
 }
 
 message ReportBlockReceivedRequest {
