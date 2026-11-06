@@ -54,6 +54,7 @@ Reglas:
 | [0038](0038-entorno-de-python-y-codigo-generado.md) | Entorno de Python con uv, código generado versionado y versión desde Git | Aceptada | 2026-11-06 |
 | [0039](0039-raft-con-etcd.md) | Raft con etcd en los servidores de metadatos | Aceptada | 2026-11-06 |
 | [0040](0040-despliegue-en-aws-con-etcd.md) | Despliegue en AWS: una imagen por rol, con etcd junto a cada servidor de metadatos | Aceptada | 2026-11-06 |
+| [0041](0041-metadatos-en-etcd.md) | Modelo de metadatos en etcd y cliente de etcd | Aceptada | 2026-11-06 |
 
 ## Plantilla
 
