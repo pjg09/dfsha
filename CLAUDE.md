@@ -4,7 +4,7 @@ Sistema de archivos distribuido con alta disponibilidad. Proyecto 1 de Arquitect
 Sistemas Distribuidos (UPB, 2026-2). Arquitectura asignada: **opción 1, cliente/servidor con
 servicio distribuido entre servidores (S2S)**. Proyecto individual, aprobado por el profesor.
 
-**Estado:** fase II (implementación). El diseño de la fase I está cerrado en `docs/fase-1.md` (resumen en su §1.2 y §3), y cada decisión en su ADR (índice en `docs/decisiones/README.md`). Aún no existen `proto/`, `dfsha/` ni `deploy/`: la estructura prevista está en `docs/convenciones.md`. El plan de la fase II, con sus etapas y la etapa en curso, está en `docs/fase-2/plan.md`: léelo al empezar y actualiza su tabla de estado al terminar cada etapa.
+**Estado:** fase II (implementación). El diseño de la fase I está cerrado en `docs/fase-1.md` (resumen en su §1.2 y §3), y cada decisión en su ADR (índice en `docs/decisiones/README.md`). Ya existen `proto/` y `dfsha/` (etapa 1); aún no `deploy/`. La estructura prevista está en `docs/convenciones.md`. El plan de la fase II, con sus etapas y la etapa en curso, está en `docs/fase-2/plan.md`: léelo al empezar y actualiza su tabla de estado al terminar cada etapa.
 
 ## Antes de escribir código o documentación
 Lee y aplica:
@@ -56,4 +56,4 @@ Plugins con ámbito de proyecto (`.claude/settings.json`):
 - **No cambies la numeración** de tablas, figuras ni referencias: el documento ya está maquetado fuera del repo. Lo nuevo entra como filas, viñetas o párrafos. Una fuente nueva va al final de la lista y a `referencias.md`, con su verificación.
 - Un cambio de diseño: primero el ADR; después `fase-1.md`, el glosario y las convenciones, en la misma tanda. Repasa también §1.4 (limitaciones), §13.2 (parámetros), §14 (pendientes), el Anexo B y las figuras afectadas.
 - Figuras (ADR 0034): fuente en `docs/diagramas/` y PNG a escala 2. Cada una debe caber en una página (alto/ancho ≤ 1,38) con la letra legible; revísalas siempre con Read antes de darlas por buenas. Cómo exportarlas, su catálogo y las trampas de Mermaid: [`docs/diagramas/README.md`](docs/diagramas/README.md).
-- Comprobar el Anexo A: extrae los bloques `protobuf` a `dfsha/v1/*.proto` y compílalos con `python -m grpc_tools.protoc` en un venv temporal con `grpcio-tools`.
+- Desde la etapa 1, la fuente de los contratos es `proto/dfsha/v1/`, no el Anexo A. Tras cambiar un `.proto`, ejecuta `uv run scripts/generate-proto.sh` y commitea el código generado de `dfsha/v1/` con él (ADR 0038). Un cambio de contrato respecto al Anexo A lleva su ADR.

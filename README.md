@@ -16,6 +16,17 @@ DFSha: Sistema de archivos distribuido con alta disponibilidad, arquitectura cli
 - [Aclaraciones del profesor](docs/aclaraciones.md): respuestas a las dudas sobre el enunciado (A1–A8).
 - [Consejos de diseño](docs/consejos-diseno.md): condicionantes extraídos de clase, labs y AWS (C1–C30).
 
+## Instalación y pruebas
+
+Hace falta [uv](https://docs.astral.sh/uv/) 0.12.5, que instala Python 3.12 si no está (ADR 0038).
+
+```bash
+uv sync --locked                   # entorno con las versiones exactas de uv.lock
+uv run pytest                      # pruebas automáticas
+uv run pyright                     # comprobación de tipos
+uv run scripts/generate-proto.sh   # regenera dfsha/v1/ después de cambiar proto/
+```
+
 ## Cómo trabajar en el repositorio
 
 - [Convenciones](docs/convenciones.md): idioma, nombres, hosts, puertos, Git y versiones.

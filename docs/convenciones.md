@@ -167,11 +167,11 @@ dfsha/
 │   ├── referencias.md      # fuentes en formato IEEE, con la numeración de fase-1.md
 │   └── fase-2/             # informe final
 ├── proto/dfsha/v1/         # contratos gRPC
-├── dfsha/                  # paquete Python: common/, metadata/, datanode/, client/
+├── dfsha/                  # paquete Python: common/, metadata/, datanode/, client/ y v1/ (código generado, ADR 0038)
 ├── tests/
 ├── bench/                  # experimentos de rendimiento y sus resultados
 ├── deploy/                 # local/ (Docker Compose) y aws/
-├── scripts/
+├── scripts/                # generate-proto.sh y scripts de despliegue
 └── evidencias/             # salida de las pruebas mínimas (§5.2 del enunciado)
 ```
 
