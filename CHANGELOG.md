@@ -2,6 +2,13 @@
 
 Generado automáticamente por semantic-release a partir de los commits. No editar a mano.
 
+## [0.2.0](https://github.com/pjg09/dfsha/compare/v0.1.0...v0.2.0) (2026-11-06)
+
+### Funcionalidades
+
+* **common:** añade configuración, logs y errores con código de motivo ([23c4480](https://github.com/pjg09/dfsha/commit/23c4480836bea6ac25815949c8e341e418ed16c4))
+* **proto:** añade los contratos gRPC del Anexo A y su código generado ([c381859](https://github.com/pjg09/dfsha/commit/c381859f8585e6be61999b0e1b1fd8c9544382e9))
+
 ## [0.1.0](https://github.com/pjg09/dfsha/compare/v0.0.0...v0.1.0) (2026-11-06)
 
 ### Funcionalidades
