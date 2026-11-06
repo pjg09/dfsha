@@ -1,6 +1,6 @@
 # 0027 · Despliegue en AWS: una imagen por rol y un contenedor por instancia
 
-- **Estado:** Aceptada
+- **Estado:** Sustituida por 0040
 - **Fecha:** 2026-10-23
 - **Requisitos relacionados:** §5 («no basta una simulación local monolítica»), §5.1, §5.3 (instrucciones reproducibles); C26, C27, C29, C30
 

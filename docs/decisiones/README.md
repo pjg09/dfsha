@@ -40,7 +40,7 @@ Reglas:
 | [0024](0024-cifrado-en-reposo.md) | Cifrado en reposo: cifrado de sobre en el cliente con AES-256-GCM | Aceptada | 2026-10-23 |
 | [0025](0025-espacio-de-nombres-y-operaciones-rf1.md) | Espacio de nombres por usuario y operaciones de RF1 | Aceptada | 2026-10-23 |
 | [0026](0026-almacenamiento-en-volumen-ebs.md) | Almacenamiento de bloques en un volumen EBS por nodo de datos | Aceptada | 2026-10-23 |
-| [0027](0027-despliegue-en-aws-con-docker.md) | Despliegue en AWS: una imagen por rol y un contenedor por instancia | Aceptada | 2026-10-23 |
+| [0027](0027-despliegue-en-aws-con-docker.md) | Despliegue en AWS: una imagen por rol y un contenedor por instancia | Sustituida por 0040 | 2026-10-23 |
 | [0028](0028-metricas-y-experimentos.md) | Métricas y experimentos | Aceptada | 2026-10-23 |
 | [0029](0029-especificacion-de-apis-en-la-fase-1.md) | Especificación de las APIs en el documento de la fase I | Aceptada | 2026-10-23 |
 | [0030](0030-entorno-local-de-desarrollo.md) | Entorno local de desarrollo con las mismas imágenes que AWS | Aceptada | 2026-10-23 |
@@ -52,6 +52,8 @@ Reglas:
 | [0036](0036-evidencias-y-material-del-informe.md) | Evidencias y material del informe durante la fase II | Aceptada | 2026-11-06 |
 | [0037](0037-imagenes-en-ecr.md) | Imágenes Docker en ECR, construidas una vez por versión | Aceptada | 2026-11-06 |
 | [0038](0038-entorno-de-python-y-codigo-generado.md) | Entorno de Python con uv, código generado versionado y versión desde Git | Aceptada | 2026-11-06 |
+| [0039](0039-raft-con-etcd.md) | Raft con etcd en los servidores de metadatos | Aceptada | 2026-11-06 |
+| [0040](0040-despliegue-en-aws-con-etcd.md) | Despliegue en AWS: una imagen por rol, con etcd junto a cada servidor de metadatos | Aceptada | 2026-11-06 |
 
 ## Plantilla
 
