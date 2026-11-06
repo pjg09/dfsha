@@ -1,0 +1,49 @@
+[build-system]
+requires = ["hatchling==1.33.0", "hatch-vcs==0.5.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "dfsha"
+description = "DFSha: sistema de archivos distribuido con alta disponibilidad"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dynamic = ["version"]
+# Versiones exactas (ADR 0008 y ADR 0038); las transitivas están en uv.lock
+dependencies = [
+  "grpcio==1.85.1",
+  "grpcio-status==1.85.1",
+  "protobuf==7.36.2",
+]
+
+[dependency-groups]
+dev = [
+  "grpcio-tools==1.85.1",
+  "pyright==1.1.414",
+  "pytest==9.2.0",
+]
+
+[tool.uv]
+required-version = "==0.12.5"
+
+# La versión sale de la última etiqueta vX.Y.Z de Git (semantic-release, ADR 0005)
+[tool.hatch.version]
+source = "vcs"
+
+# Solo las etiquetas de versión vX.Y.Z; las de entrega (entrega-fase-1) no son versiones
+[tool.hatch.version.raw-options]
+git_describe_command = ["git", "describe", "--dirty", "--tags", "--long", "--match", "v[0-9]*"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["dfsha"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.pyright]
+pythonVersion = "3.12"
+include = ["dfsha", "tests"]
+# El código generado se comprueba por sus .pyi; los módulos *_pb2_grpc.py no tienen tipos
+exclude = ["dfsha/v1/*_pb2_grpc.py"]
+typeCheckingMode = "standard"
+venvPath = "."
+venv = ".venv"
