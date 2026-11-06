@@ -23,17 +23,26 @@ jobs:
       - name: Instalar las dependencias de uv.lock
         run: uv sync --locked
 
+      # etcd real para las pruebas del servidor de metadatos; la misma versión y digest que el despliegue (ADR 0040)
+      - name: Arrancar etcd v3.7.3
+        run: >-
+          docker run -d --name etcd -p 2379:2379
+          gcr.io/etcd-development/etcd:v3.7.3@sha256:0d27b9478551f431f82d1e0ddb6c87ad07ebae8b904c637f3a99213349523910
+          etcd --listen-client-urls http://[::]:2379 --advertise-client-urls http://localhost:2379
+
       - name: Comprobar que el código generado coincide con proto/
         run: |
           uv run scripts/generate-proto.sh
-          if [ -n "$(git status --porcelain -- dfsha/v1)" ]; then
-            git status --short -- dfsha/v1
-            echo "::error::El código de dfsha/v1 no coincide con proto/. Ejecuta scripts/generate-proto.sh y commitea el resultado."
+          if [ -n "$(git status --porcelain -- dfsha/v1 dfsha/etcd)" ]; then
+            git status --short -- dfsha/v1 dfsha/etcd
+            echo "::error::El código de dfsha/v1 o dfsha/etcd no coincide con proto/. Ejecuta scripts/generate-proto.sh y commitea el resultado."
             exit 1
           fi
 
       - name: pytest
         run: uv run pytest
+        env:
+          DFSHA_TEST_ETCD_ADDR: localhost:2379 # con la variable definida, sin etcd las pruebas fallan en vez de saltarse
 
       - name: pyright
         run: uv run pyright
