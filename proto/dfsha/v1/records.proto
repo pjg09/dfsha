@@ -1,0 +1,85 @@
+syntax = "proto3";
+
+package dfsha.v1;
+
+import "google/protobuf/timestamp.proto";
+import "dfsha/v1/common.proto";
+import "dfsha/v1/metadata.proto";
+
+// Registros internos del servidor de metadatos, guardados como valores de las claves de etcd
+// (ADR 0041). No forman parte del contrato con los clientes ni con los nodos de datos.
+
+// entries/<user_id>/<directory_id>/<nombre>
+message EntryRecord {
+  EntryType type = 1;
+  string target_id = 2;                      // file_id o directory_id
+  google.protobuf.Timestamp modified_at = 3;
+}
+
+// files/<file_id>
+message FileRecord {
+  string file_id = 1;
+  string owner_user_id = 2;
+  uint64 block_size_bytes = 3;
+  uint64 current_version = 4;
+  uint64 current_size_bytes = 5;             // copia del de la versión vigente, para ls
+  google.protobuf.Timestamp modified_at = 6;
+  bytes wrapped_data_key = 7;                // etapa 6 (ADR 0024)
+  bool is_deleted = 8;                       // rm: sin entrada, versiones en su periodo de gracia
+}
+
+// versions/<file_id>/<versión con 20 cifras>
+message VersionRecord {
+  uint64 version = 1;
+  repeated CommittedBlock blocks = 2;        // ordenados por block_index, sin huecos
+  uint64 size_bytes = 3;                     // tamaño en claro
+  google.protobuf.Timestamp committed_at = 4;
+  google.protobuf.Timestamp expires_at = 5;  // vacío mientras es la versión vigente
+}
+
+// replicas/<block_id>/<node_id>
+message ReplicaRecord {
+  string node_id = 1;
+  bytes block_sha256 = 2;
+  uint64 size_bytes = 3;
+  google.protobuf.Timestamp reported_at = 4;
+  bool is_corrupt = 5;
+}
+
+// pending/<lease_id>/<request_id>: los bloques que reservó una llamada a AllocateBlocks
+message PendingRecord {
+  string file_id = 1;
+  repeated BlockLocation blocks = 2;         // sin tokens
+}
+
+// leases/<file_id>/<lease_id>
+message LeaseRecord {
+  string lease_id = 1;
+  string file_id = 2;
+  string user_id = 3;
+  BlockRange block_range = 4;
+  google.protobuf.Timestamp expires_at = 5;
+}
+
+// nodes/<node_id>
+message NodeRecord {
+  string node_id = 1;
+  string hostname = 2;
+  string addr = 3;
+  uint64 capacity_bytes = 4;
+  google.protobuf.Timestamp registered_at = 5;
+}
+
+// Contenido del descriptor de archivo (file_handle). Se firma en la etapa 6.
+message FileHandle {
+  string file_id = 1;
+  uint64 version = 2;                        // versión abierta; 0 si el archivo se crea al confirmar
+  OpenMode mode = 3;
+  string user_id = 4;
+  uint64 block_size_bytes = 5;
+  // Solo en OPEN_MODE_CREATE: dónde se creará la entrada al confirmar
+  string parent_directory_id = 6;
+  string name = 7;
+  bytes parent_entry_key = 8;                // vacío si el padre es la raíz
+  int64 parent_create_revision = 9;          // la entrada del padre al abrir; si cambia, falla
+}
