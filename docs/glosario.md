@@ -41,6 +41,8 @@ en el glosario no significa que ya se haya decidido.
 |---|---|---|---|
 | archivo | `file` | Unidad de datos que ve el usuario | fichero (en los documentos se escribe «archivo») |
 | directorio | `directory` | Nodo interno del espacio de nombres | carpeta, `folder`, `dir` (salvo en el comando `rmdir`/`mkdir`) |
+| identificador de directorio | `directory_id` | Identifica un directorio aunque cambie su ruta; la raíz de cada usuario es `root` (ADR 0041) | inodo |
+| entrada | `entry`, `DirectoryEntry` | Nombre de un archivo o directorio dentro de su directorio padre (ADR 0041) | — |
 | espacio de nombres | `namespace` | Árbol de directorios y archivos de **un** usuario (RF1) | — |
 | ruta | `path` | Ruta **lógica** dentro del espacio de nombres: `/docs/a.txt` | — |
 | ruta local | `local_path` | Ruta en el disco de un nodo o del cliente | — |
