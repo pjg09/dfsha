@@ -24,8 +24,8 @@ Qué hay que entregar: enunciado §5.3. Cómo se califica: enunciado §6.
 |---|---|---|---|
 | 0 | Supuestos de AWS y del profesor | — | Terminada |
 | 1 | Esqueleto del repositorio y contratos | Implementación RF1–RF3 | Terminada |
-| 2 | Elección de Raft | Alta disponibilidad | En curso |
-| 3 | Nodo de datos y entorno local | Distribución y comunicaciones | Pendiente |
+| 2 | Elección de Raft | Alta disponibilidad | Terminada |
+| 3 | Nodo de datos y entorno local | Distribución y comunicaciones | En curso |
 | 4 | Servidor de metadatos | Distribución; alta disponibilidad | Pendiente |
 | 5 | Cliente: RF1 y RF2 de extremo a extremo | Implementación RF1–RF3 | Pendiente |
 | 6 | Seguridad | Seguridad | Pendiente |
