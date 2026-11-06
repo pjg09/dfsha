@@ -6,6 +6,7 @@ from dfsha.metadata.etcd_client import (
     EtcdClient,
     compare_absent,
     compare_mod_revision,
+    compare_prefix_empty,
     get_prefix_end,
     op_delete_prefix,
     op_get,
@@ -89,3 +90,11 @@ def test_switches_to_next_member(etcd_addr: str, etcd_prefix: bytes) -> None:
         assert client.get(etcd_prefix + b"clave")[0] is not None
     finally:
         client.close()
+
+
+def test_compare_on_an_empty_prefix(etcd: EtcdClient, etcd_prefix: bytes) -> None:
+    # Base de rmdir: comprobar que un directorio está vacío en la misma transacción que lo borra
+    directory = etcd_prefix + b"entries/dir/"
+    assert etcd.txn([compare_prefix_empty(directory)], []).succeeded
+    etcd.put(directory + b"hijo", b"x")
+    assert not etcd.txn([compare_prefix_empty(directory)], []).succeeded

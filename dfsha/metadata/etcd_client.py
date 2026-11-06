@@ -49,6 +49,13 @@ def compare_absent(key: bytes) -> Compare:
     return compare_create_revision(key, 0)
 
 
+def compare_prefix_empty(prefix: bytes) -> Compare:
+    """Ninguna clave empieza por ``prefix``: todas las del rango tendrían versión 0."""
+    return Compare(
+        key=prefix, range_end=get_prefix_end(prefix), target=Compare.VERSION, result=Compare.EQUAL, version=0
+    )
+
+
 def op_put(key: bytes, value: bytes, lease_id: int = 0) -> RequestOp:
     return RequestOp(request_put=rpc_pb2.PutRequest(key=key, value=value, lease=lease_id))
 
