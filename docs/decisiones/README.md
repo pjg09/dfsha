@@ -51,6 +51,7 @@ Reglas:
 | [0035](0035-persistencia-de-los-metadatos.md) | Persistencia de los metadatos en un volumen EBS por servidor de metadatos | Aceptada | 2026-10-24 |
 | [0036](0036-evidencias-y-material-del-informe.md) | Evidencias y material del informe durante la fase II | Aceptada | 2026-11-06 |
 | [0037](0037-imagenes-en-ecr.md) | Imágenes Docker en ECR, construidas una vez por versión | Aceptada | 2026-11-06 |
+| [0038](0038-entorno-de-python-y-codigo-generado.md) | Entorno de Python con uv, código generado versionado y versión desde Git | Aceptada | 2026-11-06 |
 
 ## Plantilla
 
