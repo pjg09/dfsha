@@ -2,7 +2,6 @@
 
 import hashlib
 import os
-import socket
 import time
 import uuid
 from collections.abc import Iterator
@@ -13,6 +12,7 @@ import grpc
 import pytest
 
 from dfsha.common.errors import DfshaError, Reason
+from helpers import get_free_addr, start_on_free_addr
 from dfsha.datanode.block_store import BlockStore, initialize_data_directory
 from dfsha.datanode.server import DataNodeConfig, create_server
 from dfsha.datanode.service import CHUNK_SIZE_BYTES, DataNodeSettings
@@ -49,12 +49,6 @@ class Node:
         return True
 
 
-def _free_addr() -> str:
-    with socket.socket() as probe:
-        probe.bind(("localhost", 0))
-        return f"localhost:{probe.getsockname()[1]}"
-
-
 @pytest.fixture
 def nodes(tmp_path: Path) -> Iterator[list[Node]]:
     started: list[Node] = []
@@ -62,19 +56,23 @@ def nodes(tmp_path: Path) -> Iterator[list[Node]]:
         data_directory = tmp_path / f"datanode-{index}"
         data_directory.mkdir()
         initialize_data_directory(data_directory, f"datanode-{index}")
-        addr = _free_addr()
-        node_config = DataNodeConfig(
-            settings=DataNodeSettings(
-                node_id=f"datanode-{index}", addr=addr, block_size_bytes=BLOCK_SIZE_BYTES, transfer_timeout_s=10
-            ),
-            data_directory=data_directory,
-            require_mount_point=False,
-            initialize_data_directory=False,
-            server_threads=8,
-            log_level="INFO",
-        )
         reporter = RecordingReporter()
-        server, _ = create_server(node_config, reporter)
+
+        def start(addr: str, index: int = index, data_directory: Path = data_directory, reporter: RecordingReporter = reporter) -> tuple[str, grpc.Server]:
+            node_config = DataNodeConfig(
+                settings=DataNodeSettings(
+                    node_id=f"datanode-{index}", addr=addr, block_size_bytes=BLOCK_SIZE_BYTES, transfer_timeout_s=10
+                ),
+                data_directory=data_directory,
+                require_mount_point=False,
+                initialize_data_directory=False,
+                server_threads=8,
+                log_level="INFO",
+            )
+            server, _ = create_server(node_config, reporter)
+            return addr, server
+
+        addr, server = start_on_free_addr(start)
         server.start()
         started.append(Node(addr, data_directory, reporter, server, grpc.insecure_channel(addr)))
     yield started
@@ -149,13 +147,13 @@ def test_corrupt_block_is_rejected_everywhere(nodes: list[Node]) -> None:
 def test_quorum_with_one_secondary_down(nodes: list[Node]) -> None:
     primary, secondary, _ = nodes
     block_id = str(uuid.uuid4())
-    response = primary.stub.WriteBlock(_write_requests(block_id, b"datos" * 1000, [secondary.addr, _free_addr()]), timeout=10)
+    response = primary.stub.WriteBlock(_write_requests(block_id, b"datos" * 1000, [secondary.addr, get_free_addr()]), timeout=10)
     assert sorted(response.stored_on) == sorted([primary.addr, secondary.addr])
 
 
 def test_quorum_not_reached_with_both_secondaries_down(nodes: list[Node]) -> None:
     primary = nodes[0]
-    requests = _write_requests(str(uuid.uuid4()), b"datos" * 1000, [_free_addr(), _free_addr()])
+    requests = _write_requests(str(uuid.uuid4()), b"datos" * 1000, [get_free_addr(), get_free_addr()])
     error = _expect_error(lambda: primary.stub.WriteBlock(requests, timeout=10))
     assert (error.code, error.reason) == (grpc.StatusCode.UNAVAILABLE, Reason.QUORUM_NOT_REACHED)
 
