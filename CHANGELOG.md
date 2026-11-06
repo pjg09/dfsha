@@ -2,6 +2,13 @@
 
 Generado automáticamente por semantic-release a partir de los commits. No editar a mano.
 
+## [0.6.0](https://github.com/pjg09/dfsha/compare/v0.5.0...v0.6.0) (2026-11-06)
+
+### Funcionalidades
+
+* **metadata:** añade el servicio de metadatos sobre etcd ([0950154](https://github.com/pjg09/dfsha/commit/0950154c27815cb591caa321c515cf57f6c6d349))
+* **proto:** añade los registros internos del servidor de metadatos ([626a25e](https://github.com/pjg09/dfsha/commit/626a25efaf307cc01a6e0185cc014b6f4064b931))
+
 ## [0.5.0](https://github.com/pjg09/dfsha/compare/v0.4.0...v0.5.0) (2026-11-06)
 
 ### Funcionalidades
