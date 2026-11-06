@@ -223,7 +223,9 @@ activado al arrancar el sistema (ADR 0027).
     `available` y `Encrypted=true`, y después se borró. El cifrado por defecto de la cuenta está desactivado.
 - **IAM:** no se pueden crear roles; las instancias usan `LabInstanceProfile`.
 - **Otros servicios:**
-  - ECR: con `LabRole` solo se lee; el usuario del lab puede escribir.
+  - ECR: el usuario del lab crea repositorios y envía imágenes. Con `LabRole` se lee **y también se
+    escribe**: comprobado el 2026-11-06, una instancia con `LabInstanceProfile` envió una imagen a un
+    repositorio de prueba.
   - Session Manager funciona con `LabInstanceProfile`.
   - Route 53 responde, y el Readme solo prohíbe registrar dominios.
   - Service Quotas devuelve `AccessDenied`, así que el límite de vCPU solo consta en el Readme.
