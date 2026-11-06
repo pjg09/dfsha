@@ -186,3 +186,9 @@ en el glosario no significa que ya se haya decidido.
 | tasa de transferencia | `throughput_mb_s` | Datos por unidad de tiempo | **rendimiento** (en el proyecto «rendimiento» es la propiedad general, RNF5) |
 | rendimiento | — (solo en documentos) | Propiedad general: latencia, tasa de transferencia y concurrencia | `performance` en identificadores |
 | concurrencia | `concurrency` | Operaciones simultáneas sobre los mismos datos | paralelismo (es otra cosa) |
+
+## 10. Planificación
+
+| Término | Código | Significado en DFSha | No usar |
+|---|---|---|---|
+| etapa | — | Parte del plan de la fase II con un entregable propio que se puede comprobar (`docs/fase-2/plan.md`) | fase (reservada para las fases I y II del enunciado) |
