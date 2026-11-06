@@ -6,6 +6,7 @@ from dfsha.common.config import (
     ConfigError,
     get_addr,
     get_addrs,
+    get_bool,
     get_float,
     get_int,
     get_str,
@@ -63,3 +64,15 @@ def test_parse_addr_rejects_invalid(addr: str) -> None:
 
 def test_parse_addr() -> None:
     assert parse_addr("metadata-2:50051") == ("metadata-2", 50051)
+
+
+@pytest.mark.parametrize(("raw", "expected"), [("true", True), ("1", True), ("YES", True), ("false", False), ("0", False)])
+def test_bool(monkeypatch: pytest.MonkeyPatch, raw: str, expected: bool) -> None:
+    monkeypatch.setenv("DFSHA_REQUIRE_MOUNT_POINT", raw)
+    assert get_bool("REQUIRE_MOUNT_POINT") is expected
+
+
+def test_bool_rejects_other_values(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("DFSHA_REQUIRE_MOUNT_POINT", "quizá")
+    with pytest.raises(ConfigError, match="true o false"):
+        get_bool("REQUIRE_MOUNT_POINT")

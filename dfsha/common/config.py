@@ -57,6 +57,21 @@ def get_float(name: str, default: float | None = None) -> float:
         raise ConfigError(f"{VARIABLE_PREFIX}{name} debe ser un número: {value!r}") from None
 
 
+def get_bool(name: str, default: bool | None = None) -> bool:
+    """Devuelve DFSHA_<name> como booleano: true/false, 1/0, yes/no."""
+    value = _get_raw(name)
+    if value is None:
+        if default is not None:
+            return default
+        raise ConfigError(f"Falta la variable de entorno {VARIABLE_PREFIX}{name}")
+    normalized = value.lower()
+    if normalized in ("true", "1", "yes"):
+        return True
+    if normalized in ("false", "0", "no"):
+        return False
+    raise ConfigError(f"{VARIABLE_PREFIX}{name} debe ser true o false: {value!r}")
+
+
 def parse_addr(addr: str) -> tuple[str, int]:
     """Separa una dirección ``host:puerto`` en sus dos partes y la valida."""
     host, separator, port_text = addr.strip().rpartition(":")
