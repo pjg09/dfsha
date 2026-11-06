@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package dfsha.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// Operación que autoriza un token de bloque.
+enum BlockOperation {
+  BLOCK_OPERATION_UNSPECIFIED = 0;
+  BLOCK_OPERATION_READ = 1;
+  BLOCK_OPERATION_WRITE = 2;
+}
+
+// Modo de escritura de write() (RF3).
+enum WriteMode {
+  WRITE_MODE_UNSPECIFIED = 0;
+  WRITE_MODE_CREATE = 1;   // el archivo no existe
+  WRITE_MODE_REPLACE = 2;  // sustituye el contenido completo
+  WRITE_MODE_APPEND = 3;   // añade al final
+  WRITE_MODE_PARTIAL = 4;  // cambia bloques en cualquier offset
+}
+
+// Autorización firmada por el servidor de metadatos para leer o escribir
+// un bloque concreto. El nodo de datos la verifica sin consultar a nadie.
+message BlockToken {
+  string block_id = 1;
+  BlockOperation operation = 2;
+  google.protobuf.Timestamp expires_at = 3;  // 10 min tras su emisión
+  bytes signature = 4;                       // HMAC-SHA256 de los campos 1 a 3
+}
+
+// Rango de índices de bloque consecutivos. block_count = 0 significa
+// "desde first_block_index hasta el final del archivo".
+message BlockRange {
+  uint64 first_block_index = 1;
+  uint64 block_count = 2;
+}
+
+// Ubicación de un bloque: qué nodos de datos tienen sus réplicas.
+message BlockLocation {
+  uint64 block_index = 1;
+  string block_id = 2;
+  bytes block_sha256 = 3;               // hash que guarda el servidor de metadatos
+  uint64 size_bytes = 4;                // tamaño del bloque guardado (cifrado)
+  repeated string datanode_addrs = 5;   // "datanode-2:50052"; al escribir, la primera es la primaria
+  BlockToken block_token = 6;
+}

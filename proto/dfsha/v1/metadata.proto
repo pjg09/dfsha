@@ -1,0 +1,283 @@
+syntax = "proto3";
+
+package dfsha.v1;
+
+import "google/protobuf/timestamp.proto";
+import "dfsha/v1/common.proto";
+
+service MetadataService {
+  // --- Usuarios ---------------------------------------------------------
+  rpc Authenticate(AuthenticateRequest) returns (AuthenticateResponse);
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);            // solo administradores
+
+  // --- Espacio de nombres (RF1) ----------------------------------------
+  rpc ListDirectory(ListDirectoryRequest) returns (ListDirectoryResponse);   // ls
+  rpc GetFileInfo(GetFileInfoRequest) returns (GetFileInfoResponse);
+  rpc CreateDirectory(CreateDirectoryRequest) returns (CreateDirectoryResponse);  // mkdir
+  rpc DeleteDirectory(DeleteDirectoryRequest) returns (DeleteDirectoryResponse);  // rmdir
+  rpc DeleteFile(DeleteFileRequest) returns (DeleteFileResponse);            // rm
+  rpc MovePath(MovePathRequest) returns (MovePathResponse);                  // mv
+
+  // --- Acceso a archivos (RF2, RF3) ------------------------------------
+  rpc OpenFile(OpenFileRequest) returns (OpenFileResponse);
+  rpc GetBlockLocations(GetBlockLocationsRequest) returns (GetBlockLocationsResponse);
+  rpc LockBlocks(LockBlocksRequest) returns (LockBlocksResponse);
+  rpc UpdateLease(UpdateLeaseRequest) returns (UpdateLeaseResponse);         // renovar
+  rpc UnlockBlocks(UnlockBlocksRequest) returns (UnlockBlocksResponse);
+  rpc AllocateBlocks(AllocateBlocksRequest) returns (AllocateBlocksResponse);
+  rpc CommitFile(CommitFileRequest) returns (CommitFileResponse);
+  rpc AbortFile(AbortFileRequest) returns (AbortFileResponse);
+
+  // --- Nodos de datos (TLS mutuo, certificado de rol datanode) ----------
+  rpc RegisterDataNode(RegisterDataNodeRequest) returns (RegisterDataNodeResponse);
+  rpc ReportHeartbeat(ReportHeartbeatRequest) returns (ReportHeartbeatResponse);
+  rpc ReportBlocks(ReportBlocksRequest) returns (ReportBlocksResponse);
+  rpc ReportBlockReceived(ReportBlockReceivedRequest) returns (ReportBlockReceivedResponse);
+
+  // --- Nodos de datos o clientes ----------------------------------------
+  // El servidor deduce el origen del aviso de la identidad del llamante
+  // (certificado o token), nunca de un campo del mensaje.
+  rpc ReportCorruptReplica(ReportCorruptReplicaRequest) returns (ReportCorruptReplicaResponse);
+}
+
+// ===== Tipos =============================================================
+
+enum EntryType {
+  ENTRY_TYPE_UNSPECIFIED = 0;
+  ENTRY_TYPE_FILE = 1;
+  ENTRY_TYPE_DIRECTORY = 2;
+}
+
+enum OpenMode {
+  OPEN_MODE_UNSPECIFIED = 0;
+  OPEN_MODE_READ = 1;
+  OPEN_MODE_WRITE = 2;    // el archivo debe existir
+  OPEN_MODE_CREATE = 3;   // el archivo no debe existir; se crea al confirmar
+}
+
+message FileInfo {
+  string file_id = 1;
+  string path = 2;
+  uint64 size_bytes = 3;          // tamaño en claro
+  uint64 version = 4;
+  uint64 block_size_bytes = 5;    // fijado al crear el archivo
+  uint64 block_count = 6;
+  google.protobuf.Timestamp modified_at = 7;
+}
+
+message DirectoryEntry {
+  string name = 1;
+  EntryType type = 2;
+  uint64 size_bytes = 3;          // 0 para directorios
+  uint64 version = 4;             // 0 para directorios
+  google.protobuf.Timestamp modified_at = 5;
+}
+
+// Bloque de una versión nueva, tal como lo envía el cliente al confirmar.
+message CommittedBlock {
+  uint64 block_index = 1;
+  string block_id = 2;
+  bytes block_sha256 = 3;
+  uint64 size_bytes = 4;
+}
+
+// Bloque que un nodo de datos tiene en su almacén.
+message StoredBlock {
+  string block_id = 1;
+  bytes block_sha256 = 2;
+  uint64 size_bytes = 3;
+}
+
+enum DataNodeCommandType {
+  DATA_NODE_COMMAND_TYPE_UNSPECIFIED = 0;
+  DATA_NODE_COMMAND_TYPE_REPLICATE = 1;          // copiar block_id a target_addr
+  DATA_NODE_COMMAND_TYPE_DELETE = 2;             // borrar block_id
+  DATA_NODE_COMMAND_TYPE_VERIFY = 3;             // recalcular el hash de block_id
+  DATA_NODE_COMMAND_TYPE_SEND_BLOCK_REPORT = 4;  // enviar un informe de bloques
+}
+
+// Orden que el servidor de metadatos envía en la respuesta al latido.
+message DataNodeCommand {
+  DataNodeCommandType type = 1;
+  string block_id = 2;              // vacío en SEND_BLOCK_REPORT
+  string target_addr = 3;           // solo en REPLICATE
+  BlockToken target_block_token = 4;  // solo en REPLICATE: token de escritura en el destino
+}
+
+// ===== Usuarios ==========================================================
+
+message AuthenticateRequest {
+  string username = 1;
+  string password = 2;
+}
+message AuthenticateResponse {
+  string access_token = 1;                   // HMAC-SHA256; contiene user_id y caducidad
+  google.protobuf.Timestamp expires_at = 2;  // 1 h
+}
+
+message CreateUserRequest {
+  string request_id = 1;
+  string username = 2;
+  string password = 3;
+  bool is_admin = 4;
+}
+message CreateUserResponse {
+  string user_id = 1;
+}
+
+// ===== Espacio de nombres ================================================
+
+message ListDirectoryRequest {
+  string path = 1;                // absoluta dentro del espacio del usuario
+}
+message ListDirectoryResponse {
+  repeated DirectoryEntry entries = 1;
+}
+
+message GetFileInfoRequest {
+  string path = 1;
+}
+message GetFileInfoResponse {
+  FileInfo info = 1;
+}
+
+message CreateDirectoryRequest {
+  string request_id = 1;
+  string path = 2;
+}
+message CreateDirectoryResponse {}
+
+message DeleteDirectoryRequest {
+  string request_id = 1;
+  string path = 2;
+}
+message DeleteDirectoryResponse {}
+
+message DeleteFileRequest {
+  string request_id = 1;
+  string path = 2;
+}
+message DeleteFileResponse {}
+
+message MovePathRequest {
+  string request_id = 1;
+  string source_path = 2;
+  string target_path = 3;
+}
+message MovePathResponse {}
+
+// ===== Acceso a archivos =================================================
+
+message OpenFileRequest {
+  string path = 1;
+  OpenMode mode = 2;
+}
+message OpenFileResponse {
+  bytes file_handle = 1;    // opaco y firmado: file_id, versión, modo, usuario
+  FileInfo info = 2;        // versión abierta
+  bytes data_key = 3;       // clave de datos en claro (256 bits), solo por TLS
+}
+
+message GetBlockLocationsRequest {
+  bytes file_handle = 1;
+  BlockRange block_range = 2;
+}
+message GetBlockLocationsResponse {
+  repeated BlockLocation locations = 1;   // con tokens de lectura
+}
+
+message LockBlocksRequest {
+  string request_id = 1;
+  bytes file_handle = 2;
+  BlockRange block_range = 3;   // se concede entero o nada
+}
+message LockBlocksResponse {
+  string lease_id = 1;
+  google.protobuf.Timestamp expires_at = 2;   // TTL de 30 s
+  uint64 current_version = 3;                 // si difiere de la abierta, puede haber conflicto
+}
+
+message UpdateLeaseRequest {
+  string request_id = 1;
+  string lease_id = 2;
+}
+message UpdateLeaseResponse {
+  google.protobuf.Timestamp expires_at = 1;
+}
+
+message UnlockBlocksRequest {
+  string request_id = 1;
+  string lease_id = 2;
+}
+message UnlockBlocksResponse {}
+
+message AllocateBlocksRequest {
+  string request_id = 1;
+  bytes file_handle = 2;
+  string lease_id = 3;
+  repeated uint64 block_indices = 4;   // dentro del rango arrendado
+}
+message AllocateBlocksResponse {
+  repeated BlockLocation blocks = 1;   // block_id nuevos, primaria primero, tokens de escritura
+}
+
+message CommitFileRequest {
+  string request_id = 1;
+  bytes file_handle = 2;               // fija la versión base
+  string lease_id = 3;
+  WriteMode write_mode = 4;
+  repeated CommittedBlock blocks = 5;  // índices nuevos o sustituidos
+  uint64 size_bytes = 6;               // tamaño en claro de la versión nueva
+}
+message CommitFileResponse {
+  uint64 version = 1;
+}
+
+message AbortFileRequest {
+  string request_id = 1;
+  bytes file_handle = 2;
+  string lease_id = 3;
+}
+message AbortFileResponse {}
+
+// ===== Nodos de datos ====================================================
+
+message RegisterDataNodeRequest {
+  string node_id = 1;          // el de la marca de su volumen de datos
+  string hostname = 2;         // "datanode-2"
+  uint64 capacity_bytes = 3;
+  uint64 free_bytes = 4;
+}
+message RegisterDataNodeResponse {
+  bool is_block_report_required = 1;
+}
+
+message ReportHeartbeatRequest {
+  string node_id = 1;
+  uint64 free_bytes = 2;
+  uint64 used_bytes = 3;
+  uint32 active_transfers = 4;
+}
+message ReportHeartbeatResponse {
+  repeated DataNodeCommand commands = 1;
+}
+
+message ReportBlocksRequest {
+  string node_id = 1;
+  repeated StoredBlock blocks = 2;
+}
+message ReportBlocksResponse {
+  repeated DataNodeCommand commands = 1;
+}
+
+message ReportBlockReceivedRequest {
+  string node_id = 1;
+  StoredBlock block = 2;       // guardado y con el hash verificado
+}
+message ReportBlockReceivedResponse {}
+
+message ReportCorruptReplicaRequest {
+  string block_id = 1;
+  string node_id = 2;          // nodo que guarda la réplica corrupta
+}
+message ReportCorruptReplicaResponse {}

@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package dfsha.v1;
+
+import "dfsha/v1/common.proto";
+
+service DataNodeService {
+  // Flujo del llamante al nodo: una cabecera y después el bloque en
+  // mensajes de 1 MiB. Lo usan el cliente (hacia la primaria), la primaria
+  // (hacia las secundarias, con secondary_addrs vacío) y el nodo origen de
+  // una re-replicación (hacia el destino).
+  rpc WriteBlock(stream WriteBlockRequest) returns (WriteBlockResponse);
+
+  // Flujo del nodo al cliente: una cabecera y después el bloque en
+  // mensajes de 1 MiB. Si el hash no coincide al terminar, la llamada
+  // acaba con DATA_LOSS + BLOCK_CORRUPTED.
+  rpc ReadBlock(ReadBlockRequest) returns (stream ReadBlockResponse);
+}
+
+message WriteBlockHeader {
+  string block_id = 1;
+  BlockToken block_token = 2;           // operación WRITE
+  bytes block_sha256 = 3;               // hash del bloque cifrado completo
+  uint64 size_bytes = 4;
+  repeated string secondary_addrs = 5;  // solo en la llamada a la primaria
+}
+
+message WriteBlockRequest {
+  oneof content {
+    WriteBlockHeader header = 1;   // primer mensaje del flujo
+    bytes data = 2;                // mensajes siguientes, de 1 MiB como máximo
+  }
+}
+
+message WriteBlockResponse {
+  // Réplicas que tienen el bloque guardado y verificado. La primaria
+  // responde en cuanto hay write_quorum (2); si no lo alcanza, la llamada
+  // acaba con UNAVAILABLE + QUORUM_NOT_REACHED.
+  repeated string stored_on = 1;
+}
+
+message ReadBlockRequest {
+  string block_id = 1;
+  BlockToken block_token = 2;           // operación READ
+}
+
+message ReadBlockHeader {
+  uint64 size_bytes = 1;
+  bytes block_sha256 = 2;
+}
+
+message ReadBlockResponse {
+  oneof content {
+    ReadBlockHeader header = 1;    // primer mensaje del flujo
+    bytes data = 2;                // mensajes siguientes, de 1 MiB como máximo
+  }
+}
