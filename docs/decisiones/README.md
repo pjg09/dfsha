@@ -49,6 +49,7 @@ Reglas:
 | [0033](0033-sincronizacion-de-relojes.md) | Sincronización de relojes entre nodos | Aceptada | 2026-10-23 |
 | [0034](0034-documento-de-la-fase-1-y-figuras.md) | Documento de la fase I en Markdown y figuras exportadas a PNG | Aceptada | 2026-10-23 |
 | [0035](0035-persistencia-de-los-metadatos.md) | Persistencia de los metadatos en un volumen EBS por servidor de metadatos | Aceptada | 2026-10-24 |
+| [0036](0036-evidencias-y-material-del-informe.md) | Evidencias y material del informe durante la fase II | Aceptada | 2026-11-06 |
 
 ## Plantilla
 
