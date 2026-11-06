@@ -30,7 +30,7 @@ Qué hay que entregar: enunciado §5.3. Cómo se califica: enunciado §6.
 | 5 | Cliente: RF1 y RF2 de extremo a extremo | Implementación RF1–RF3 | Pendiente |
 | 6 | Seguridad | Seguridad | Pendiente |
 | 7 | Despliegue en AWS | Distribución y comunicaciones | Pendiente |
-| 8 | RF3, arrendamientos y concurrencia | Implementación RF1–RF3; consistencia | Pendiente |
+| 8 | RF3 en el cliente y concurrencia | Implementación RF1–RF3; consistencia | Pendiente |
 | 9 | Tolerancia a fallos | Alta disponibilidad, replicación y consistencia | Pendiente |
 | 10 | Experimentos y pruebas finales | Pruebas de rendimiento | Pendiente |
 | 11 | Informe técnico final | Documentación | Pendiente |
@@ -78,10 +78,18 @@ código del prototipo no se queda en el repositorio; sus resultados, en el ADR.
 primaria, lo leen con el mismo hash y rechazan un bloque corrupto.
 
 ### 4. Servidor de metadatos
-- Sobre la implementación de Raft de la etapa 2: espacio de nombres, versiones de archivo,
-  `AllocateBlocks`, `CommitFile` atómico, `GetBlockLocations`, ubicación de réplicas (§4.3), registro de
-  nodos con latidos, respuesta con el nombre del líder e instantáneas (§3.3, §4.2).
-- Los tres servidores de metadatos en el entorno local.
+- Sobre etcd (ADR 0039), con el modelo de claves y el cliente del ADR 0041: espacio de nombres, versiones de
+  archivo, `OpenFile`, `AllocateBlocks`, `CommitFile` atómico, `AbortFile`, `GetBlockLocations`, ubicación de
+  réplicas (§4.3), registro de nodos con latidos y respuesta con el nombre del líder (§3.3, §4.2).
+- **Líder y cercado** (ADR 0039): elección con la clave `leader`, renuncia anticipada y época del líder en
+  cada transacción y en las órdenes a los nodos de datos (`leader_epoch`, cambio compatible del contrato).
+- **Arrendamientos en el servidor**, traídos de la etapa 8 porque `put` los necesita (§6.1, ADR 0041):
+  `LockBlocks`, `UpdateLease` y `UnlockBlocks` con TTL (§8.1), conflicto inmediato con `LOCK_CONFLICT` y
+  comprobación de versión al confirmar (§8.2).
+- Reintentos idempotentes con `request_id` en todas las RPC que cambian metadatos (§8.6).
+- Un **único usuario implícito** hasta la etapa 6, sin clave de datos y con descriptores de archivo sin
+  firmar; las claves ya llevan el `user_id` (ADR 0041).
+- Los tres servidores de metadatos y los tres miembros de etcd en el entorno local (ADR 0040).
 - **Pendiente de la etapa 3:** conectar el nodo de datos al servidor de metadatos. Hoy los avisos de
   bloque recibido (`ReportBlockReceived`) solo se escriben en el log (`LoggingBlockReporter`), y faltan
   el alta (`RegisterDataNode`), los latidos y el informe de bloques.
@@ -105,6 +113,9 @@ Si es así, la simplificación se declara y se lleva al profesor **ahora**, ante
 - Va antes del despliegue en AWS para que todas las evidencias se tomen ya con la seguridad del diseño.
 - **Pendiente de la etapa 3:** el nodo de datos todavía no verifica el token de bloque de `WriteBlock` ni
   de `ReadBlock`, y escucha sin TLS.
+- **Pendiente de la etapa 4** (ADR 0041): sustituir el usuario implícito por el del token de acceso,
+  firmar los descriptores de archivo, generar y envolver la clave de datos en `OpenFile`, emitir tokens de
+  bloque en `AllocateBlocks` y `GetBlockLocations`, y TLS mutuo con etcd (ADR 0039).
 
 **Terminada cuando:** en local, un acceso a un archivo ajeno y otro con un token caducado se rechazan, y
 un bloque en disco no se puede leer sin la clave.
@@ -118,10 +129,14 @@ un bloque en disco no se puede leer sin la clave.
 **Terminada cuando:** el clúster de 9 instancias se levanta desde cero con un comando y pasa la prueba de
 carga y recuperación. **Primeras evidencias:** «Carga y recuperación» y «Seguridad».
 
-### 8. RF3, arrendamientos y concurrencia
-- `open`, `read`, `write`, `lock`, `unlock` y `close` con consistencia de apertura-cierre (§7), los cuatro
-  modos de escritura, arrendamientos con TTL (§8.1), comprobación de versión al confirmar (§8.2),
-  escrituras interrumpidas y recolección de basura (§8.4), reintentos idempotentes (§8.6).
+### 8. RF3 en el cliente y concurrencia
+- En la biblioteca y la CLI del cliente: `open`, `read`, `write`, `lock`, `unlock` y `close` con
+  consistencia de apertura-cierre (§7), los cuatro modos de escritura (§7.2), renovación del arrendamiento
+  mientras se escribe y reintentos con el mismo `request_id` (§8.6).
+- Escrituras interrumpidas y recolección de basura de los bloques huérfanos (§8.4).
+- Pruebas de concurrencia: dos escritores sobre el mismo bloque y sobre bloques distintos del mismo
+  archivo, y un escritor que muere con el arrendamiento (escenario 1, §11.1).
+- Los arrendamientos y la comprobación de versión del servidor ya existen desde la etapa 4 (ADR 0041).
 
 **Terminada cuando:** pasan en AWS «Acceso RF3» y «Concurrencia» (escenario 1, §11.1), con sus
 evidencias registradas.
