@@ -2,6 +2,14 @@
 
 Generado automáticamente por semantic-release a partir de los commits. No editar a mano.
 
+## [0.4.0](https://github.com/pjg09/dfsha/compare/v0.3.0...v0.4.0) (2026-11-06)
+
+### Funcionalidades
+
+* **metadata:** añade el cliente de etcd del servidor de metadatos ([364cdec](https://github.com/pjg09/dfsha/commit/364cdece86cb7531e430ac3fab1b2fd2cd5cd1f7))
+* **proto:** añade el subconjunto de la API v3 de etcd ([b2669c1](https://github.com/pjg09/dfsha/commit/b2669c1d17854b8a1337eaddee305bd2170e455c))
+* **proto:** añade la época del líder a las respuestas con órdenes ([2598e63](https://github.com/pjg09/dfsha/commit/2598e6309141d45d92e57658f8b61fafb51f630a))
+
 ## [0.3.0](https://github.com/pjg09/dfsha/compare/v0.2.0...v0.3.0) (2026-11-06)
 
 ### Funcionalidades
