@@ -2,6 +2,13 @@
 
 Generado automáticamente por semantic-release a partir de los commits. No editar a mano.
 
+## [0.3.0](https://github.com/pjg09/dfsha/compare/v0.2.0...v0.3.0) (2026-11-06)
+
+### Funcionalidades
+
+* **common:** añade la lectura de booleanos a la configuración ([eaecc8c](https://github.com/pjg09/dfsha/commit/eaecc8c03d0c03c5e05f860e600f071848da3211))
+* **datanode:** añade el almacén de bloques y DataNodeService ([3e24df4](https://github.com/pjg09/dfsha/commit/3e24df4a1352987a38de053061be7748145b17a5))
+
 ## [0.2.0](https://github.com/pjg09/dfsha/compare/v0.1.0...v0.2.0) (2026-11-06)
 
 ### Funcionalidades
