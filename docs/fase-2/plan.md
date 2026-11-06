@@ -25,8 +25,8 @@ Qué hay que entregar: enunciado §5.3. Cómo se califica: enunciado §6.
 | 0 | Supuestos de AWS y del profesor | — | Terminada |
 | 1 | Esqueleto del repositorio y contratos | Implementación RF1–RF3 | Terminada |
 | 2 | Elección de Raft | Alta disponibilidad | Terminada |
-| 3 | Nodo de datos y entorno local | Distribución y comunicaciones | En curso |
-| 4 | Servidor de metadatos | Distribución; alta disponibilidad | Pendiente |
+| 3 | Nodo de datos y entorno local | Distribución y comunicaciones | Terminada |
+| 4 | Servidor de metadatos | Distribución; alta disponibilidad | En curso |
 | 5 | Cliente: RF1 y RF2 de extremo a extremo | Implementación RF1–RF3 | Pendiente |
 | 6 | Seguridad | Seguridad | Pendiente |
 | 7 | Despliegue en AWS | Distribución y comunicaciones | Pendiente |
@@ -82,6 +82,9 @@ primaria, lo leen con el mismo hash y rechazan un bloque corrupto.
   `AllocateBlocks`, `CommitFile` atómico, `GetBlockLocations`, ubicación de réplicas (§4.3), registro de
   nodos con latidos, respuesta con el nombre del líder e instantáneas (§3.3, §4.2).
 - Los tres servidores de metadatos en el entorno local.
+- **Pendiente de la etapa 3:** conectar el nodo de datos al servidor de metadatos. Hoy los avisos de
+  bloque recibido (`ReportBlockReceived`) solo se escriben en el log (`LoggingBlockReporter`), y faltan
+  el alta (`RegisterDataNode`), los latidos y el informe de bloques.
 
 **Terminada cuando:** cada RPC tiene sus pruebas y la caída del líder no pierde ninguna confirmación.
 
@@ -100,6 +103,8 @@ Si es así, la simplificación se declara y se lleva al profesor **ahora**, ante
   el cliente y TLS mutuo entre nodos con una CA interna (§10.4), cifrado de sobre con AES-256-GCM (§10.5),
   gestión de secretos (§10.7).
 - Va antes del despliegue en AWS para que todas las evidencias se tomen ya con la seguridad del diseño.
+- **Pendiente de la etapa 3:** el nodo de datos todavía no verifica el token de bloque de `WriteBlock` ni
+  de `ReadBlock`, y escucha sin TLS.
 
 **Terminada cuando:** en local, un acceso a un archivo ajeno y otro con un token caducado se rechazan, y
 un bloque en disco no se puede leer sin la clave.
