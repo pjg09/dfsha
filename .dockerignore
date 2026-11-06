@@ -1,0 +1,8 @@
+# Solo entra en la imagen lo que copia el Dockerfile
+*
+!pyproject.toml
+!uv.lock
+!README.md
+!.python-version
+!dfsha/
+dfsha/**/__pycache__

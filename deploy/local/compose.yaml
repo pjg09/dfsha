@@ -1,0 +1,74 @@
+# Entorno local de desarrollo (ADR 0030): el clúster en una sola máquina con las mismas imágenes que AWS.
+# No sirve como evidencia: las pruebas mínimas y los experimentos se hacen en AWS (ADR 0036).
+#   DFSHA_VERSION=$(scripts/get-version.sh) DFSHA_IMAGE_TAG=$(scripts/get-version.sh --image) \
+#     docker compose -f deploy/local/compose.yaml up -d --build
+# Etapa 3: nodos de datos. Los servidores de metadatos, etcd y el cliente llegan en las etapas 4 y 5.
+name: dfsha
+
+x-datanode: &datanode
+  image: dfsha-datanode:${DFSHA_IMAGE_TAG:-0.0.0}
+  build:
+    context: ../..
+    target: datanode
+    args:
+      DFSHA_VERSION: ${DFSHA_VERSION:-0.0.0}
+  restart: always
+  networks: [dfsha-net]
+
+services:
+  datanode-1:
+    <<: *datanode
+    hostname: datanode-1
+    container_name: datanode-1
+    environment:
+      DFSHA_NODE_ID: datanode-1
+      DFSHA_DATANODE_ADDR: datanode-1:50052
+      DFSHA_INITIALIZE_DATA_DIRECTORY: "true"  # solo en local; en AWS la marca la pone el script de despliegue
+    volumes: [datanode-1-data:/data]
+  datanode-2:
+    <<: *datanode
+    hostname: datanode-2
+    container_name: datanode-2
+    environment:
+      DFSHA_NODE_ID: datanode-2
+      DFSHA_DATANODE_ADDR: datanode-2:50052
+      DFSHA_INITIALIZE_DATA_DIRECTORY: "true"  # solo en local; en AWS la marca la pone el script de despliegue
+    volumes: [datanode-2-data:/data]
+  datanode-3:
+    <<: *datanode
+    hostname: datanode-3
+    container_name: datanode-3
+    environment:
+      DFSHA_NODE_ID: datanode-3
+      DFSHA_DATANODE_ADDR: datanode-3:50052
+      DFSHA_INITIALIZE_DATA_DIRECTORY: "true"  # solo en local; en AWS la marca la pone el script de despliegue
+    volumes: [datanode-3-data:/data]
+  datanode-4:
+    <<: *datanode
+    hostname: datanode-4
+    container_name: datanode-4
+    environment:
+      DFSHA_NODE_ID: datanode-4
+      DFSHA_DATANODE_ADDR: datanode-4:50052
+      DFSHA_INITIALIZE_DATA_DIRECTORY: "true"  # solo en local; en AWS la marca la pone el script de despliegue
+    volumes: [datanode-4-data:/data]
+  datanode-5:
+    <<: *datanode
+    hostname: datanode-5
+    container_name: datanode-5
+    environment:
+      DFSHA_NODE_ID: datanode-5
+      DFSHA_DATANODE_ADDR: datanode-5:50052
+      DFSHA_INITIALIZE_DATA_DIRECTORY: "true"  # solo en local; en AWS la marca la pone el script de despliegue
+    volumes: [datanode-5-data:/data]
+
+networks:
+  dfsha-net:
+    name: dfsha-net
+
+volumes:
+  datanode-1-data:
+  datanode-2-data:
+  datanode-3-data:
+  datanode-4-data:
+  datanode-5-data:
