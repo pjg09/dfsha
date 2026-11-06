@@ -1,0 +1,39 @@
+# Pruebas en cada push a main (ADR 0038): código generado al día, pytest y pyright.
+name: test
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # etiquetas vX.Y.Z para calcular la versión del paquete
+
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          version: "0.12.5" # la misma que fija pyproject.toml
+
+      - name: Instalar las dependencias de uv.lock
+        run: uv sync --locked
+
+      - name: Comprobar que el código generado coincide con proto/
+        run: |
+          uv run scripts/generate-proto.sh
+          if [ -n "$(git status --porcelain -- dfsha/v1)" ]; then
+            git status --short -- dfsha/v1
+            echo "::error::El código de dfsha/v1 no coincide con proto/. Ejecuta scripts/generate-proto.sh y commitea el resultado."
+            exit 1
+          fi
+
+      - name: pytest
+        run: uv run pytest
+
+      - name: pyright
+        run: uv run pyright
