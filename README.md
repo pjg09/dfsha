@@ -27,6 +27,18 @@ uv run pyright                     # comprobación de tipos
 uv run scripts/generate-proto.sh   # regenera dfsha/v1/ después de cambiar proto/
 ```
 
+## Entorno local
+
+El clúster en una sola máquina con Docker Compose y las mismas imágenes que en AWS (ADR 0030). Solo sirve
+para desarrollar: las evidencias se obtienen en AWS (ADR 0036). Por ahora levanta los cinco nodos de datos.
+
+```bash
+export DFSHA_VERSION=$(scripts/get-version.sh) DFSHA_IMAGE_TAG=$(scripts/get-version.sh --image)
+docker compose -f deploy/local/compose.yaml up -d --build   # construye las imágenes y arranca el clúster
+docker compose -f deploy/local/compose.yaml logs -f          # logs de todos los nodos
+docker compose -f deploy/local/compose.yaml down -v          # para el clúster y borra sus volúmenes
+```
+
 ## Cómo trabajar en el repositorio
 
 - [Convenciones](docs/convenciones.md): idioma, nombres, hosts, puertos, Git y versiones.

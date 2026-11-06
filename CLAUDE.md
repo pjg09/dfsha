@@ -4,7 +4,7 @@ Sistema de archivos distribuido con alta disponibilidad. Proyecto 1 de Arquitect
 Sistemas Distribuidos (UPB, 2026-2). Arquitectura asignada: **opción 1, cliente/servidor con
 servicio distribuido entre servidores (S2S)**. Proyecto individual, aprobado por el profesor.
 
-**Estado:** fase II (implementación). El diseño de la fase I está cerrado en `docs/fase-1.md` (resumen en su §1.2 y §3), y cada decisión en su ADR (índice en `docs/decisiones/README.md`). Ya existen `proto/` y `dfsha/` (etapa 1); aún no `deploy/`. La estructura prevista está en `docs/convenciones.md`. El plan de la fase II, con sus etapas y la etapa en curso, está en `docs/fase-2/plan.md`: léelo al empezar y actualiza su tabla de estado al terminar cada etapa.
+**Estado:** fase II (implementación). El diseño de la fase I está cerrado en `docs/fase-1.md` (resumen en su §1.2 y §3), y cada decisión en su ADR (índice en `docs/decisiones/README.md`). Ya existen `proto/`, `dfsha/` (common, v1 y datanode) y `deploy/local/` con los nodos de datos (etapa 3). La estructura prevista está en `docs/convenciones.md`. El plan de la fase II, con sus etapas y la etapa en curso, está en `docs/fase-2/plan.md`: léelo al empezar y actualiza su tabla de estado al terminar cada etapa.
 
 ## Antes de escribir código o documentación
 Lee y aplica:

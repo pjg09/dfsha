@@ -170,8 +170,9 @@ dfsha/
 ├── dfsha/                  # paquete Python: common/, metadata/, datanode/, client/ y v1/ (código generado, ADR 0038)
 ├── tests/
 ├── bench/                  # experimentos de rendimiento y sus resultados
+├── Dockerfile              # una imagen por rol, con un target por rol (ADR 0040)
 ├── deploy/                 # local/ (Docker Compose) y aws/
-├── scripts/                # generate-proto.sh y scripts de despliegue
+├── scripts/                # generate-proto.sh, get-version.sh y scripts de despliegue
 └── evidencias/             # salida de las pruebas mínimas (§5.2 del enunciado)
 ```
 
