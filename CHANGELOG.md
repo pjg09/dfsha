@@ -2,6 +2,16 @@
 
 Generado automáticamente por semantic-release a partir de los commits. No editar a mano.
 
+## [0.5.0](https://github.com/pjg09/dfsha/compare/v0.4.0...v0.5.0) (2026-11-06)
+
+### Funcionalidades
+
+* **metadata:** añade la elección del líder con cercado ([1f81bfa](https://github.com/pjg09/dfsha/commit/1f81bfa50dcfcbb41dad44cac53d589689094b73))
+
+### Correcciones
+
+* **metadata:** acepta revocar un arrendamiento de etcd que ya no existe ([7b8493d](https://github.com/pjg09/dfsha/commit/7b8493dda729a80f6a4d194963bac0952760750b))
+
 ## [0.4.0](https://github.com/pjg09/dfsha/compare/v0.3.0...v0.4.0) (2026-11-06)
 
 ### Funcionalidades
