@@ -96,3 +96,13 @@ primera cita.
 - **Tipo:** Software
 - **Usada en:** ADR 0038
 - **Verificación:** Comprobado al usarlo: sin filtro tomaba la etiqueta `entrega-fase-1` y daba la versión `2.dev12`; con `git describe --match "v[0-9]*"` da `0.1.1.dev12`.
+
+## Nodo de datos (etapa 3)
+
+### [glibc-malloc]
+
+- **Referencia:** Free Software Foundation, «Memory allocation tunables», en *The GNU C Library Reference Manual*. [En línea]. Disponible en: https://www.gnu.org/software/libc/manual/html_node/Memory-Allocation-Tunables.html (consultado: 6 nov. 2026).
+- **Tipo:** Documentación
+- **Usada en:** `Dockerfile` (`MALLOC_ARENA_MAX=2`)
+- **Verificación:** No se leyó la página. El efecto se midió: con 8 escrituras simultáneas, la mediana del pico de memoria de la primaria baja de 257 a 167 MiB (5 repeticiones, `docs/fase-2/notas.md`).
+

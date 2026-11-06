@@ -34,5 +34,20 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
   420 MiB para el contenedor. Con bloques de 16 MiB enviados en mensajes de 1 MiB debería bastar, pero hay
   que medir el consumo del nodo de datos en la etapa 3 y vigilar que el kernel no mate el proceso por falta
   de memoria.
+- **2026-11-06 · Memoria de los nodos de datos, medida en local** (etapa 3, versión 0.2.1.dev6). Bloques de
+  16 MiB + 28 bytes hacia una primaria que reenvía a dos secundarias, 32 bloques por prueba, en Docker en la
+  máquina de desarrollo. Pico de memoria del proceso (`VmHWM`) de la primaria con `MALLOC_ARENA_MAX=2`: unos
+  75 MiB con 1 escritura, 115 MiB con 4 y una mediana de 167 MiB (164–196, 5 repeticiones) con 8. La
+  secundaria se queda por debajo de 100 MiB. Cabe en los 420 MiB libres de una t3.micro, pero **hay que
+  volver a medirlo en AWS** (etapa 7): allí cambian la red, el disco y la CPU.
 
 ## Problemas encontrados y cómo se resolvieron
+
+- **2026-11-06 · Memoria de la primaria con escrituras simultáneas** (etapa 3). Con 8 escrituras a la vez,
+  el pico de memoria del proceso tenía una mediana de 257 MiB (246–269, 5 repeticiones), por las arenas de
+  `malloc` de glibc que crea cada hilo. Con `MALLOC_ARENA_MAX=2` en la imagen base baja a 167 MiB, sin
+  perder tasa de transferencia (unos 200 MB/s en local). Una primera medición con `docker stats` daba más,
+  porque incluye la caché de páginas de los bloques escritos; se midió con `VmHWM` del proceso.
+- **2026-11-06 · Versión en las etiquetas de imagen** (etapa 3). La versión entre releases lleva `+`
+  (`0.2.1.dev6+gfe3854f`), que Docker no admite en una etiqueta. `scripts/get-version.sh --image` la da
+  con `-`; en los releases la versión no lleva `+` y la etiqueta coincide con ella (ADR 0037).
