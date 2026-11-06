@@ -165,6 +165,7 @@ en el glosario no significa que ya se haya decidido.
 |---|---|---|---|
 | instancia | `instance` | Máquina virtual EC2 | servidor (es ambiguo) |
 | contenedor / imagen | `container` / `image` | De Docker | — |
+| registro de imágenes | `registry` | Amazon ECR: guarda las imágenes de cada versión (ADR 0037) | — |
 | volumen EBS | — (en documentos se escribe siempre «volumen EBS») | Disco de una instancia | — |
 | volumen Docker | — (en documentos se escribe siempre «volumen Docker») | Almacenamiento de un contenedor | — |
 | nombre de host | `hostname` | `<rol>-<n>` (ver convenciones §4) | — |
