@@ -43,7 +43,7 @@ testpaths = ["tests"]
 pythonVersion = "3.12"
 include = ["dfsha", "tests"]
 # El código generado se comprueba por sus .pyi; los módulos *_pb2_grpc.py no tienen tipos
-exclude = ["dfsha/v1/*_pb2_grpc.py"]
+exclude = ["dfsha/v1/*_pb2_grpc.py", "dfsha/etcd/*_pb2_grpc.py"]
 typeCheckingMode = "standard"
 venvPath = "."
 venv = ".venv"
