@@ -119,7 +119,12 @@ class EtcdClient:
         return response.ID
 
     def revoke_lease(self, lease_id: int) -> None:
-        self._call(lambda _, lease: lease.LeaseRevoke(rpc_pb2.LeaseRevokeRequest(ID=lease_id), timeout=self._timeout_s))
+        """Revoca un arrendamiento de etcd y borra sus claves. Si ya no existe, no hace nada."""
+        try:
+            self._call(lambda _, lease: lease.LeaseRevoke(rpc_pb2.LeaseRevokeRequest(ID=lease_id), timeout=self._timeout_s))
+        except grpc.RpcError as error:
+            if not (isinstance(error, grpc.Call) and error.code() is grpc.StatusCode.NOT_FOUND):
+                raise
 
     def refresh_lease(self, lease_id: int) -> int:
         """Renueva un arrendamiento de etcd. Devuelve su TTL restante; 0 si ya caducó."""
