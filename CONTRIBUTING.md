@@ -246,13 +246,10 @@ feat(client): confirma la escritura al terminar put
   versión *minor*, con todos los cambios en sus notas. Separar en varios commits no infla la versión.
 - Un **refactor** que prepara una funcionalidad va en su propio commit, **antes** del `feat`.
 
-## 7. Ramas, integración y release
+## 7. Push y release
 
-### 7.1 Ramas
-- Se puede trabajar directamente en `main`. Las ramas son opcionales y siguen el patrón
-  `<tipo>/<descripcion-en-kebab>`: `feat/replicacion-bloques`, `docs/fase-1-escenarios`.
-- **Si se fusiona un pull request, se usa *squash merge*** y el título del PR tiene que cumplir §3, porque
-  es el mensaje que queda en `main`. Un *merge commit* (`Merge branch …`) no cuenta para la versión.
+### 7.1 Push
+- Se trabaja solo en `main`: cada commit se hace en `main` y se envía con `git push origin main`.
 
 ### 7.2 Release automático
 En cada push a `main`, **semantic-release** (`.github/workflows/release.yml` + `.releaserc.json`, ADR 0005):

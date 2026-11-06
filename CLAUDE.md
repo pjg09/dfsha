@@ -8,7 +8,7 @@ servicio distribuido entre servidores (S2S)**. Proyecto individual, aprobado por
 
 ## Antes de escribir código o documentación
 Lee y aplica:
-- [`CONTRIBUTING.md`](CONTRIBUTING.md): reglas de commits, autoría, ramas y release.
+- [`CONTRIBUTING.md`](CONTRIBUTING.md): reglas de commits, autoría y release.
 - [`docs/enunciado.md`](docs/enunciado.md): el enunciado oficial transcrito. Es la referencia de requisitos (RF, RNF), entregables y rúbrica.
 - [`docs/aclaraciones.md`](docs/aclaraciones.md): respuestas del profesor que completan el enunciado (A1–A8). Tienen su mismo rango.
 - [`docs/consejos-diseno.md`](docs/consejos-diseno.md): condicionantes de diseño (C1–C30) sacados de clase, labs y AWS. Tenlos en cuenta al diseñar y cítalos por su identificador.
@@ -37,7 +37,7 @@ Plugins con ámbito de proyecto (`.claude/settings.json`):
   ellos: un commit mal formado se pierde. No crees etiquetas `vX.Y.Z` ni edites `CHANGELOG.md` a mano.
 - **Autoría:** autor y committer `pedroj1229@gmail.com`. **Nunca** añadas `Co-Authored-By:` (tampoco el de
   Claude) ni el texto o el enlace de la sesión de Claude Code («Generated with Claude Code», `claude.ai/code/...`)
-  en commits, etiquetas ni pull requests.
+  en commits ni etiquetas.
 - **Nunca** versiones secretos: credenciales de AWS, `*.pem`, claves privadas, `.env` con valores reales
   ni IP en la configuración.
 - Hosts con el patrón `<rol>-<n>` (`metadata-1`, `datanode-2`); nada de IP literales en el código (RNF7).

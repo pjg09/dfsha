@@ -20,4 +20,4 @@ DFSha: Sistema de archivos distribuido con alta disponibilidad, arquitectura cli
 
 - [Convenciones](docs/convenciones.md): idioma, nombres, hosts, puertos, Git y versiones.
 - [Glosario](docs/glosario.md): términos del proyecto y sus identificadores.
-- [Cómo contribuir](CONTRIBUTING.md): reglas de commits, autoría, ramas y release automático.
+- [Cómo contribuir](CONTRIBUTING.md): reglas de commits, autoría y release automático.

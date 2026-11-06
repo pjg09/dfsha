@@ -176,7 +176,7 @@ dfsha/
 
 ## 6. Git y versiones
 
-Las reglas de commits, ramas, etiquetas, release automático, autoría y lo que no se versiona
+Las reglas de commits, etiquetas, release automático, autoría y lo que no se versiona
 están en [`CONTRIBUTING.md`](../CONTRIBUTING.md), que es la única fuente para esos temas.
 Resumen:
 
