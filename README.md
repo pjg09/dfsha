@@ -1,7 +1,7 @@
 # dfsha
 DFSha: Sistema de archivos distribuido con alta disponibilidad, arquitectura cliente/servidor con servicio distribuido entre servidores (S2S), particionamiento en bloques, replicación, consistencia y seguridad. Proyecto 1, Arquitectura de Nube y Sistemas Distribuidos (UPB, 2026-2).
 
-**Estado:** fase I (diseño individual). El repositorio contiene la documentación del diseño; la implementación llega en la fase II.
+**Estado:** fase II (implementación). El diseño de la fase I está cerrado desde la versión 0.1.0; ahora se implementa el sistema, con código ejecutable, pruebas reproducibles y evidencias.
 
 ## Diseño (fase I)
 
