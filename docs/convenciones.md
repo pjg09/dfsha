@@ -121,7 +121,7 @@ tal cual: `ls`, `cd`, `mkdir`, `rmdir`, `rm`, `put`, `get`, `open`, `close`, `re
   se resuelven por nombre (RNF7). Cómo se resuelven los nombres en AWS es una decisión de diseño y va
   en su propio ADR. Las IP solo pueden aparecer en `evidencias/`, como parte de la salida registrada.
 - Los puertos se definen **por rol y en un único sitio** de la configuración, nunca como literal en el código.
-- Puertos del clúster: `MetadataService` en 50051/tcp y `DataNodeService` en 50052/tcp (`fase-1.md` §3.6). El de Raft lo fija la implementación que se elija (ADR 0014).
+- Puertos del clúster: `MetadataService` en 50051/tcp y `DataNodeService` en 50052/tcp (`fase-1.md` §3.6). etcd usa 2379/tcp para sus clientes y 2380/tcp entre sus miembros, solo dentro de `dfsha-sg-metadata` (ADR 0039).
 
 ### Recursos de AWS
 La cuenta del Learner Lab se comparte con otros laboratorios, así que todo lo del proyecto lleva el

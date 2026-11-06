@@ -49,6 +49,7 @@ Plugins con ámbito de proyecto (`.claude/settings.json`):
 - Si hace falta una captura que no puedes tomar tú (la consola de AWS, por ejemplo), pídesela a Pedro en ese momento, con el nombre del archivo y el directorio de `evidencias/` donde va.
 - Al terminar cada tarea que haya ejecutado algo en AWS, comprueba que todo lo ejecutado tiene su evidencia y su fila en el índice, y dilo en el resumen final. Si falta algo, dilo antes que nada.
 - Una limitación o un problema que el informe deba contar se anota en `docs/fase-2/notas.md` cuando aparece. Un cambio de diseño va en un ADR.
+- Cada fuente que se use para decidir algo (documentación, un análisis, el código de una librería) se añade en el momento a `docs/fase-2/fuentes.md`, con cómo se comprobó. Si no se leyó, se dice. Las de la fase I siguen en `docs/referencias.md`.
 - El informe técnico se redacta al final, a partir de los ADR, el código, `evidencias/`, `bench/resultados/` y `docs/fase-2/notas.md`.
 
 ## Documento de la fase I y figuras

@@ -208,7 +208,7 @@ cambia; la privada se conserva, según la documentación de AWS (sin comprobar e
 → Los scripts de despliegue tienen que ser **repetibles** y no pueden depender de una sesión
 anterior. Ningún componente de DFSha usa credenciales de AWS en tiempo de ejecución. El clúster tiene
 que aguantar un **arranque en frío** de todos los nodos a la vez (ADR 0031), y Docker tiene que estar
-activado al arrancar el sistema (ADR 0027).
+activado al arrancar el sistema (ADR 0040, que sustituye al 0027).
 
 **C28 · Límites del lab e instancias pequeñas.** — `[AWS]`, Readme del Learner Lab (consultado el 2026-10-23) y comprobaciones con el CLI de esa fecha
 - La t3.micro de prueba tiene **908 MiB de RAM** y 8 GiB de disco.
