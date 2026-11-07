@@ -29,3 +29,4 @@ En esa ejecución fallaron dos pasos del script, que se corrigieron después:
 - `ejecutar.sh`: la prueba, ya corregida.
 - `salida.txt`: salida completa de la ejecución, con los dos pasos fallidos tal como salieron.
 - `memoria.txt`: pico de memoria de cada nodo de datos, medido tras la carga.
+- `consola-ec2-instancias.png`: consola de EC2 con las 9 instancias en ejecución (tipos, zona y comprobaciones de estado). Captura de Pedro a las 06:27 UTC, del mismo clúster ya actualizado a `v0.9.1`, no del momento de la carga.
