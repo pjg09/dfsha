@@ -378,9 +378,12 @@ cmd_down() {
   for volume in $(aws ec2 describe-volumes --filters Name=tag:project,Values=dfsha --query 'Volumes[].VolumeId' --output text); do
     aws ec2 delete-volume --volume-id "$volume" && log "Volumen $volume borrado"
   done
-  for role in client datanode metadata; do
-    local group; group=$(security_group_id "dfsha-sg-$role")
-    [[ $group != None ]] && aws ec2 delete-security-group --group-id "$group" 2>/dev/null && log "dfsha-sg-$role borrado"
+  # Dos pasadas: un grupo no se puede borrar mientras las reglas de otro lo citan
+  for pass in 1 2; do
+    for role in metadata datanode client; do
+      local group; group=$(security_group_id "dfsha-sg-$role")
+      [[ $group != None ]] && aws ec2 delete-security-group --group-id "$group" >/dev/null 2>&1 && log "dfsha-sg-$role borrado"
+    done
   done
   return 0
 }
