@@ -26,3 +26,15 @@ def test_space_runs_out_during_a_reservation() -> None:
     registry = _registry({f"datanode-{n}": 2 * BLOCK for n in (1, 2, 3)})
     placements = registry.choose_nodes(3, 3, BLOCK)
     assert [len(nodes) for nodes in placements] == [3, 3, 0]
+
+
+def test_dead_nodes_report_time_since_last_heartbeat() -> None:
+    now = [100.0]
+    registry = NodeRegistry(suspect_after_s=9, dead_after_s=30, clock=lambda: now[0])
+    registry.register(NodeRecord(node_id="datanode-1", addr="datanode-1:50052"), BLOCK)
+    registry.register(NodeRecord(node_id="datanode-2", addr="datanode-2:50052"), BLOCK)
+    now[0] = 125.0
+    registry.record_heartbeat("datanode-2", BLOCK)
+    assert registry.get_dead_nodes() == {}
+    now[0] = 131.0  # datanode-1 lleva 31 s sin latido; datanode-2, 6 s
+    assert registry.get_dead_nodes() == {"datanode-1": 31.0}

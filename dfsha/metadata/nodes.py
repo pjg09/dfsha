@@ -68,6 +68,16 @@ class NodeRegistry:
             node = self._nodes.get(node_id)
             return self._get_state(node) if node is not None else NodeState.DEAD
 
+    def get_dead_nodes(self) -> dict[str, float | None]:
+        """Nodos caídos y los segundos desde su último latido (None si no envió ninguno desde la elección)."""
+        with self._lock:
+            now = self._clock()
+            return {
+                node_id: (now - node.last_heartbeat if node.last_heartbeat is not None else None)
+                for node_id, node in self._nodes.items()
+                if self._get_state(node) is NodeState.DEAD
+            }
+
     def get_alive_nodes(self) -> list[tuple[str, str, int]]:
         """(node_id, dirección, espacio libre) de los nodos vivos."""
         with self._lock:

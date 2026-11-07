@@ -41,12 +41,14 @@ class ReplicationManager:
         self._queues: dict[str, list[metadata_pb2.DataNodeCommand]] = {}
         self._in_flight: dict[str, dict[str, float]] = {}  # block_id -> nodo destino -> plazo
         self._lost: set[str] = set()
+        self._dead: set[str] = set()  # nodos que ya se registraron como caídos
 
     def reset(self) -> None:
         """Al cambiar de líder, las colas y las copias en curso del anterior no valen."""
         with self._lock:
             self._queues.clear()
             self._in_flight.clear()
+            self._dead.clear()
 
     def queue(self, node_id: str, command: metadata_pb2.DataNodeCommand) -> None:
         with self._lock:
@@ -60,6 +62,7 @@ class ReplicationManager:
         """Una pasada sobre todos los bloques vivos, primero los que tienen menos réplicas sanas."""
         service = self._service
         registry = service.registry
+        self._log_node_changes()
         now = service._now()
         version_kvs, revision = service.store.etcd.get_prefix(service.keys.all_versions_prefix())
         live: dict[str, metadata_pb2.CommittedBlock] = {}
@@ -107,6 +110,17 @@ class ReplicationManager:
                 record_deletes.extend(self._order_deletes(block.block_id, sane, replicas.get(block.block_id, []), alive, factor))
         for start in range(0, len(record_deletes), 100):
             service._apply_without_request([], record_deletes[start : start + 100])
+
+    def _log_node_changes(self) -> None:
+        """Registra cuándo un nodo pasa a caído y cuándo vuelve: es el tiempo de detección de E6 (§9.2)."""
+        dead = self._service.registry.get_dead_nodes()
+        for node_id in sorted(dead.keys() - self._dead):
+            since = dead[node_id]
+            detail = f"último latido hace {since:.1f} s" if since is not None else "sin latido desde la elección"
+            logger.warning("Nodo de datos %s declarado caído (%s)", node_id, detail)
+        for node_id in sorted(self._dead - dead.keys()):
+            logger.info("Nodo de datos %s vuelve a enviar latidos", node_id)
+        self._dead = set(dead)
 
     def _forget_finished(self, replicas: dict[str, list[_Replica]]) -> None:
         """Olvida las copias que ya avisaron de su bloque recibido o que agotaron su plazo."""

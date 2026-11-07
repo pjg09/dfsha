@@ -3,6 +3,7 @@
 Fase I §8.5 y §9.3, con plazos cortos: caído a los 2 s y mantenimiento del líder cada 0,3 s.
 """
 
+import logging
 import os
 import time
 from collections.abc import Iterator
@@ -63,17 +64,20 @@ def _corrupt(local: LocalCluster, index: int, block_id: str) -> None:
     path.write_bytes(bytes(data))
 
 
-def test_rereplication_after_a_datanode_dies_and_extra_replica_on_return(cluster: LocalCluster) -> None:
+def test_rereplication_after_a_datanode_dies_and_extra_replica_on_return(cluster: LocalCluster, caplog: pytest.LogCaptureFixture) -> None:
     data = os.urandom(2 * BLOCK_SIZE_BYTES + 10)
     cluster.put("/r.bin", data)
     blocks = _on_disk(cluster)
     assert len(blocks) == 3 and all(len(nodes) == 3 for nodes in blocks.values())
     victim = max(range(1, DATANODES + 1), key=lambda index: sum(index in nodes for nodes in blocks.values()))
+    caplog.set_level(logging.INFO, logger="dfsha.metadata.replication")
     cluster.datanodes[victim - 1].stop()  # caído a los 2 s sin latido
+    assert wait_until(lambda: f"datanode-{victim} declarado caído" in caplog.text, timeout_s=10)
     # Cada bloque vuelve a tener 3 réplicas sin contar las del nodo caído
     assert wait_until(lambda: all(len(nodes - {victim}) == 3 for nodes in _on_disk(cluster).values()), timeout_s=15)
     assert cluster.get("/r.bin") == data
     cluster.start_datanode(victim)  # vuelve con sus bloques: ahora sobran réplicas
+    assert wait_until(lambda: f"datanode-{victim} vuelve a enviar latidos" in caplog.text, timeout_s=10)
     assert wait_until(lambda: all(len(nodes) == 3 for nodes in _on_disk(cluster).values()), timeout_s=15)
     assert cluster.get("/r.bin") == data
 
