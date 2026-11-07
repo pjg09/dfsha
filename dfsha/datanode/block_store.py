@@ -179,7 +179,7 @@ class BlockStore:
         for path in self._staging_directory.iterdir():
             if path.is_file():
                 path.unlink()
-                removed += 1
+                removed += not path.name.endswith(_META_SUFFIX)  # los .meta acompañan a su bloque
         if removed:
             logger.info("Borrados %d bloques a medias del área temporal", removed)
         return removed
