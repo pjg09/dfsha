@@ -44,6 +44,10 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
 - **2026-11-07 · Despliegue desde cero con una orden** (etapa 7, `ddb9bc6`). Con la cuenta vacía,
   `deploy.sh all` levanta los 9 hosts en 6 min 50 s sin intervención, y el clúster pasa la prueba de carga y
   recuperación. `down` necesitó dos pasadas para borrar los grupos de seguridad, que se citan entre sí.
+- **2026-11-07 · La caída del líder deja unos 7 s sin escrituras de metadatos** (etapa 10, E7, v0.13.0). Con
+  el líder congelado (fallo de verdad), la mediana es de 7,1 s: unos 5 s de elección por el TTL de la clave
+  del líder, a veces 8 s, y 1–2 s de modo seguro. Con `docker stop` el líder renuncia al recibir SIGTERM, y la
+  interrupción baja a menos de 2 s: ese caso es un relevo ordenado, no un fallo.
 - **2026-11-07 · Un nodo de datos congelado detiene lecturas durante minutos** (etapa 10, E6, v0.13.0). Con
   `docker pause`, el nodo acepta conexiones pero no responde. El cliente, con la conexión ya abierta, espera los
   120 s del plazo de transferencia por cada bloque que lee de ese nodo, y dentro de un mismo `get` lo vuelve a
