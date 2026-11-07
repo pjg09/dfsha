@@ -2,6 +2,14 @@
 
 Generado automáticamente por semantic-release a partir de los commits. No editar a mano.
 
+## [0.7.0](https://github.com/pjg09/dfsha/compare/v0.6.0...v0.7.0) (2026-11-07)
+
+### Funcionalidades
+
+* **datanode:** conecta el nodo de datos con el líder de metadatos ([9766d89](https://github.com/pjg09/dfsha/commit/9766d89bc0e7c32ffe8b14932ddd1e4d74f00bec))
+* **metadata:** usa la dirección que envía el nodo al darse de alta ([9607a78](https://github.com/pjg09/dfsha/commit/9607a78f5b1cb9dc85d09df4ecc5fce25053c016))
+* **proto:** añade la dirección del nodo a RegisterDataNodeRequest ([f8a4876](https://github.com/pjg09/dfsha/commit/f8a48762e65676487d88eb99040d8b86491afdd2))
+
 ## [0.6.0](https://github.com/pjg09/dfsha/compare/v0.5.0...v0.6.0) (2026-11-06)
 
 ### Funcionalidades
