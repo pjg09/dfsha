@@ -1,0 +1,16 @@
+07:42:59
+datanode-1: 43
+datanode-2: 43
+datanode-3: 40
+datanode-4: 45
+datanode-5: 42
+2026-11-07T07:20:13.704Z INFO metadata-3 dfsha.metadata.leader: Elegido líder con época 215
+2026-11-07T07:25:14.406Z INFO metadata-3 dfsha.metadata.service: 1 bloques de datanode-3 no pertenecen a nada vivo: se ordena borrarlos
+2026-11-07T07:25:15.957Z INFO metadata-3 dfsha.metadata.service: 1 bloques de datanode-5 no pertenecen a nada vivo: se ordena borrarlos
+2026-11-07T07:25:16.289Z INFO metadata-3 dfsha.metadata.service: 1 bloques de datanode-2 no pertenecen a nada vivo: se ordena borrarlos
+2026-11-07T07:35:14.899Z INFO metadata-3 dfsha.metadata.service: 13 bloques de datanode-3 no pertenecen a nada vivo: se ordena borrarlos
+2026-11-07T07:35:15.913Z INFO metadata-3 dfsha.metadata.service: 10 bloques de datanode-1 no pertenecen a nada vivo: se ordena borrarlos
+2026-11-07T07:35:16.110Z INFO metadata-3 dfsha.metadata.service: 10 bloques de datanode-4 no pertenecen a nada vivo: se ordena borrarlos
+2026-11-07T07:35:16.540Z INFO metadata-3 dfsha.metadata.service: 12 bloques de datanode-5 no pertenecen a nada vivo: se ordena borrarlos
+2026-11-07T07:35:16.920Z INFO metadata-3 dfsha.metadata.service: 12 bloques de datanode-2 no pertenecen a nada vivo: se ordena borrarlos
+

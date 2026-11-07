@@ -40,6 +40,12 @@ Una fila sin evidencia es una evidencia que falta.
 |---|---|---|---|
 | Despliegue desde cero | `deploy.sh all` levanta los 9 hosts sin intervención y el clúster pasa la prueba de carga y recuperación (§3.6) | [`2026-11-07-despliegue-desde-cero`](2026-11-07-despliegue-desde-cero/) | Hecha |
 
+### Otras comprobaciones
+
+| Comprobación | Qué tiene que verse | Evidencia | Estado |
+|---|---|---|---|
+| Recolección de basura | Se borran los bloques de escrituras abortadas y de versiones sustituidas hace más de 10 min, y ninguno vivo (§8.4, §9.3) | [`2026-11-07-recoleccion-de-basura`](2026-11-07-recoleccion-de-basura/) | Hecha |
+
 ### Otros fallos provocados
 
 | Fallo | Qué tiene que verse | Evidencia | Estado |

@@ -1,0 +1,29 @@
+
+## Réplicas en disco de cada nodo de datos (07:46:20)
+datanode-1: 43
+datanode-2: 43
+datanode-3: 40
+datanode-4: 45
+datanode-5: 42
+total: 213
+
+## Réplicas esperadas según los metadatos: bloques de la versión vigente de cada archivo × 3
+/grande.bin: 64 bloques
+/datos.bin: 4 bloques
+/rf3.bin: 2 bloques
+/texto.txt: 1 bloques
+-    64.0 MiB  v6    2026-11-07 07:24  datos.bin
+-     1.0 GiB  v1    2026-11-07 06:49  grande.bin
+-    16.0 MiB  v7    2026-11-07 07:21  rf3.bin
+-        20 B  v3    2026-11-07 07:21  texto.txt
+esperadas: 213
+
+## Los archivos vivos se leen enteros
+/dev/root       6.7G  4.3G  2.4G  64% /
+/data/grande-tras-gc.bin: 1.0 GiB en 7.8 s (138 MB/s)
+4b214ab4a2181b8a4d5c35046d1e0f853e7c2fc8c3c3e1c21c4e753e906d7be4  /data/grande.bin
+4b214ab4a2181b8a4d5c35046d1e0f853e7c2fc8c3c3e1c21c4e753e906d7be4  /data/grande-tras-gc.bin
+/data/tras-gc-datos.bin: 64.0 MiB en 0.7 s (101 MB/s)
+/data/tras-gc-rf3.bin: 16.0 MiB en 0.4 s (42 MB/s)
+$ dfsha read /texto.txt 0 100
+hola MUNDO desde AWS
