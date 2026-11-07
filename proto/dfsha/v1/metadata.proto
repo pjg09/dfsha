@@ -247,6 +247,7 @@ message RegisterDataNodeRequest {
   string hostname = 2;         // "datanode-2"
   uint64 capacity_bytes = 3;
   uint64 free_bytes = 4;
+  string addr = 5;             // "datanode-2:50052": por donde lo alcanzan los demás (ADR 0042)
 }
 message RegisterDataNodeResponse {
   bool is_block_report_required = 1;

@@ -351,16 +351,18 @@ class AbortFileResponse(_message.Message):
     def __init__(self) -> None: ...
 
 class RegisterDataNodeRequest(_message.Message):
-    __slots__ = ("node_id", "hostname", "capacity_bytes", "free_bytes")
+    __slots__ = ("node_id", "hostname", "capacity_bytes", "free_bytes", "addr")
     NODE_ID_FIELD_NUMBER: _ClassVar[int]
     HOSTNAME_FIELD_NUMBER: _ClassVar[int]
     CAPACITY_BYTES_FIELD_NUMBER: _ClassVar[int]
     FREE_BYTES_FIELD_NUMBER: _ClassVar[int]
+    ADDR_FIELD_NUMBER: _ClassVar[int]
     node_id: str
     hostname: str
     capacity_bytes: int
     free_bytes: int
-    def __init__(self, node_id: _Optional[str] = ..., hostname: _Optional[str] = ..., capacity_bytes: _Optional[int] = ..., free_bytes: _Optional[int] = ...) -> None: ...
+    addr: str
+    def __init__(self, node_id: _Optional[str] = ..., hostname: _Optional[str] = ..., capacity_bytes: _Optional[int] = ..., free_bytes: _Optional[int] = ..., addr: _Optional[str] = ...) -> None: ...
 
 class RegisterDataNodeResponse(_message.Message):
     __slots__ = ("is_block_report_required",)
