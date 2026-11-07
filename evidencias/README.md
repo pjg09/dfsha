@@ -18,7 +18,7 @@ Una fila sin evidencia es una evidencia que falta.
 | Replicación y fallos | Caída de un nodo de datos; lectura y re-replicación según las garantías (fase I, §9 y §11.3) | [`2026-11-07-replicacion-y-fallos`](2026-11-07-replicacion-y-fallos/) | Hecha |
 | Consistencia | Réplica retrasada o desconectada durante una escritura (fase I, §11.2) | [`2026-11-07-escenario-2`](2026-11-07-escenario-2/) | Hecha |
 | Seguridad | Acceso autorizado y denegado; TLS en el canal y bloques cifrados en disco (fase I, §10) | [`2026-11-07-seguridad`](2026-11-07-seguridad/) | Hecha |
-| Rendimiento | Latencia y tasa de transferencia en al menos dos condiciones (experimentos) | — | Pendiente |
+| Rendimiento | Latencia y tasa de transferencia en al menos dos condiciones (experimentos) | E1 (3 tamaños) y E2 (3 números de nodos): [`e1`](../bench/resultados/2026-11-07-e1.md), [`e2`](../bench/resultados/2026-11-07-e2.md) | Hecha |
 
 ### Experimentos (ADR 0046)
 
