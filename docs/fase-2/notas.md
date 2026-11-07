@@ -137,6 +137,15 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
 - **2026-11-07 · La recolección de basura recorre todos los metadatos** (etapa 8, §9.3). Con cada informe de
   bloques, el líder lee todas las versiones, arrendamientos y escrituras en curso. Con 5 nodos cada 5 min y
   pocos archivos es barato; con muchos archivos habría que llevar un índice de bloques vivos.
+- **2026-11-07 · Un `get` con un nodo de datos caído agotaba la memoria del cliente** (etapa 9, `v0.11.1`). En
+  la primera ejecución de «Replicación y fallos», el kernel de `client-1` mató el `get` de 1 GiB por falta de
+  memoria (573 MB de memoria anónima en una t3.micro de 908 MB), sin mensaje de error. Con todos los nodos el
+  pico es de unos 280–330 MiB; con uno caído pasaba de 500 MiB. Causa: en gRPC la llamada de lectura que
+  falla se lanza a sí misma como excepción, y su traza retiene los marcos que la contienen. Ese ciclo solo lo
+  libera el recolector cíclico, que se dispara por número de objetos y no por bytes, así que cada réplica
+  fallida retenía el bloque de 16 MiB leído después. Se rompe el ciclo borrando la traza al capturar el
+  error; una prueba con el recolector cíclico desactivado lo detecta (retenía 12 MiB con bloques de 1 MiB).
+  En local, con un nodo parado, el pico pasa de 501–522 MiB a 304–331 MiB.
 - **2026-11-07 · El hilo de latidos del nodo de datos moría con un error del líder** (etapa 7, `v0.9.1`). Al
   restaurar los metadatos, un líder que se paraba respondió `UNKNOWN` a `ReportBlocks` (su canal con etcd ya
   estaba cerrado). La excepción salió del bucle y el hilo de latidos murió en los cinco nodos de datos: el
