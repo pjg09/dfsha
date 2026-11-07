@@ -89,6 +89,13 @@ class MetadataClient:
             except MetadataUnavailableError as error:
                 logger.warning("Sin contacto con el líder de metadatos: %s", error)
                 wait_s = self._retry_interval_s  # tras una elección, volver cuanto antes a contar como vivo
+            except DfshaError as error:
+                # Un líder que se para puede responder UNKNOWN; si el hilo muriera, el nodo dejaría de contar como vivo
+                logger.warning("Error del líder de metadatos: %s [%s]", error.message, error.reason or error.code.name)
+                wait_s = self._retry_interval_s
+            except Exception:
+                logger.exception("Error inesperado en el ciclo de latidos; se reintenta")
+                wait_s = self._retry_interval_s
             self._stopped.wait(wait_s)
 
     # ----- Mensajes ------------------------------------------------------------------------------
