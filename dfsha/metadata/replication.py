@@ -42,6 +42,7 @@ class ReplicationManager:
         self._in_flight: dict[str, dict[str, float]] = {}  # block_id -> nodo destino -> plazo
         self._lost: set[str] = set()
         self._dead: set[str] = set()  # nodos que ya se registraron como caídos
+        self._under_replicated = 0  # bloques vivos con menos de R réplicas sanas en la pasada anterior
 
     def reset(self) -> None:
         """Al cambiar de líder, las colas y las copias en curso del anterior no valen."""
@@ -92,6 +93,12 @@ class ReplicationManager:
                 and registry.get_state(replica.node_id) is not NodeState.DEAD
             ]
 
+        under_replicated = sum(1 for block in live.values() if 0 < len(healthy(block)) < factor)
+        if under_replicated and not self._under_replicated:
+            logger.warning("%d bloques vivos tienen menos de %d réplicas sanas: empieza la re-replicación", under_replicated, factor)
+        elif self._under_replicated and not under_replicated:
+            logger.info("Todos los bloques vivos vuelven a tener %d réplicas sanas", factor)  # fin de la re-replicación (E6)
+        self._under_replicated = under_replicated
         for block in sorted(live.values(), key=lambda block: len(healthy(block))):
             sane = healthy(block)
             holders = {replica.node_id for replica in replicas.get(block.block_id, [])}

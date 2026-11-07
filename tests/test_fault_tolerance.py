@@ -75,6 +75,7 @@ def test_rereplication_after_a_datanode_dies_and_extra_replica_on_return(cluster
     assert wait_until(lambda: f"datanode-{victim} declarado caído" in caplog.text, timeout_s=10)
     # Cada bloque vuelve a tener 3 réplicas sin contar las del nodo caído
     assert wait_until(lambda: all(len(nodes - {victim}) == 3 for nodes in _on_disk(cluster).values()), timeout_s=15)
+    assert wait_until(lambda: "vuelven a tener 3 réplicas sanas" in caplog.text, timeout_s=5)
     assert cluster.get("/r.bin") == data
     cluster.start_datanode(victim)  # vuelve con sus bloques: ahora sobran réplicas
     assert wait_until(lambda: f"datanode-{victim} vuelve a enviar latidos" in caplog.text, timeout_s=10)
