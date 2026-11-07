@@ -26,7 +26,7 @@ Una fila sin evidencia es una evidencia que falta.
 |---|---|---|---|
 | E1 | Tamaño del archivo | [`bench/resultados/2026-11-07-e1.md`](../bench/resultados/2026-11-07-e1.md) | Hecha |
 | E2 | Número de nodos de datos | [`bench/resultados/2026-11-07-e2.md`](../bench/resultados/2026-11-07-e2.md) | Hecha |
-| E3 | W = 2 frente a W = 3 | — | Pendiente |
+| E3 | W = 2 frente a W = 3 | [`bench/resultados/2026-11-07-e3.md`](../bench/resultados/2026-11-07-e3.md) | Hecha |
 | E4 | Clientes concurrentes | — | Pendiente |
 | E5 | Tamaño de bloque | — | Pendiente |
 | E6 | Caída de un nodo de datos | — | Pendiente |
