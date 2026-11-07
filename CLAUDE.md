@@ -44,7 +44,7 @@ Plugins con ámbito de proyecto (`.claude/settings.json`):
 - Un ADR sin commitear se puede corregir. Una vez commiteado, cualquier cambio va en un ADR nuevo que lo sustituye; del antiguo solo cambia la línea de estado.
 
 ## Fase II: evidencias e informe (ADR 0036)
-- Cuando una prueba mínima de §5.2 pase en `aws`, se ejecute un experimento (ADR 0028) o se provoque un fallo, **propón registrar la evidencia en ese momento**, antes de que termine la sesión del Learner Lab. Una prueba no está hecha hasta que su evidencia está en `evidencias/` y en su índice.
+- Cuando una prueba mínima de §5.2 pase en `aws`, se ejecute un experimento (ADR 0046) o se provoque un fallo, **propón registrar la evidencia en ese momento**, antes de que termine la sesión del Learner Lab. Una prueba no está hecha hasta que su evidencia está en `evidencias/` y en su índice.
 - Quita tokens, claves y credenciales de la salida antes de commitearla.
 - Si hace falta una captura que no puedes tomar tú (la consola de AWS, por ejemplo), pídesela a Pedro en ese momento, con el nombre del archivo y el directorio de `evidencias/` donde va.
 - Al terminar cada tarea que haya ejecutado algo en AWS, comprueba que todo lo ejecutado tiene su evidencia y su fila en el índice, y dilo en el resumen final. Si falta algo, dilo antes que nada.
