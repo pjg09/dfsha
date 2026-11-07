@@ -84,6 +84,11 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
   y las imágenes quedan en caché, así que reiniciar un contenedor no la necesita; recrear una instancia
   pasadas 12 h exige volver a ejecutar `install`.
 
+- **2026-11-07 · Un servidor de metadatos que se para responde `UNKNOWN`** (etapa 7). Mientras se cierra, las
+  llamadas que ya atendía fallan con el canal de etcd cerrado y llegan como `UNKNOWN`, no como `UNAVAILABLE`.
+  El nodo de datos ya lo tolera; el cliente no reintenta `UNKNOWN`, así que una operación en curso durante la
+  parada del líder puede fallar en lugar de reintentarse. Por revisar en la etapa 9 (tolerancia a fallos).
+
 ## Problemas encontrados y cómo se resolvieron
 
 - **2026-11-07 · gRPC para Python no permite un certificado de cliente opcional** (etapa 6, ADR 0043). Con
@@ -94,6 +99,17 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
   tiene permisos `drwxr-xr-x` y recomienda `0700`. En AWS el script de despliegue tiene que dejar el
   directorio de datos de etcd con `0700` (etapa 7).
 
+- **2026-11-07 · El hilo de latidos del nodo de datos moría con un error del líder** (etapa 7, `v0.9.1`). Al
+  restaurar los metadatos, un líder que se paraba respondió `UNKNOWN` a `ReportBlocks` (su canal con etcd ya
+  estaba cerrado). La excepción salió del bucle y el hilo de latidos murió en los cinco nodos de datos: el
+  proceso seguía en marcha, pero el nuevo líder nunca los vio vivos y `get` falló con `BLOCK_LOST`. Puede pasar
+  en cualquier parada del líder, no solo al restaurar. Ahora el bucle registra cualquier error y reintenta
+  (`fix(datanode)`); en la repetición el mismo error llegó a tres nodos y siguieron funcionando.
+- **2026-11-07 · Restaurar una copia hace retroceder las revisiones de etcd** (etapa 7, ADR 0035). La época
+  del líder es una revisión de etcd, y los nodos de datos descartan épocas menores que la mayor que ya vieron.
+  Restaurar una copia antigua daría al nuevo líder una época menor y los nodos de datos lo rechazarían.
+  `deploy.sh restore` usa `etcdutl snapshot restore --bump-revision 1000000000 --mark-compacted`; tras la
+  restauración, el líder tuvo la época 2 000 000 252.
 - **2026-11-07 · Las 9 instancias se instalaron como `client-1`** (etapa 7). En `deploy.sh`, el bucle de
   `hosts_file` usaba la variable `host` sin declararla local, y en bash eso pisa la variable local de la
   función que llama. Cada instalación terminaba con el nombre, el `compose.yaml` y los secretos de `client-1`.

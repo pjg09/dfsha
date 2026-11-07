@@ -34,6 +34,12 @@ Una fila sin evidencia es una evidencia que falta.
 | E8 | Con y sin cifrado | — | Pendiente |
 | E9 | Arranque en frío | — | Pendiente |
 
+### Otros fallos provocados
+
+| Fallo | Qué tiene que verse | Evidencia | Estado |
+|---|---|---|---|
+| Pérdida del estado de etcd en los tres servidores de metadatos | Restaurar la copia de S3 recupera lo anterior a ella; el nuevo líder tiene mayor época y los nodos de datos lo aceptan (§4.2, §11.3) | [`2026-11-07-restauracion-de-metadatos`](2026-11-07-restauracion-de-metadatos/) | Hecha |
+
 ## Plantilla del `README.md` de cada evidencia
 
 ```markdown

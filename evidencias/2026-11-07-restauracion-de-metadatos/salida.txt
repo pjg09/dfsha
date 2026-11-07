@@ -1,0 +1,45 @@
+
+## Estado antes de la copia
+-     1.0 GiB  v1    2026-11-07 05:16  grande.bin
+-     1.0 MiB  v1    2026-11-07 05:28  marca.txt
+2026-11-07T05:41:23.502Z INFO metadata-3 dfsha.metadata.leader: Elegido líder con época 1000000245
+
+## Copia de seguridad en S3
+[05:42:21] Copia de seguridad en s3://dfsha-copias-227860/etcd-20261107T054219Z.db
+copia usada: etcd-20261107T054219Z.db
+
+## Archivo creado después de la copia: se perderá al restaurar (L11)
+/despues-de-la-copia.txt: versión 1, 28 B en 0.2 s (0 MB/s)
+-        28 B  v1    2026-11-07 05:42  despues-de-la-copia.txt
+-     1.0 GiB  v1    2026-11-07 05:16  grande.bin
+-     1.0 MiB  v1    2026-11-07 05:28  marca.txt
+
+## Pérdida de los datos de etcd de los tres servidores de metadatos y restauración
+inicio: 05:42:31
+[metadata-1]  Container etcd  Stopped
+[metadata-2]  Container etcd  Stopped
+[metadata-3]  Container etcd  Stopped
+[05:42:54] metadata-1 restaurado desde etcd-20261107T054219Z.db
+[05:43:00] metadata-2 restaurado desde etcd-20261107T054219Z.db
+[05:43:05] metadata-3 restaurado desde etcd-20261107T054219Z.db
+[metadata-1]  Container metadata-1  Started
+[metadata-3]  Container metadata-3  Started
+[metadata-2]  Container metadata-2  Started
+[05:43:09] Servidores de metadatos arrancados con la copia etcd-20261107T054219Z.db
+fin de la restauración: 05:43:09
+    etcd
+    etcd-anterior-20261107T053404Z
+    etcd-anterior-20261107T054253Z
+    lost+found
+
+## Elección tras la restauración: la época es mayor que 10^9 por --bump-revision
+2026-11-07T05:43:16.272Z INFO metadata-2 dfsha.metadata.leader: Elegido líder con época 2000000252
+
+## Los nodos de datos aceptan al nuevo líder
+datanode-1: datanode-2: datanode-3: datanode-4: datanode-5: 
+## Estado después de la restauración
+-     1.0 GiB  v1    2026-11-07 05:16  grande.bin
+-     1.0 MiB  v1    2026-11-07 05:28  marca.txt
+/data/restaurado.bin: 1.0 GiB en 8.0 s (134 MB/s)
+4993c4a8ed94568b64a5749a8aad13b8169c0e8b8f2dc7612f9e0535d66a4be1  /data/grande.bin
+4993c4a8ed94568b64a5749a8aad13b8169c0e8b8f2dc7612f9e0535d66a4be1  /data/restaurado.bin

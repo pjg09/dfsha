@@ -1,0 +1,8 @@
+2026-11-07T05:42:48.320Z WARNING datanode-1 dfsha.datanode.metadata_client: Error del líder de metadatos: Exception calling application: <_InactiveRpcError of RPC that te
+2026-11-07T05:43:17.388Z INFO datanode-1 dfsha.datanode.metadata_client: Informe de bloques enviado: 39 bloques
+2026-11-07T05:42:48.321Z WARNING datanode-2 dfsha.datanode.metadata_client: Error del líder de metadatos: Exception calling application: <_InactiveRpcError of RPC that te
+2026-11-07T05:43:16.403Z INFO datanode-2 dfsha.datanode.metadata_client: Informe de bloques enviado: 43 bloques
+2026-11-07T05:42:48.323Z WARNING datanode-3 dfsha.datanode.metadata_client: Error del líder de metadatos: Exception calling application: <_InactiveRpcError of RPC that te
+2026-11-07T05:43:16.407Z INFO datanode-3 dfsha.datanode.metadata_client: Informe de bloques enviado: 39 bloques
+2026-11-07T05:43:17.035Z INFO datanode-4 dfsha.datanode.metadata_client: Informe de bloques enviado: 43 bloques
+2026-11-07T05:43:16.623Z INFO datanode-5 dfsha.datanode.metadata_client: Informe de bloques enviado: 43 bloques

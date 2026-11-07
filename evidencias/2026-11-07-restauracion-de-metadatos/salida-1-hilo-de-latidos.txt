@@ -1,0 +1,52 @@
+
+## Estado antes de la copia
+-     1.0 GiB  v1    2026-11-07 05:16  grande.bin
+-     1.0 MiB  v1    2026-11-07 05:28  marca.txt
+2026-11-07T05:11:03.514Z INFO metadata-1 dfsha.metadata.leader: Elegido líder con época 2
+2026-11-07T05:11:03.631Z INFO metadata-1 dfsha.metadata.service: Primer administrador creado
+
+## Copia de seguridad en S3
+{
+    "BucketArn": "arn:aws:s3:::dfsha-copias-227860",
+    "BucketRegion": "us-east-1",
+    "AccessPointAlias": false
+}
+[05:33:32] Copia de seguridad en s3://dfsha-copias-227860/etcd-20261107T053329Z.db
+copia usada: etcd-20261107T053329Z.db
+
+## Archivo creado después de la copia: se perderá al restaurar (L11)
+/despues-de-la-copia.txt: versión 1, 28 B en 0.2 s (0 MB/s)
+-        28 B  v1    2026-11-07 05:33  despues-de-la-copia.txt
+-     1.0 GiB  v1    2026-11-07 05:16  grande.bin
+-     1.0 MiB  v1    2026-11-07 05:28  marca.txt
+
+## Pérdida de los datos de etcd de los tres servidores de metadatos y restauración
+inicio: 05:33:41
+[metadata-1]  Container etcd  Stopped
+[metadata-2]  Container etcd  Stopped
+[metadata-3]  Container etcd  Stopped
+[05:34:05] metadata-1 restaurado desde etcd-20261107T053329Z.db
+[05:34:14] metadata-2 restaurado desde etcd-20261107T053329Z.db
+[05:34:20] metadata-3 restaurado desde etcd-20261107T053329Z.db
+[metadata-3]  Container metadata-3  Started
+[metadata-2]  Container metadata-2  Started
+[metadata-1]  Container metadata-1  Started
+[05:34:25] Servidores de metadatos arrancados con la copia etcd-20261107T053329Z.db
+fin de la restauración: 05:34:25
+    etcd
+    etcd-anterior-20261107T053404Z
+    lost+found
+
+## Elección tras la restauración: la época es mayor que 10^9 por --bump-revision
+2026-11-07T05:34:31.471Z INFO metadata-1 dfsha.metadata.leader: Elegido líder con época 1000000233
+2026-11-07T05:33:48.131Z INFO metadata-2 dfsha.metadata.leader: Elegido líder con época 240
+2026-11-07T05:33:52.561Z INFO metadata-3 dfsha.metadata.leader: Elegido líder con época 247
+
+## Los nodos de datos aceptan al nuevo líder
+datanode-1: datanode-2: datanode-3: datanode-4: datanode-5: 
+## Estado después de la restauración
+-     1.0 GiB  v1    2026-11-07 05:16  grande.bin
+-     1.0 MiB  v1    2026-11-07 05:28  marca.txt
+Error: No se pudo leer el bloque 0 de ninguna réplica [BLOCK_LOST]
+4993c4a8ed94568b64a5749a8aad13b8169c0e8b8f2dc7612f9e0535d66a4be1  /data/grande.bin
+sha256sum: /data/restaurado.bin: No such file or directory
