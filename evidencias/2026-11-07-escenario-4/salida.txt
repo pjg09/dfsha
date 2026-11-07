@@ -1,0 +1,39 @@
+
+## Versión desplegada y configuración del cliente: solo los servidores de metadatos
+    dfsha-client:0.12.0
+DFSHA_METADATA_ADDRS=metadata-1:50051,metadata-2:50051,metadata-3:50051
+161:  local metadata_addrs="metadata-1:50051,metadata-2:50051,metadata-3:50051"
+210:    environment: {DFSHA_NODE_ID: "$host", DFSHA_DATANODE_ADDR: "$host:50052", DFSHA_METADATA_ADDRS: "$metadata_addrs"}
+220:    environment: {DFSHA_METADATA_ADDRS: "$metadata_addrs"}
+
+## Descubrimiento (descubrimiento.py, en client-1)
+1. Cada servidor de metadatos, preguntado directamente:
+   metadata-3:50051: UNAVAILABLE [NODE_NOT_LEADER], leader_addr = metadata-1:50051
+   metadata-2:50051: UNAVAILABLE [NODE_NOT_LEADER], leader_addr = metadata-1:50051
+   metadata-1:50051: responde, es el líder
+
+2. El cliente empieza por un seguidor si es el primero de la lista: sigue la redirección y lo recuerda
+   ls / -> ['datos.bin', 'durante-la-caida.bin', 'escenario-2.bin', 'escenario-3.bin', 'grande.bin', 'rf3.bin', 'texto.txt']
+   líder recordado por el cliente: metadata-1:50051
+
+3. Ubicaciones de /grande.bin (bloques 0 a 4): nombres de nodos, nunca IP
+   bloque 0: datanode-1:50052, datanode-2:50052, datanode-4:50052
+   bloque 1: datanode-1:50052, datanode-3:50052, datanode-5:50052
+   bloque 2: datanode-1:50052, datanode-2:50052, datanode-4:50052
+   bloque 3: datanode-1:50052, datanode-3:50052, datanode-5:50052
+   bloque 4: datanode-1:50052, datanode-2:50052, datanode-4:50052
+
+## 4. El nombre se resuelve con /etc/hosts, que genera deploy.sh con las IP privadas
+# dfsha-inicio
+172.31.18.115 metadata-1
+172.31.23.94 metadata-2
+172.31.24.167 metadata-3
+172.31.22.61 datanode-1
+172.31.29.122 datanode-2
+172.31.30.75 datanode-3
+172.31.29.2 datanode-4
+172.31.23.156 datanode-5
+172.31.19.119 client-1
+# dfsha-fin
+
+172.31.29.122   datanode-2
