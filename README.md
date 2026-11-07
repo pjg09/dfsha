@@ -22,7 +22,8 @@ Hace falta [uv](https://docs.astral.sh/uv/) 0.12.5, que instala Python 3.12 si n
 
 ```bash
 uv sync --locked                   # entorno con las versiones exactas de uv.lock
-uv run pytest                      # pruebas automáticas
+uv run pytest                      # pruebas automáticas; arrancan un etcd con Docker si no hay
+                                   # uno en DFSHA_TEST_ETCD_ADDR
 uv run pyright                     # comprobación de tipos
 uv run scripts/generate-proto.sh   # regenera dfsha/v1/ después de cambiar proto/
 ```
@@ -30,7 +31,8 @@ uv run scripts/generate-proto.sh   # regenera dfsha/v1/ después de cambiar prot
 ## Entorno local
 
 El clúster en una sola máquina con Docker Compose y las mismas imágenes que en AWS (ADR 0030). Solo sirve
-para desarrollar: las evidencias se obtienen en AWS (ADR 0036). Por ahora levanta los cinco nodos de datos.
+para desarrollar: las evidencias se obtienen en AWS (ADR 0036). Levanta los tres servidores de metadatos con
+su miembro de etcd y los cinco nodos de datos; el cliente llega en la etapa 5.
 
 ```bash
 export DFSHA_VERSION=$(scripts/get-version.sh) DFSHA_IMAGE_TAG=$(scripts/get-version.sh --image)
