@@ -37,7 +37,7 @@ log() { printf '[%s] %s\n' "$(date -u +%H:%M:%S)" "$*" >&2; }
 role_of() { echo "${1%-*}"; }
 instance_type() { [[ $(role_of "$1") == datanode ]] && echo t3.micro || echo t3.small; }  # cliente en t3.small (ADR 0045)
 volume_size() { case $(role_of "$1") in metadata) echo 4 ;; datanode) echo 10 ;; *) echo 0 ;; esac; }
-version_tag() { scripts/get-version.sh --image; }
+version_tag() { echo "${DFSHA_IMAGE_TAG:-$(scripts/get-version.sh --image)}"; }  # DFSHA_IMAGE_TAG fija una versión ya publicada
 registry() { echo "$(aws sts get-caller-identity --query Account --output text).dkr.ecr.$REGION.amazonaws.com"; }
 
 instance_id() {
