@@ -374,6 +374,24 @@ def test_writers_on_different_blocks_both_commit(cluster: Cluster) -> None:
     assert _commit_partial(cluster, second, second_lease.lease_id, [(3, b"D")], 4) == 3  # se aplica sobre la otra (§8.2)
 
 
+def test_partial_commit_after_an_append_keeps_the_appended_size(cluster: Cluster) -> None:
+    cluster.put("/datos.bin", [b"0", b"1"])
+    partial, appender = _open_for_write(cluster, "/datos.bin"), _open_for_write(cluster, "/datos.bin")
+    partial_lease, append_lease = _lock(cluster, partial, 0, 1), _lock(cluster, appender, 2, 0)
+    appended = cluster.write_blocks(appender, append_lease.lease_id, [(2, b"2"), (3, b"3")])
+    cluster.stub.CommitFile(
+        metadata_pb2.CommitFileRequest(
+            request_id=_request_id(), file_handle=appender, lease_id=append_lease.lease_id,
+            write_mode=common_pb2.WRITE_MODE_APPEND, blocks=appended, size_bytes=4,
+        ),
+        timeout=5,
+    )  # fmt: skip
+    # El escritor parcial partió de la versión de 2 bytes; su confirmación no puede truncar lo anexado (§8.2)
+    assert _commit_partial(cluster, partial, partial_lease.lease_id, [(0, b"A")], 2) == 3
+    info = cluster.stub.GetFileInfo(metadata_pb2.GetFileInfoRequest(path="/datos.bin"), timeout=5).info
+    assert info.size_bytes == 4
+
+
 def test_stale_writer_gets_version_conflict(cluster: Cluster) -> None:
     cluster.put("/datos.bin", [b"0", b"1"])
     stale = _open_for_write(cluster, "/datos.bin")  # abre la versión 1

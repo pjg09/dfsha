@@ -731,14 +731,19 @@ class MetadataService(metadata_pb2_grpc.MetadataServiceServicer):
                 compares.append(compare_mod_revision(self.keys.file(handle.file_id), file_kv.mod_revision))
                 new_blocks = self._build_new_blocks(handle, current, request.write_mode, lease, committed)
                 ops.extend(self._supersede_version(current, now))
+            size_bytes = request.size_bytes
+            if request.write_mode in (common_pb2.WRITE_MODE_APPEND, common_pb2.WRITE_MODE_PARTIAL):
+                # Anexar y modificar no encogen el archivo. El cliente calcula el tamaño sobre su versión base;
+                # si otro escritor alargó el archivo después en un rango distinto, vale el tamaño vigente (§8.2)
+                size_bytes = max(size_bytes, file_record.current_size_bytes)
             new_version = file_record.current_version + 1
             updated = FileRecord()
             updated.CopyFrom(file_record)
             updated.current_version = new_version
-            updated.current_size_bytes = request.size_bytes
+            updated.current_size_bytes = size_bytes
             updated.modified_at.CopyFrom(_now_timestamp(now))
             version = VersionRecord(
-                version=new_version, blocks=new_blocks, size_bytes=request.size_bytes, committed_at=_now_timestamp(now)
+                version=new_version, blocks=new_blocks, size_bytes=size_bytes, committed_at=_now_timestamp(now)
             )
             ops.append(op_put(self.keys.file(handle.file_id), updated.SerializeToString()))
             ops.append(op_put(self.keys.version(handle.file_id, new_version), version.SerializeToString()))
