@@ -2,6 +2,12 @@
 
 Generado automáticamente por semantic-release a partir de los commits. No editar a mano.
 
+## [0.11.1](https://github.com/pjg09/dfsha/compare/v0.11.0...v0.11.1) (2026-11-07)
+
+### Correcciones
+
+* **client:** no retiene bloques al fallar la lectura de una réplica ([69bbe0a](https://github.com/pjg09/dfsha/commit/69bbe0ac717b715536199746b5437fafdd0d02ec))
+
 ## [0.11.0](https://github.com/pjg09/dfsha/compare/v0.10.0...v0.11.0) (2026-11-07)
 
 ### Funcionalidades
