@@ -32,6 +32,13 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
   de desarrollo, con 5 nodos de datos y bloques de 16 MiB: `put` en 4,3 s (248 MB/s) y `get` en 1,8 s
   (608 MB/s), mismo SHA-256. Sin cifrado ni TLS todavía (etapa 6). No son valores de rendimiento del
   sistema: no hay red real; E1 y E2 se miden en AWS.
+- **2026-11-07 · `put` y `get` de 1 GiB con la seguridad activada** (etapa 6, local). Con TLS mutuo y
+  cifrado AES-256-GCM en el cliente: `put` en 5,2 s (206 MB/s) y `get` en 2,6 s (415 MB/s), mismo SHA-256.
+  Sin seguridad eran 4,3 s y 1,8 s (etapa 5). Es una referencia del coste de TLS y del cifrado; E8 lo mide
+  en AWS.
+- **2026-11-07 · Bloques ilegibles en disco** (etapa 6, local). Un archivo de texto con una marca repetida
+  20 000 veces se carga con `put`, y ningún bloque de los cinco nodos de datos contiene la marca. Cada
+  bloque guardado mide 28 bytes más que el bloque en claro (nonce y etiqueta de AES-GCM).
 
 ## Limitaciones descubiertas
 
@@ -54,7 +61,21 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
   ningún nodo de datos cuenta como vivo hasta que envía un latido al nuevo líder; hasta entonces
   `AllocateBlocks` responde `QUORUM_NOT_REACHED`, y el cliente tiene que reintentar con espera (etapa 5).
 
+- **2026-11-07 · Un certificado por máquina cliente** (etapa 6, ADR 0043). Como todas las conexiones usan
+  TLS mutuo, cada máquina cliente necesita un certificado de la CA interna. En el despliegue el único
+  cliente es `client-1`.
+- **2026-11-07 · El bloqueo por intentos fallidos vive en la memoria del líder** (etapa 6, ADR 0043): tras
+  5 fallos seguidos, el usuario queda bloqueado 30 s, pero un cambio de líder reinicia el contador.
+
 ## Problemas encontrados y cómo se resolvieron
+
+- **2026-11-07 · gRPC para Python no permite un certificado de cliente opcional** (etapa 6, ADR 0043). Con
+  `require_client_auth=False` el servidor no recibe el certificado del otro extremo, así que no podía
+  distinguir un nodo de datos de un cliente en el mismo puerto. Se pasó a TLS mutuo en todas las
+  conexiones, también las del cliente, con un certificado para `client-1`.
+- **2026-11-07 · Avisos de etcd en el entorno local** (etapa 6). etcd avisa de que su directorio de datos
+  tiene permisos `drwxr-xr-x` y recomienda `0700`. En AWS el script de despliegue tiene que dejar el
+  directorio de datos de etcd con `0700` (etapa 7).
 
 - **2026-11-06 · Memoria de la primaria con escrituras simultáneas** (etapa 3). Con 8 escrituras a la vez,
   el pico de memoria del proceso tenía una mediana de 257 MiB (246–269, 5 repeticiones), por las arenas de

@@ -28,8 +28,8 @@ Qué hay que entregar: enunciado §5.3. Cómo se califica: enunciado §6.
 | 3 | Nodo de datos y entorno local | Distribución y comunicaciones | Terminada |
 | 4 | Servidor de metadatos | Distribución; alta disponibilidad | Terminada |
 | 5 | Cliente: RF1 y RF2 de extremo a extremo | Implementación RF1–RF3 | Terminada |
-| 6 | Seguridad | Seguridad | En curso |
-| 7 | Despliegue en AWS | Distribución y comunicaciones | Pendiente |
+| 6 | Seguridad | Seguridad | Terminada |
+| 7 | Despliegue en AWS | Distribución y comunicaciones | En curso |
 | 8 | RF3 en el cliente y concurrencia | Implementación RF1–RF3; consistencia | Pendiente |
 | 9 | Tolerancia a fallos | Alta disponibilidad, replicación y consistencia | Pendiente |
 | 10 | Experimentos y pruebas finales | Pruebas de rendimiento | Pendiente |
@@ -128,6 +128,9 @@ un bloque en disco no se puede leer sin la clave.
   los grupos de seguridad y los volúmenes EBS, instala Docker y chrony, genera `/etc/hosts` y los
   certificados, y arranca los contenedores.
 - Copia de seguridad de los metadatos en S3 y su restauración (§4.2, ADR 0035).
+- **Pendiente de la etapa 6** (ADR 0043): generar los secretos con `python -m dfsha.common.pki`, copiar a
+  cada instancia solo los de su host, con dueño el usuario de las imágenes (10001) y permisos de solo
+  lectura, y dejar el directorio de datos de etcd con permisos `0700`.
 
 **Terminada cuando:** el clúster de 9 instancias se levanta desde cero con un comando y pasa la prueba de
 carga y recuperación. **Primeras evidencias:** «Carga y recuperación» y «Seguridad».

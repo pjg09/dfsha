@@ -106,3 +106,19 @@ primera cita.
 - **Usada en:** `Dockerfile` (`MALLOC_ARENA_MAX=2`)
 - **Verificación:** No se leyó la página. El efecto se midió: con 8 escrituras simultáneas, la mediana del pico de memoria de la primaria baja de 257 a 167 MiB (5 repeticiones, `docs/fase-2/notas.md`).
 
+## Seguridad (etapa 6)
+
+### [grpc-python-tls]
+
+- **Referencia:** The gRPC Authors, «grpc.ssl_server_credentials», gRPC Python API reference. [En línea]. Disponible en: https://grpc.github.io/grpc/python/grpc.html#grpc.ssl_server_credentials (consultado: 7 nov. 2026).
+- **Tipo:** Documentación
+- **Usada en:** ADR 0043
+- **Verificación:** No se leyó la página. Se comprobó con grpcio 1.85.1: la función solo admite `require_client_auth=True` o `False`, y con `False` el contexto de la llamada no trae ningún dato del certificado del otro extremo; con `True` trae su SAN y `ssl_tls_version = TLSv1.3` (`tests/test_tls.py`).
+
+### [cryptography-aead-scrypt]
+
+- **Referencia:** The Python Cryptographic Authority, «cryptography 50.0.2 documentation: AEAD (AESGCM) y Scrypt». [En línea]. Disponible en: https://cryptography.io/en/latest/ (consultado: 7 nov. 2026).
+- **Tipo:** Documentación
+- **Usada en:** ADR 0043 y `dfsha/common/security.py`
+- **Verificación:** No se leyó la documentación. El uso se comprobó en `tests/test_security.py`: AES-GCM rechaza un bit cambiado y un dato asociado distinto, y scrypt da hashes distintos con sales distintas.
+
