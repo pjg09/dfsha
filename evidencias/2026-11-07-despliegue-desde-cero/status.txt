@@ -1,0 +1,27 @@
+dfsha-client-1	t3.micro	running
+dfsha-client-1	t3.micro	terminated
+dfsha-datanode-1	t3.micro	running
+dfsha-datanode-1	t3.micro	terminated
+dfsha-datanode-2	t3.micro	running
+dfsha-datanode-2	t3.micro	terminated
+dfsha-datanode-3	t3.micro	running
+dfsha-datanode-3	t3.micro	terminated
+dfsha-datanode-4	t3.micro	running
+dfsha-datanode-4	t3.micro	terminated
+dfsha-datanode-5	t3.micro	running
+dfsha-datanode-5	t3.micro	terminated
+dfsha-metadata-1	t3.small	running
+dfsha-metadata-1	t3.small	terminated
+dfsha-metadata-2	t3.small	running
+dfsha-metadata-2	t3.small	terminated
+dfsha-metadata-3	t3.small	running
+dfsha-metadata-3	t3.small	terminated
+metadata-1: metadata-1 Up 55 seconds;etcd Up 55 seconds;
+metadata-2: metadata-2 Up 59 seconds;etcd Up 59 seconds;
+metadata-3: metadata-3 Up About a minute;etcd Up About a minute;
+datanode-1: datanode-1 Up 43 seconds;
+datanode-2: datanode-2 Up About a minute;
+datanode-3: datanode-3 Up About a minute;
+datanode-4: datanode-4 Up About a minute;
+datanode-5: datanode-5 Up About a minute;
+client-1: client-1 Up About a minute;

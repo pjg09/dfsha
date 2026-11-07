@@ -1,0 +1,51 @@
+
+WARNING! Your credentials are stored unencrypted in '/home/pedro/.docker/config.json'.
+Configure a credential helper to remove this warning. See
+https://docs.docker.com/go/credential-store/
+
+[06:39:54] Construyendo dfsha-metadata:0.9.2.dev3-gddb9bc6
+[06:40:05] dfsha-metadata:0.9.2.dev3-gddb9bc6 enviada a ECR
+[06:40:06] Construyendo dfsha-datanode:0.9.2.dev3-gddb9bc6
+[06:40:10] dfsha-datanode:0.9.2.dev3-gddb9bc6 enviada a ECR
+[06:40:12] Construyendo dfsha-client:0.9.2.dev3-gddb9bc6
+[06:40:15] dfsha-client:0.9.2.dev3-gddb9bc6 enviada a ECR
+[06:40:18] Grupo de seguridad dfsha-sg-metadata creado
+[06:40:21] Grupo de seguridad dfsha-sg-datanode creado
+[06:40:24] Grupo de seguridad dfsha-sg-client creado
+[06:40:54] Instancia dfsha-metadata-1: i-0174692dbd504aa68
+[06:40:58] Instancia dfsha-metadata-2: i-09496bde3f13ffe27
+[06:41:01] Instancia dfsha-metadata-3: i-0c2612bf9e607e8ad
+[06:41:05] Instancia dfsha-datanode-1: i-0881ac3fab71f6a5d
+[06:41:08] Instancia dfsha-datanode-2: i-06af7ae40bef0c0e3
+[06:41:12] Instancia dfsha-datanode-3: i-092ef88d141d6cf1d
+[06:41:16] Instancia dfsha-datanode-4: i-09dd4b2bfc9004d6b
+[06:41:19] Instancia dfsha-datanode-5: i-045726ec6fe5e0580
+[06:41:23] Instancia dfsha-client-1: i-0772f79c54a02a333
+[06:42:03] Volumen dfsha-metadata-1-data: vol-0467b5c06a417eecd
+[06:42:27] Volumen dfsha-metadata-2-data: vol-04231d20d75c3444a
+[06:42:51] Volumen dfsha-metadata-3-data: vol-040ebfea23c9dd561
+[06:43:15] Volumen dfsha-datanode-1-data: vol-0d1eb3c77c06bcbcc
+[06:43:39] Volumen dfsha-datanode-2-data: vol-03da25297773b06c9
+[06:44:02] Volumen dfsha-datanode-3-data: vol-03455f232202aa014
+[06:44:26] Volumen dfsha-datanode-4-data: vol-0486d03692ffb0f1a
+[06:44:50] Volumen dfsha-datanode-5-data: vol-0fc0300e6b0763398
+[06:44:55] Instancias en marcha
+[datanode-3]  Container datanode-3  Started
+[06:46:15] datanode-3 instalado
+[datanode-5]  Container datanode-5  Started
+[06:46:16] datanode-5 instalado
+[metadata-3]  Container metadata-3  Started
+[06:46:17] metadata-3 instalado
+[datanode-4]  Container datanode-4  Started
+[06:46:18] datanode-4 instalado
+[metadata-1]  Container metadata-1  Started
+[06:46:18] metadata-1 instalado
+[metadata-2]  Container metadata-2  Started
+[06:46:19] metadata-2 instalado
+[datanode-2]  Container datanode-2  Started
+[06:46:20] datanode-2 instalado
+[client-1]  Container client-1  Started
+[06:46:31] client-1 instalado
+[datanode-1]  Container datanode-1  Started
+[06:46:44] datanode-1 instalado
+[06:46:44] Clúster instalado

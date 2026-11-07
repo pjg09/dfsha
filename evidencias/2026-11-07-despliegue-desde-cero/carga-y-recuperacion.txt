@@ -1,0 +1,60 @@
+
+## Versión desplegada
+    dfsha-metadata:0.9.2.dev3-gddb9bc6
+    dfsha-datanode:0.9.2.dev3-gddb9bc6
+    dfsha-client:0.9.2.dev3-gddb9bc6
+
+## Réplicas en cada nodo de datos antes de la carga
+datanode-1: 0
+datanode-2: 0
+datanode-3: 0
+datanode-4: 0
+datanode-5: 0
+
+## Archivo de 1 GiB con contenido aleatorio en client-1
+-rw-r--r-- 1 dfsha dfsha 1073741824 Nov  7 06:48 /data/grande.bin
+4b214ab4a2181b8a4d5c35046d1e0f853e7c2fc8c3c3e1c21c4e753e906d7be4  /data/grande.bin
+
+## put /data/grande.bin /grande.bin
+/grande.bin: versión 1, 1.0 GiB en 8.1 s (133 MB/s)
+tiempo: 14.3 s (75 MB/s)
+
+## stat /grande.bin y ls /
+ruta: /grande.bin
+versión: 1
+tamaño: 1073741824 bytes (1.0 GiB)
+bloques: 64 de 16.0 MiB
+modificado: 2026-11-07 06:49
+-     1.0 GiB  v1    2026-11-07 06:49  grande.bin
+
+## Réplicas en cada nodo de datos después de la carga (64 bloques x 3 réplicas = 192)
+datanode-1: 38 réplicas, 637535272 bytes
+datanode-2: 38 réplicas, 637535272 bytes
+datanode-3: 38 réplicas, 637535272 bytes
+datanode-4: 39 réplicas, 654312516 bytes
+datanode-5: 39 réplicas, 654312516 bytes
+total: 192 réplicas
+
+## Tamaño de una réplica en disco (16 MiB + 28 bytes de nonce y etiqueta de AES-GCM)
+     38 16777244
+
+## get /grande.bin /data/recuperado.bin
+/data/recuperado.bin: 1.0 GiB en 8.0 s (134 MB/s)
+tiempo: 11.0 s (98 MB/s)
+
+## Comparación de hashes
+4b214ab4a2181b8a4d5c35046d1e0f853e7c2fc8c3c3e1c21c4e753e906d7be4  /data/grande.bin
+4b214ab4a2181b8a4d5c35046d1e0f853e7c2fc8c3c3e1c21c4e753e906d7be4  /data/recuperado.bin
+cmp: idénticos
+
+## Pico de memoria (VmHWM) del proceso de cada nodo de datos desde que arrancó
+datanode-1: VmHWM:	 96132 kB
+    memoria disponible del host: 467 MiB
+datanode-2: VmHWM:	 148564 kB
+    memoria disponible del host: 408 MiB
+datanode-3: VmHWM:	 114896 kB
+    memoria disponible del host: 438 MiB
+datanode-4: VmHWM:	 105744 kB
+    memoria disponible del host: 458 MiB
+datanode-5: VmHWM:	 107068 kB
+    memoria disponible del host: 459 MiB

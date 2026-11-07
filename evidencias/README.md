@@ -34,6 +34,12 @@ Una fila sin evidencia es una evidencia que falta.
 | E8 | Con y sin cifrado | — | Pendiente |
 | E9 | Arranque en frío | — | Pendiente |
 
+### Despliegue
+
+| Comprobación | Qué tiene que verse | Evidencia | Estado |
+|---|---|---|---|
+| Despliegue desde cero | `deploy.sh all` levanta los 9 hosts sin intervención y el clúster pasa la prueba de carga y recuperación (§3.6) | [`2026-11-07-despliegue-desde-cero`](2026-11-07-despliegue-desde-cero/) | Hecha |
+
 ### Otros fallos provocados
 
 | Fallo | Qué tiene que verse | Evidencia | Estado |
