@@ -1,9 +1,11 @@
 """Cliente (biblioteca y línea de órdenes) contra un clúster real en localhost sobre etcd real."""
 
+import gc
 import hashlib
 import io
 import logging
 import os
+import tracemalloc
 from collections.abc import Callable, Iterator
 from pathlib import Path
 
@@ -231,6 +233,25 @@ def test_cli_shell_with_an_open_file(
     assert (tmp_path / "antes.txt").read_bytes() == b"HOLA mundo"  # lo propio se lee antes de cerrar
     assert main(["read", "/s.txt", "0", "20", str(tmp_path / "despues.txt")]) == 0
     assert (tmp_path / "despues.txt").read_bytes() == b"HOLA mundo"
+
+
+def test_failed_replicas_do_not_retain_blocks(cluster: LocalCluster, client: DfshaClient, tmp_path: Path) -> None:
+    # En AWS, un get de 1 GiB con un nodo de datos caído murió por falta de memoria (etapa 9): cada lectura
+    # fallida dejaba un ciclo de referencias que retenía el bloque leído después, hasta el recolector cíclico
+    data = _write(tmp_path / "origen.bin", 20 * BLOCK_SIZE_BYTES)
+    client.put(tmp_path / "origen.bin", "/muchos.bin")
+    cluster.datanodes[0].stop()  # parte de las réplicas fallan al leerlas
+    gc.collect()
+    gc.disable()  # solo se libera lo que libera el recuento de referencias
+    tracemalloc.start()
+    try:
+        client.get("/muchos.bin", tmp_path / "copia.bin")
+        retained, _ = tracemalloc.get_traced_memory()
+    finally:
+        tracemalloc.stop()
+        gc.enable()
+    assert (tmp_path / "copia.bin").read_bytes() == data
+    assert retained < 4 * BLOCK_SIZE_BYTES, f"quedan {retained / 2**20:.0f} MiB retenidos"
 
 
 # ===== RF3: open, read, write, lock, unlock y close (§7) ======================================

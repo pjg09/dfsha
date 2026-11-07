@@ -318,14 +318,13 @@ class DfshaClient:
         token_refreshed = False
         for addr in addrs:
             try:
-                responses = get_datanode_stub(self._channels, addr).ReadBlock(
-                    datanode_pb2.ReadBlockRequest(block_id=location.block_id, block_token=location.block_token),
-                    timeout=self.settings.transfer_timeout_s,
-                )
-                next(responses)  # cabecera
-                data = b"".join(response.data for response in responses)
+                data = self._read_replica(addr, location)
             except grpc.RpcError as rpc_error:
                 last_error = DfshaError.from_rpc_error(rpc_error)
+                # La llamada que falla es la propia excepción, y su traza retiene los marcos que la contienen:
+                # un ciclo que solo libera el recolector cíclico. Sin romperlo, cada réplica fallida retenía el
+                # bloque leído después, y un get de 1 GiB con un nodo caído agotó la memoria (etapa 9)
+                rpc_error.__traceback__ = None
                 if last_error.reason is Reason.BLOCK_TOKEN_INVALID and not token_refreshed:
                     token_refreshed = True
                     location = self._refresh_location(file_handle, location)
@@ -346,6 +345,15 @@ class DfshaClient:
             f"No se pudo leer el bloque {location.block_index} de ninguna réplica",
             Reason.BLOCK_LOST,
         ) from last_error
+
+    def _read_replica(self, addr: str, location: common_pb2.BlockLocation) -> bytes:
+        """Lee una réplica entera; si falla, lanza la propia llamada de gRPC como excepción."""
+        responses = get_datanode_stub(self._channels, addr).ReadBlock(
+            datanode_pb2.ReadBlockRequest(block_id=location.block_id, block_token=location.block_token),
+            timeout=self.settings.transfer_timeout_s,
+        )
+        next(responses)  # cabecera
+        return b"".join(response.data for response in responses)
 
     def _report_corrupt(self, block_id: str, addr: str) -> None:
         request = metadata_pb2.ReportCorruptReplicaRequest(block_id=block_id, node_id=addr)
