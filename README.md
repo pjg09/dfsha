@@ -94,6 +94,20 @@ docker exec -it $DFSHA_CLIENT client-1 dfsha shell
 Órdenes: `ls`, `cd`, `pwd`, `mkdir`, `rmdir`, `rm`, `mv`, `put`, `get`, `stat` y `useradd` (solo administradores). Con `-v` muestra los
 reintentos.
 
+Acceso de RF3 (fase I §7), con consistencia de apertura-cierre: lo escrito se ve al cerrar. `<datos>` es un
+archivo local o, empezando por `=`, un texto literal.
+
+```bash
+dfsha read /docs/a.txt 100 50 [destino]   # 50 bytes desde el offset 100 (a la salida estándar si no hay destino)
+dfsha write /docs/a.txt 100 =texto        # modificación parcial
+dfsha append /docs/a.txt datos.bin        # anexado
+```
+
+En `dfsha shell`, `open <ruta> [r|w|c]` abre un archivo (leer, escribir o crear) y, mientras está abierto,
+`read <offset> <longitud>`, `write <offset> <datos> [parcial|anexar|reemplazar]` y `append <datos>` actúan
+sobre él. `lock [primer-bloque] [bloques]` arrienda un rango para agrupar escrituras, `unlock` lo libera y
+`close` confirma. Al salir con un archivo abierto, sus escrituras se descartan.
+
 ## Cómo trabajar en el repositorio
 
 - [Convenciones](docs/convenciones.md): idioma, nombres, hosts, puertos, Git y versiones.
