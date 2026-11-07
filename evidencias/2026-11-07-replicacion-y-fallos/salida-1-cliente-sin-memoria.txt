@@ -1,0 +1,38 @@
+
+## Versión desplegada y estado inicial (17:00:14)
+    dfsha-client:0.11.1.dev2-g52ee71e
+-    64.0 MiB  v6    2026-11-07 07:24  datos.bin
+-     1.0 GiB  v1    2026-11-07 06:49  grande.bin
+-    16.0 MiB  v7    2026-11-07 07:21  rf3.bin
+-        20 B  v3    2026-11-07 07:21  texto.txt
+réplicas esperadas: 213
+datanode-1=43 datanode-2=43 datanode-3=40 datanode-4=45 datanode-5=42  total=213
+
+## Caída de datanode-3 (17:00:48): docker stop --time 0
+[17:00:50] datanode-3 parado
+
+## Lecturas y escrituras durante la caída, antes de que se declare caído (17:00:50)
+4b214ab4a2181b8a4d5c35046d1e0f853e7c2fc8c3c3e1c21c4e753e906d7be4  /data/grande.bin
+sha256sum: /data/grande-durante.bin: No such file or directory
+/durante-la-caida.bin: versión 1, 64.0 MiB en 0.9 s (73 MB/s)
+réplicas esperadas ahora: 225
+
+## Re-replicación: hasta que los cuatro nodos vivos suman las réplicas esperadas
+[17:02:33] +103 s: datanode-1=56 datanode-2=60 datanode-3=caído datanode-4=54 datanode-5=55  total=225
+Recuperado el factor de replicación 103 s después de la caída
+
+## Lo que registró el líder
+2026-11-07T17:01:21.503Z metadata-2: Re-replicación del bloque 9a6728c8-8a01-4bcb-8d33-bb87bea7cb48: de datanode-1 a datanode-2 (2 réplicas sanas)
+2026-11-07T17:01:21.503Z metadata-2: Re-replicación del bloque 8ccae0ff-25d0-405a-a62d-e3f66d68b1d0: de datanode-4 a datanode-2 (2 réplicas sanas)
+2026-11-07T17:01:21.503Z metadata-2: Re-replicación del bloque e41e267f-fb2c-47af-a472-012784751b86: de datanode-2 a datanode-1 (2 réplicas sanas)
+  metadata-2: 40 órdenes de re-replicación en total
+
+## datanode-3 vuelve (17:02:49) con sus bloques: sobran réplicas
+[17:02:52] datanode-3 arrancado
+[17:03:13] +21 s: datanode-1=56 datanode-2=23 datanode-3=40 datanode-4=54 datanode-5=52  total=225
+metadata-2: 40 réplicas de más borradas
+
+## Lectura final (17:03:20)
+/data/grande-final.bin: 1.0 GiB en 7.8 s (137 MB/s)
+4b214ab4a2181b8a4d5c35046d1e0f853e7c2fc8c3c3e1c21c4e753e906d7be4  /data/grande.bin
+4b214ab4a2181b8a4d5c35046d1e0f853e7c2fc8c3c3e1c21c4e753e906d7be4  /data/grande-final.bin
