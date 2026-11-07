@@ -13,7 +13,7 @@ Una fila sin evidencia es una evidencia que falta.
 | Prueba | Qué tiene que verse | Evidencia | Estado |
 |---|---|---|---|
 | Carga y recuperación | Archivo grande repartido en varios nodos de datos; el archivo recuperado tiene el mismo hash | [`2026-11-07-carga-y-recuperacion`](2026-11-07-carga-y-recuperacion/) | Hecha |
-| Acceso RF3 | `read()` y `write()` con la semántica declarada (fase I, §7) | — | Pendiente |
+| Acceso RF3 | `read()` y `write()` con la semántica declarada (fase I, §7) | [`2026-11-07-acceso-rf3`](2026-11-07-acceso-rf3/) | Hecha |
 | Concurrencia | Dos clientes sobre el mismo archivo y bloque; resultado según los arrendamientos (fase I, §11.1) | — | Pendiente |
 | Replicación y fallos | Caída de un nodo de datos; lectura y re-replicación según las garantías (fase I, §9 y §11.3) | — | Pendiente |
 | Consistencia | Réplica retrasada o desconectada durante una escritura (fase I, §11.2) | — | Pendiente |

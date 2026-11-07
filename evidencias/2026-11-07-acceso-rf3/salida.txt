@@ -1,0 +1,60 @@
+
+## Versión desplegada
+    dfsha-client:0.10.0
+
+## Los cuatro modos de escritura y las garantías G2-G4 con la biblioteca (rf3.py, en client-1)
+Tamaño de bloque: 16777216 bytes
+
+creación: offset 0, 33554732 bytes
+  versión 1, 33554732 bytes, 3 bloques
+  bloques nuevos: [0, 1, 2]; reutilizados: []
+  SHA-256 leído f2fe1df499871365 · modelo f2fe1df499871365 · coincide
+
+anexado: offset 33554732, 16777216 bytes
+  versión 2, 50331948 bytes, 4 bloques
+  bloques nuevos: [2, 3]; reutilizados: [0, 1]
+  SHA-256 leído 5812270a4318fd75 · modelo 5812270a4318fd75 · coincide
+
+modificación parcial: offset 16776716, 1000 bytes
+  versión 3, 50331948 bytes, 4 bloques
+  bloques nuevos: [0, 1]; reutilizados: [2, 3]
+  SHA-256 leído 8be00050a5e7a30e · modelo 8be00050a5e7a30e · coincide
+
+modificación parcial: offset 67109171, 4 bytes
+  versión 4, 67109175 bytes, 5 bloques
+  bloques nuevos: [3, 4]; reutilizados: [0, 1, 2]
+  SHA-256 leído 1534826ddb966bb0 · modelo 1534826ddb966bb0 · coincide
+
+reemplazo: offset 0, 23 bytes
+  versión 5, 23 bytes, 1 bloques
+  bloques nuevos: [0]; reutilizados: []
+  SHA-256 leído e62422a321b062ee · modelo e62422a321b062ee · coincide
+
+Garantías de consistencia (Tabla 23)
+
+reemplazo: offset 0, 16777226 bytes
+  versión 6, 16777226 bytes, 2 bloques
+  bloques nuevos: [0, 1]; reutilizados: []
+  SHA-256 leído 566e334706539397 · modelo 566e334706539397 · coincide
+  G4, open() durante la escritura sin confirmar ve la versión anterior: True
+  G3, quien abrió antes sigue leyendo su versión entera tras la confirmación: True
+  G2, un open() posterior ve la versión confirmada: True (versión 7)
+
+## Las mismas primitivas desde la línea de órdenes
+/texto.txt: versión 1, 10 B en 0.2 s (0 MB/s)
+$ dfsha read /texto.txt 0 100
+hola mundo
+$ dfsha write /texto.txt 5 =MUNDO
+/texto.txt: versión 2, 10 B
+$ dfsha append /texto.txt "= desde AWS"
+/texto.txt: versión 3, 20 B
+$ dfsha read /texto.txt 0 100
+hola MUNDO desde AWS
+$ dfsha read /texto.txt 5 5
+MUNDO
+$ dfsha stat /texto.txt
+ruta: /texto.txt
+versión: 3
+tamaño: 20 bytes (20 B)
+bloques: 1 de 16.0 MiB
+modificado: 2026-11-07 07:21
