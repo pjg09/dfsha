@@ -44,6 +44,34 @@ docker compose -f deploy/local/compose.yaml logs -f          # logs de todos los
 docker compose -f deploy/local/compose.yaml down -v          # para el clúster y borra sus volúmenes
 ```
 
+## Despliegue en AWS
+
+El clúster de 9 instancias de la §3.6 en el AWS Academy Learner Lab (`us-east-1`). Hace falta Docker, uv,
+las credenciales de la sesión del laboratorio en `~/.aws/credentials` y su clave SSH en `~/.ssh/labsuser.pem`.
+Ninguna IP queda en el repositorio: el script las consulta a AWS en cada ejecución.
+
+```bash
+# Secretos de AWS (una vez; nunca se versionan)
+uv run python -m dfsha.common.pki deploy/aws/secrets metadata-1 metadata-2 metadata-3 \
+  datanode-1 datanode-2 datanode-3 datanode-4 datanode-5 client-1
+deploy/aws/deploy.sh all       # imágenes en ECR, grupos de seguridad, volúmenes, instancias e instalación
+deploy/aws/deploy.sh status    # instancias y contenedores
+deploy/aws/deploy.sh backup    # instantánea de etcd en S3 (al final de cada sesión de trabajo)
+deploy/aws/deploy.sh restore   # restaura la última instantánea de S3 en los servidores de metadatos
+deploy/aws/deploy.sh down      # termina las instancias y borra volúmenes y grupos de seguridad
+```
+
+`images`, `up` e `install` son los tres pasos de `all` por separado; `install <host>...` reinstala solo esos
+hosts. Para operar el clúster, `deploy/aws/run.sh ssh <host> <orden>` ejecuta una orden en una instancia, y
+`deploy/aws/run.sh dfsha <usuario> <orden>` ejecuta la CLI en `client-1`. La contraseña sale de
+`deploy/aws/secrets/<usuario>-password` (la de `admin`, de `admin-password`) y entra por la entrada estándar:
+
+```bash
+echo "una-contraseña" > deploy/aws/secrets/pedro-password
+NEW_PASSWORD_FILE=deploy/aws/secrets/pedro-password deploy/aws/run.sh dfsha admin useradd pedro
+deploy/aws/run.sh dfsha pedro put /data/archivo.bin /archivo.bin
+```
+
 ## Cliente
 
 `dfsha <orden>` ejecuta una orden; `dfsha shell` abre el modo interactivo, el único con `cd` y `pwd`. Se
