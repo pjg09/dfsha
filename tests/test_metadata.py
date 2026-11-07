@@ -34,7 +34,7 @@ class Cluster:
         for node_id in node_ids:
             self.stub.RegisterDataNode(
                 metadata_pb2.RegisterDataNodeRequest(
-                    node_id=node_id, hostname=node_id, capacity_bytes=10**10, free_bytes=10**10
+                    node_id=node_id, hostname=node_id, addr=f"{node_id}:50052", capacity_bytes=10**10, free_bytes=10**10
                 ),
                 timeout=5,
             )
@@ -107,7 +107,7 @@ class Cluster:
 
 def _start(etcd_addr: str, prefix: bytes, **overrides: int) -> tuple[MetadataServer, str]:
     def start(addr: str) -> tuple[MetadataServer, str]:
-        settings = MetadataSettings(addr=addr, block_size_bytes=BLOCK_SIZE_BYTES, datanode_port=50052, **overrides)
+        settings = MetadataSettings(addr=addr, block_size_bytes=BLOCK_SIZE_BYTES, **overrides)
         server = create_server(
             MetadataConfig(
                 settings=settings,
@@ -443,3 +443,50 @@ def test_follower_points_to_the_leader(cluster: Cluster, make_cluster: Callable[
 def test_heartbeat_carries_the_leader_epoch(cluster: Cluster) -> None:
     response = cluster.stub.ReportHeartbeat(metadata_pb2.ReportHeartbeatRequest(node_id="datanode-1", free_bytes=10**9), timeout=5)
     assert response.leader_epoch == cluster.server.election.epoch > 0
+
+
+def test_update_lease_extends_it(make_cluster: Callable[..., Cluster]) -> None:
+    short = make_cluster(lease_ttl_s=1)
+    short.register_nodes(3)
+    opened = short.stub.OpenFile(metadata_pb2.OpenFileRequest(path="/x", mode=metadata_pb2.OPEN_MODE_CREATE), timeout=5)
+    lease = short.stub.LockBlocks(
+        metadata_pb2.LockBlocksRequest(request_id=_request_id(), file_handle=opened.file_handle, block_range=WHOLE_FILE), timeout=5
+    )
+    for _ in range(3):  # renovar antes de que caduque mantiene el arrendamiento más allá de su TTL
+        time.sleep(0.6)
+        short.stub.UpdateLease(metadata_pb2.UpdateLeaseRequest(request_id=_request_id(), lease_id=lease.lease_id), timeout=5)
+    committed = short.write_blocks(opened.file_handle, lease.lease_id, [(0, b"x")])
+    short.stub.CommitFile(
+        metadata_pb2.CommitFileRequest(
+            request_id=_request_id(), file_handle=opened.file_handle, lease_id=lease.lease_id,
+            write_mode=common_pb2.WRITE_MODE_CREATE, blocks=committed, size_bytes=1,
+        ),
+        timeout=5,
+    )  # fmt: skip
+    time.sleep(1.2)
+    error = expect_error(
+        lambda: short.stub.UpdateLease(metadata_pb2.UpdateLeaseRequest(request_id=_request_id(), lease_id=lease.lease_id), timeout=5)
+    )
+    assert (error.code, error.reason) == (grpc.StatusCode.ABORTED, Reason.LEASE_EXPIRED)
+
+
+def test_abort_discards_the_write_in_progress(cluster: Cluster) -> None:
+    opened = cluster.stub.OpenFile(metadata_pb2.OpenFileRequest(path="/x", mode=metadata_pb2.OPEN_MODE_CREATE), timeout=5)
+    lease = cluster.stub.LockBlocks(
+        metadata_pb2.LockBlocksRequest(request_id=_request_id(), file_handle=opened.file_handle, block_range=WHOLE_FILE), timeout=5
+    )
+    committed = cluster.write_blocks(opened.file_handle, lease.lease_id, [(0, b"x")])
+    cluster.stub.AbortFile(
+        metadata_pb2.AbortFileRequest(request_id=_request_id(), file_handle=opened.file_handle, lease_id=lease.lease_id), timeout=5
+    )
+    error = expect_error(  # los bloques reservados ya no pertenecen a ninguna escritura en curso
+        lambda: cluster.stub.CommitFile(
+            metadata_pb2.CommitFileRequest(
+                request_id=_request_id(), file_handle=opened.file_handle, lease_id=lease.lease_id,
+                write_mode=common_pb2.WRITE_MODE_CREATE, blocks=committed, size_bytes=1,
+            ),
+            timeout=5,
+        )
+    )  # fmt: skip
+    assert error.reason is Reason.BLOCK_RANGE_INVALID
+    assert cluster.ls("/") == []

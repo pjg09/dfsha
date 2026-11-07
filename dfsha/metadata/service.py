@@ -17,6 +17,7 @@ import grpc
 from google.protobuf.message import Message
 from google.protobuf.timestamp_pb2 import Timestamp
 
+from dfsha.common.config import ConfigError, parse_addr
 from dfsha.common.errors import DfshaError, Reason
 from dfsha.etcd.rpc_pb2 import Compare, RequestOp
 from dfsha.metadata.etcd_client import (
@@ -64,7 +65,6 @@ class MetadataSettings:
     lease_ttl_s: int = 30
     grace_period_s: int = 600
     request_ttl_s: int = 600
-    datanode_port: int = 50052
 
 
 @dataclass
@@ -596,12 +596,16 @@ class MetadataService(metadata_pb2_grpc.MetadataServiceServicer):
 
     def RegisterDataNode(self, request: metadata_pb2.RegisterDataNodeRequest, context: grpc.ServicerContext) -> metadata_pb2.RegisterDataNodeResponse:  # noqa: N802
         def operation() -> metadata_pb2.RegisterDataNodeResponse:
-            if not request.node_id or not request.hostname:
-                raise DfshaError(grpc.StatusCode.INVALID_ARGUMENT, "Faltan el node_id o el nombre de host")
+            if not request.node_id or not request.hostname or not request.addr:
+                raise DfshaError(grpc.StatusCode.INVALID_ARGUMENT, "Faltan el node_id, el nombre de host o la dirección")
+            try:
+                parse_addr(request.addr)
+            except ConfigError as error:
+                raise DfshaError(grpc.StatusCode.INVALID_ARGUMENT, str(error)) from error
             record = NodeRecord(
                 node_id=request.node_id,
                 hostname=request.hostname,
-                addr=f"{request.hostname}:{self.settings.datanode_port}",
+                addr=request.addr,
                 capacity_bytes=request.capacity_bytes,
                 registered_at=_now_timestamp(self._now()),
             )

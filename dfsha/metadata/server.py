@@ -45,7 +45,6 @@ def load_config() -> MetadataConfig:
         lease_ttl_s=config.get_int("LEASE_TTL_S", 30),
         grace_period_s=config.get_int("GRACE_PERIOD_S", 600),
         request_ttl_s=config.get_int("REQUEST_TTL_S", 600),
-        datanode_port=config.get_int("DATANODE_PORT", 50052),
     )
     return MetadataConfig(
         settings=settings,
