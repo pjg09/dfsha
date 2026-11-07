@@ -44,6 +44,10 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
 - **2026-11-07 · Despliegue desde cero con una orden** (etapa 7, `ddb9bc6`). Con la cuenta vacía,
   `deploy.sh all` levanta los 9 hosts en 6 min 50 s sin intervención, y el clúster pasa la prueba de carga y
   recuperación. `down` necesitó dos pasadas para borrar los grupos de seguridad, que se citan entre sí.
+- **2026-11-07 · Un solo cliente no escala con los nodos de datos** (etapa 10, E2, v0.12.1). Con 3, 4 y 5 nodos,
+  un `put` de 1 GiB va a 127–128 MB/s y un `get` a 136–137 MB/s: el límite lo pone el cliente, no los nodos.
+  La escalabilidad de RNF1 hay que mostrarla con la tasa agregada de varios clientes (E4). No se midió qué
+  limita al cliente (CPU del cifrado y del hash, red o disco).
 - **2026-11-07 · RF3 y concurrencia en AWS** (etapa 8, v0.10.0). Los cuatro modos de escritura coinciden con
   un modelo local y solo reescriben los bloques que cambian (Tabla 22). En el escenario 1 con procesos
   reales, el segundo escritor recibe `LOCK_CONFLICT` al momento y `VERSION_CONFLICT` si reintenta desde la
