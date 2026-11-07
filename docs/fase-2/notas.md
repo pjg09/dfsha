@@ -41,6 +41,9 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
   volúmenes en 5 min 20 s (los volúmenes, uno tras otro, unos 24 s cada uno); `install` configura los 9 hosts
   en paralelo en 1 min. `metadata-1` sale elegido líder y los cinco nodos de datos se dan de alta en cuanto
   hay líder. El directorio de datos de etcd queda con `0700`.
+- **2026-11-07 · Despliegue desde cero con una orden** (etapa 7, `ddb9bc6`). Con la cuenta vacía,
+  `deploy.sh all` levanta los 9 hosts en 6 min 50 s sin intervención, y el clúster pasa la prueba de carga y
+  recuperación. `down` necesitó dos pasadas para borrar los grupos de seguridad, que se citan entre sí.
 - **2026-11-07 · Memoria de los nodos de datos en AWS** (etapa 7). Durante el `put` de 1 GiB, el pico del
   proceso (`VmHWM`) de cada nodo de datos fue de 103 a 132 MiB, con unos 440 MiB disponibles en cada t3.micro.
   Confirma en AWS la medición local de la etapa 3.
