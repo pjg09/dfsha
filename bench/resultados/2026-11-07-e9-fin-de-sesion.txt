@@ -1,0 +1,70 @@
+# Arranque en frío tras el fin de una sesión del Learner Lab (observación, sin intervenir)
+instancias arrancadas por el laboratorio: 2026-11-07T20:41:20Z; observado a las 20:44:12
+## metadata-1
+sistema en marcha desde: 2026-11-07 20:41:25
+volumen: /dev/nvme1n1
+metadata-1 dfsha-metadata:0.13.0 running desde 2026-11-07T20:41:35.912028072Z reinicios=0
+etcd etcd:v3.7.3 running desde 2026-11-07T20:41:35.92254489Z reinicios=0
+## metadata-2
+sistema en marcha desde: 2026-11-07 20:41:25
+volumen: /dev/nvme1n1
+metadata-2 dfsha-metadata:0.13.0 running desde 2026-11-07T20:41:34.210316203Z reinicios=0
+etcd etcd:v3.7.3 running desde 2026-11-07T20:41:34.215813617Z reinicios=0
+## metadata-3
+sistema en marcha desde: 2026-11-07 20:41:25
+volumen: /dev/nvme1n1
+metadata-3 dfsha-metadata:0.13.0 running desde 2026-11-07T20:41:35.991126324Z reinicios=0
+etcd etcd:v3.7.3 running desde 2026-11-07T20:41:35.999849626Z reinicios=0
+## datanode-1
+sistema en marcha desde: 2026-11-07 20:41:25
+volumen: /dev/nvme1n1
+datanode-1 dfsha-datanode:0.13.0 running desde 2026-11-07T20:41:35.707226734Z reinicios=0
+## datanode-2
+sistema en marcha desde: 2026-11-07 20:41:25
+volumen: /dev/nvme1n1
+datanode-2 dfsha-datanode:0.13.0 running desde 2026-11-07T20:41:34.627917689Z reinicios=0
+## datanode-3
+sistema en marcha desde: 2026-11-07 20:41:25
+volumen: /dev/nvme1n1
+datanode-3 dfsha-datanode:0.13.0 running desde 2026-11-07T20:41:36.181081274Z reinicios=0
+## datanode-4
+sistema en marcha desde: 2026-11-07 20:41:27
+volumen: /dev/nvme1n1
+datanode-4 dfsha-datanode:0.13.0 running desde 2026-11-07T20:41:36.018156997Z reinicios=0
+## datanode-5
+sistema en marcha desde: 2026-11-07 20:41:25
+volumen: /dev/nvme1n1
+datanode-5 dfsha-datanode:0.13.0 running desde 2026-11-07T20:41:35.88107451Z reinicios=0
+## client-1
+sistema en marcha desde: 2026-11-07 20:41:27
+client-1 dfsha-client:0.13.0 running desde 2026-11-07T20:41:35.505601065Z reinicios=0
+## Registro de los servidores de metadatos desde el arranque
+2026-11-07T20:41:37.907Z INFO metadata-1 dfsha.metadata.server: Servidor de metadatos escuchando en el puerto 50051
+2026-11-07T20:41:36.065Z INFO metadata-2 dfsha.metadata.server: Servidor de metadatos escuchando en el puerto 50051
+2026-11-07T20:41:39.043Z INFO metadata-2 dfsha.metadata.leader: Elegido líder con época 25911
+2026-11-07T20:41:39.045Z INFO metadata-2 dfsha.metadata.service: Líder con época 25911; 5 nodos de datos registrados; entra en modo seguro
+2026-11-07T20:41:40.251Z INFO metadata-2 dfsha.metadata.service: Fin del modo seguro a los 1.2 s de la elección
+2026-11-07T20:41:38.221Z INFO metadata-3 dfsha.metadata.server: Servidor de metadatos escuchando en el puerto 50051
+## Alta de los nodos de datos
+2026-11-07T20:41:39.512Z INFO datanode-1 dfsha.datanode.metadata_client: Dado de alta en el líder de metadatos metadata-2:50051
+2026-11-07T20:41:39.753Z INFO datanode-1 dfsha.datanode.metadata_client: Informe de bloques enviado: 49 bloques
+2026-11-07T20:41:40.077Z INFO datanode-2 dfsha.datanode.metadata_client: Dado de alta en el líder de metadatos metadata-2:50051
+2026-11-07T20:41:40.294Z INFO datanode-2 dfsha.datanode.metadata_client: Informe de bloques enviado: 53 bloques
+2026-11-07T20:41:39.575Z INFO datanode-3 dfsha.datanode.metadata_client: Dado de alta en el líder de metadatos metadata-2:50051
+2026-11-07T20:41:39.818Z INFO datanode-3 dfsha.datanode.metadata_client: Informe de bloques enviado: 60 bloques
+2026-11-07T20:41:37.689Z INFO datanode-4 dfsha.datanode.metadata_client: Dado de alta en el líder de metadatos metadata-2:50051
+2026-11-07T20:41:37.910Z INFO datanode-4 dfsha.datanode.metadata_client: Informe de bloques enviado: 49 bloques
+2026-11-07T20:41:39.294Z INFO datanode-5 dfsha.datanode.metadata_client: Dado de alta en el líder de metadatos metadata-2:50051
+2026-11-07T20:41:39.522Z INFO datanode-5 dfsha.datanode.metadata_client: Informe de bloques enviado: 32 bloques
+## Lectura de los datos tras el arranque (20:45:20)
+d           -        2026-11-07 17:52  bench/
+-     1.0 GiB  v1    2026-11-07 06:49  grande.bin
+-        20 B  v3    2026-11-07 07:21  texto.txt
+/dev/root       6.7G  4.3G  2.4G  65% /
+/data/grande-e9.bin: 1.0 GiB en 8.4 s (128 MB/s)
+4b214ab4a2181b8a4d5c35046d1e0f853e7c2fc8c3c3e1c21c4e753e906d7be4  /data/grande.bin
+4b214ab4a2181b8a4d5c35046d1e0f853e7c2fc8c3c3e1c21c4e753e906d7be4  /data/grande-e9.bin
+## Órdenes del líder desde el arranque (deben ser 0)
+metadata-1: re-replicaciones 0, réplicas de más borradas 0
+metadata-2: re-replicaciones 0, réplicas de más borradas 0
+metadata-3: re-replicaciones 0, réplicas de más borradas 0
