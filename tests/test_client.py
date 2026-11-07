@@ -312,6 +312,25 @@ def test_rf3_concurrent_writers(client: DfshaClient) -> None:
     _check(client, "/c.bin", data)
 
 
+def test_rf3_scenario_1_same_block(client: DfshaClient) -> None:
+    # Escenario 1 de §11.1, pasos 1 a 4: P1 y P2 abren la versión v y quieren modificar el bloque 3
+    with client.open("/datos.bin", metadata_pb2.OPEN_MODE_CREATE) as handle:
+        handle.write(os.urandom(4 * B))
+    p1 = client.open("/datos.bin", metadata_pb2.OPEN_MODE_WRITE)
+    p2 = client.open("/datos.bin", metadata_pb2.OPEN_MODE_WRITE)
+    p1.write(b"P1", 3 * B)
+    assert _expect(lambda: p2.write(b"P2", 3 * B)).reason == Reason.LOCK_CONFLICT  # al momento, sin esperar
+    assert p1.close() == 2
+    p2.write(b"P2", 3 * B)  # ahora obtiene el arrendamiento, pero sigue partiendo de la versión v
+    error = _expect(p2.close)
+    assert (error.code, error.reason) == (grpc.StatusCode.ABORTED, Reason.VERSION_CONFLICT)
+    with client.open("/datos.bin", metadata_pb2.OPEN_MODE_WRITE) as again:  # vuelve a abrir v + 1
+        assert again.read(3 * B, 2) == b"P1"
+        again.write(b"P2", 3 * B + 2)
+    with client.open("/datos.bin") as reader:
+        assert reader.read(3 * B, 4) == b"P1P2"  # nunca una mezcla: cada cambio entero, uno detrás de otro
+
+
 def test_rf3_lock_groups_writes_and_rejects_writes_outside_it(client: DfshaClient) -> None:
     with client.open("/l.bin", metadata_pb2.OPEN_MODE_CREATE) as handle:
         handle.write(os.urandom(3 * B))
