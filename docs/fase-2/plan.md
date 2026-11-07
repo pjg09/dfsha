@@ -26,8 +26,8 @@ Qué hay que entregar: enunciado §5.3. Cómo se califica: enunciado §6.
 | 1 | Esqueleto del repositorio y contratos | Implementación RF1–RF3 | Terminada |
 | 2 | Elección de Raft | Alta disponibilidad | Terminada |
 | 3 | Nodo de datos y entorno local | Distribución y comunicaciones | Terminada |
-| 4 | Servidor de metadatos | Distribución; alta disponibilidad | En curso |
-| 5 | Cliente: RF1 y RF2 de extremo a extremo | Implementación RF1–RF3 | Pendiente |
+| 4 | Servidor de metadatos | Distribución; alta disponibilidad | Terminada |
+| 5 | Cliente: RF1 y RF2 de extremo a extremo | Implementación RF1–RF3 | En curso |
 | 6 | Seguridad | Seguridad | Pendiente |
 | 7 | Despliegue en AWS | Distribución y comunicaciones | Pendiente |
 | 8 | RF3 en el cliente y concurrencia | Implementación RF1–RF3; consistencia | Pendiente |
@@ -99,6 +99,9 @@ primaria, lo leen con el mismo hash y rechazan un bloque corrupto.
 ### 5. Cliente: RF1 y RF2 de extremo a extremo
 - CLI y biblioteca con las operaciones de RF1 y RF2 de la Tabla 4 (`ls`, `cd`, `mkdir`, `rmdir`, `rm`,
   `mv`, `put`, `get`), con bloques en paralelo y verificación del hash.
+
+- Reintentos con espera ante `UNAVAILABLE`: `NODE_NOT_LEADER` (repetir en el líder indicado) y
+  `QUORUM_NOT_REACHED` justo después de una elección (pendiente de la etapa 4, `notas.md`).
 
 **Terminada cuando:** en local, `put` de 1 GiB y `get` devuelven el mismo hash.
 
