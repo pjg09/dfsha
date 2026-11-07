@@ -49,6 +49,10 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
   120 s del plazo de transferencia por cada bloque que lee de ese nodo, y dentro de un mismo `get` lo vuelve a
   probar con otros bloques: lecturas de 120, 240 y 360 s. Ninguna falla, pero la §11.4 pide pasar a otra réplica
   si una no responde. Con el nodo parado (conexión rechazada), el cambio de réplica es inmediato.
+  Corrección en el cliente (después de E6): un vigilante de inactividad corta cada lectura y cada escritura de
+  bloque que pasa `DFSHA_TRANSFER_INACTIVITY_S` (10 s) sin ningún mensaje, y en un mismo `get` las réplicas que
+  ya fallaron se prueban las últimas. Dos pruebas con un servidor que acepta conexiones y nunca responde lo
+  detectan: sin el vigilante, la lectura y la escritura tardan 20 s.
 - **2026-11-07 · Bloques de 4 MiB rinden como los de 16** (etapa 10, E5, v0.13.0). La tasa de transferencia es
   la misma con 4 y 16 MiB y baja un 12 % con 64 MiB; la modificación parcial de 4 KiB tarda 204, 513 y
   1 828 ms. 4 MiB sería mejor para escrituras parciales, a cambio de cuatro veces más bloques en los metadatos,
