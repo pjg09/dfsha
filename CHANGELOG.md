@@ -2,6 +2,17 @@
 
 Generado automáticamente por semantic-release a partir de los commits. No editar a mano.
 
+## [0.12.0](https://github.com/pjg09/dfsha/compare/v0.11.1...v0.12.0) (2026-11-07)
+
+### Funcionalidades
+
+* no vuelve a elegir los nodos que fallaron al repetir un bloque ([bc2e060](https://github.com/pjg09/dfsha/commit/bc2e0601a823daeb7c5a7f6742527da31c10de12))
+* **proto:** añade los nodos excluidos a AllocateBlocks ([d60edff](https://github.com/pjg09/dfsha/commit/d60edff4e6891616f12288f1a2c1baab0100e647))
+
+### Correcciones
+
+* **datanode:** no cuenta los .meta al limpiar el área temporal ([940eacb](https://github.com/pjg09/dfsha/commit/940eacbbd9b270cad67fe896ffebd2cc4a07565d))
+
 ## [0.11.1](https://github.com/pjg09/dfsha/compare/v0.11.0...v0.11.1) (2026-11-07)
 
 ### Correcciones
