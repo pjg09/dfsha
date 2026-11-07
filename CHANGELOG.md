@@ -2,6 +2,16 @@
 
 Generado automáticamente por semantic-release a partir de los commits. No editar a mano.
 
+## [0.11.0](https://github.com/pjg09/dfsha/compare/v0.10.0...v0.11.0) (2026-11-07)
+
+### Funcionalidades
+
+* añade el modo seguro, la re-replicación y las réplicas corruptas ([e744397](https://github.com/pjg09/dfsha/commit/e744397424fcf8a5b31d6a177de44d2d74c13009))
+
+### Correcciones
+
+* **metadata:** responde UNAVAILABLE si se pierde etcd al pararse ([281b7a9](https://github.com/pjg09/dfsha/commit/281b7a9a874a2bb4d7904bfe80518098603d22f0))
+
 ## [0.10.0](https://github.com/pjg09/dfsha/compare/v0.9.1...v0.10.0) (2026-11-07)
 
 ### Funcionalidades
