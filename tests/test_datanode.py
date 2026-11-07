@@ -4,21 +4,31 @@ import hashlib
 import os
 import time
 import uuid
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from pathlib import Path
 
 import grpc
 import pytest
 
+from helpers import get_free_addr, secure_channel, start_on_free_addr
+
+from dfsha.common import security
 from dfsha.common.errors import DfshaError, Reason
-from helpers import get_free_addr, start_on_free_addr
+from dfsha.common.pki import BLOCK_TOKEN_KEY_FILE
 from dfsha.datanode.block_store import BlockStore, initialize_data_directory
 from dfsha.datanode.server import DataNodeConfig, create_server
 from dfsha.datanode.service import CHUNK_SIZE_BYTES, DataNodeSettings
-from dfsha.v1 import datanode_pb2, datanode_pb2_grpc, metadata_pb2
+from dfsha.v1 import common_pb2, datanode_pb2, datanode_pb2_grpc, metadata_pb2
 
 BLOCK_SIZE_BYTES = 4 * 1024 * 1024
+WRITE, READ = common_pb2.BLOCK_OPERATION_WRITE, common_pb2.BLOCK_OPERATION_READ
+_block_token_key = b""  # la clave de los tokens de bloque del clúster de prueba; la fija la fixture
+
+
+def _token(block_id: str, operation: common_pb2.BlockOperation, key: bytes | None = None, now: float | None = None) -> common_pb2.BlockToken:
+    """Token de bloque firmado como lo haría el servidor de metadatos."""
+    return security.create_block_token(key or _block_token_key, block_id, operation, now)
 
 
 class RecordingReporter:
@@ -50,7 +60,9 @@ class Node:
 
 
 @pytest.fixture
-def nodes(tmp_path: Path) -> Iterator[list[Node]]:
+def nodes(tmp_path: Path, cluster_secrets: Path) -> Iterator[list[Node]]:
+    global _block_token_key
+    _block_token_key = (cluster_secrets / "ca" / BLOCK_TOKEN_KEY_FILE).read_bytes()
     started: list[Node] = []
     for index in range(1, 4):
         data_directory = tmp_path / f"datanode-{index}"
@@ -68,12 +80,13 @@ def nodes(tmp_path: Path) -> Iterator[list[Node]]:
                 initialize_data_directory=False,
                 server_threads=8,
                 log_level="INFO",
+                secrets_directory=cluster_secrets / f"datanode-{index}",
             )
             return addr, create_server(node_config, reporter).server
 
         addr, server = start_on_free_addr(start)
         server.start()
-        started.append(Node(addr, data_directory, reporter, server, grpc.insecure_channel(addr)))
+        started.append(Node(addr, data_directory, reporter, server, secure_channel(cluster_secrets, "client-1", addr)))
     yield started
     for node in started:
         node.channel.close()
@@ -81,10 +94,16 @@ def nodes(tmp_path: Path) -> Iterator[list[Node]]:
 
 
 def _write_requests(
-    block_id: str, data: bytes, secondary_addrs: list[str], sha256: bytes | None = None, size_bytes: int | None = None
+    block_id: str,
+    data: bytes,
+    secondary_addrs: list[str],
+    sha256: bytes | None = None,
+    size_bytes: int | None = None,
+    token: common_pb2.BlockToken | None = None,
 ) -> Iterator[datanode_pb2.WriteBlockRequest]:
     header = datanode_pb2.WriteBlockHeader(
         block_id=block_id,
+        block_token=token if token is not None else _token(block_id, WRITE),
         block_sha256=sha256 if sha256 is not None else hashlib.sha256(data).digest(),
         size_bytes=size_bytes if size_bytes is not None else len(data),
         secondary_addrs=secondary_addrs,
@@ -94,8 +113,9 @@ def _write_requests(
         yield datanode_pb2.WriteBlockRequest(data=data[offset : offset + CHUNK_SIZE_BYTES])
 
 
-def _read(node: Node, block_id: str) -> tuple[datanode_pb2.ReadBlockHeader, bytes]:
-    responses = node.stub.ReadBlock(datanode_pb2.ReadBlockRequest(block_id=block_id), timeout=10)
+def _read(node: Node, block_id: str, token: common_pb2.BlockToken | None = None) -> tuple[datanode_pb2.ReadBlockHeader, bytes]:
+    request = datanode_pb2.ReadBlockRequest(block_id=block_id, block_token=token if token is not None else _token(block_id, READ))
+    responses = node.stub.ReadBlock(request, timeout=10)
     header = next(responses).header
     return header, b"".join(response.data for response in responses)
 
@@ -195,3 +215,41 @@ def test_corrupt_replica_on_disk_is_detected_when_read(nodes: list[Node]) -> Non
 def test_missing_block(nodes: list[Node]) -> None:
     error = _expect_error(lambda: _read(nodes[0], str(uuid.uuid4())))
     assert error.code is grpc.StatusCode.NOT_FOUND
+
+
+# ===== Tokens de bloque y TLS (§10.3, §10.4) =================================================
+
+
+@pytest.mark.parametrize(
+    "make_token",
+    [
+        lambda block_id: common_pb2.BlockToken(),  # sin token
+        lambda block_id: _token(str(uuid.uuid4()), WRITE),  # de otro bloque
+        lambda block_id: _token(block_id, READ),  # de otra operación
+        lambda block_id: _token(block_id, WRITE, key=b"x" * 32),  # firmado con otra clave
+        lambda block_id: _token(block_id, WRITE, now=time.time() - security.BLOCK_TOKEN_TTL_S - 60),  # caducado
+    ],
+    ids=["sin-token", "otro-bloque", "otra-operacion", "otra-clave", "caducado"],
+)
+def test_write_needs_a_valid_block_token(nodes: list[Node], make_token: Callable[[str], common_pb2.BlockToken]) -> None:
+    block_id = str(uuid.uuid4())
+    requests = _write_requests(block_id, b"datos", [], token=make_token(block_id))
+    error = _expect_error(lambda: nodes[0].stub.WriteBlock(requests, timeout=10))
+    assert (error.code, error.reason) == (grpc.StatusCode.PERMISSION_DENIED, Reason.BLOCK_TOKEN_INVALID)
+    assert not nodes[0].has_block(block_id)
+
+
+def test_read_needs_a_read_token(nodes: list[Node]) -> None:
+    block_id = str(uuid.uuid4())
+    nodes[0].stub.WriteBlock(_write_requests(block_id, b"datos", []), timeout=10)
+    error = _expect_error(lambda: _read(nodes[0], block_id, token=_token(block_id, WRITE)))
+    assert (error.code, error.reason) == (grpc.StatusCode.PERMISSION_DENIED, Reason.BLOCK_TOKEN_INVALID)
+    assert _read(nodes[0], block_id)[1] == b"datos"
+
+
+def test_plaintext_connections_are_refused(nodes: list[Node]) -> None:
+    with grpc.insecure_channel(nodes[0].addr) as channel:
+        stub = datanode_pb2_grpc.DataNodeServiceStub(channel)
+        with pytest.raises(grpc.RpcError):
+            stub.WriteBlock(_write_requests(str(uuid.uuid4()), b"x", []), timeout=3)
+

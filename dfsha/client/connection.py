@@ -12,12 +12,14 @@ import threading
 import time
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
-from typing import TypeVar
+from typing import Any, TypeVar
 
 import grpc
+from google.protobuf.message import Message
 
 from dfsha.common.errors import DfshaError, Reason
-from dfsha.v1 import datanode_pb2_grpc, metadata_pb2_grpc
+from dfsha.common.security import AUTHORIZATION_HEADER
+from dfsha.v1 import datanode_pb2_grpc, metadata_pb2, metadata_pb2_grpc
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +50,8 @@ class RetryPolicy:
 class ChannelPool:
     """Un canal gRPC por dirección, reutilizado entre llamadas."""
 
-    def __init__(self) -> None:
+    def __init__(self, create_channel: Callable[[str], grpc.Channel] | None = None) -> None:
+        self._create_channel = create_channel or (lambda addr: grpc.insecure_channel(addr, options=_MESSAGE_OPTIONS))
         self._lock = threading.Lock()
         self._channels: dict[str, grpc.Channel] = {}
 
@@ -56,7 +59,7 @@ class ChannelPool:
         with self._lock:
             channel = self._channels.get(addr)
             if channel is None:
-                channel = self._channels[addr] = grpc.insecure_channel(addr, options=_MESSAGE_OPTIONS)  # TLS: etapa 6
+                channel = self._channels[addr] = self._create_channel(addr)
             return channel
 
     def close(self) -> None:
@@ -67,15 +70,52 @@ class ChannelPool:
 
 
 class MetadataConnection:
-    def __init__(self, metadata_addrs: Sequence[str], channels: ChannelPool, timeout_s: float, retry: RetryPolicy) -> None:
+    """Llamadas al líder de metadatos con el token de acceso del usuario (§10.2)."""
+
+    def __init__(
+        self,
+        metadata_addrs: Sequence[str],
+        channels: ChannelPool,
+        timeout_s: float,
+        retry: RetryPolicy,
+        username: str = "",
+        password: str = "",
+    ) -> None:
         if not metadata_addrs:
             raise ValueError("Hace falta al menos una dirección de servidor de metadatos (DFSHA_METADATA_ADDRS)")
         self._addrs = list(metadata_addrs)
         self._channels = channels
         self._timeout_s = timeout_s
         self._retry = retry
+        self._username = username
+        self._password = password
         self._leader_addr = self._addrs[0]
         self._lock = threading.Lock()
+        self._token_lock = threading.Lock()
+        self._access_token = ""
+
+    def call_rpc(self, rpc_name: str, request: Message) -> Any:
+        """Llama a un RPC de MetadataService con el token de acceso; si caduca, se autentica de nuevo."""
+        for attempt in range(2):
+            token = self._get_access_token()
+            metadata = ((AUTHORIZATION_HEADER, f"Bearer {token}"),)
+            try:
+                return self.call(lambda stub, timeout: getattr(stub, rpc_name)(request, timeout=timeout, metadata=metadata))
+            except DfshaError as error:
+                if error.reason is not Reason.ACCESS_TOKEN_EXPIRED or attempt == 1:
+                    raise
+                with self._token_lock:
+                    if self._access_token == token:
+                        self._access_token = ""
+        raise AssertionError("inalcanzable")
+
+    def _get_access_token(self) -> str:
+        with self._token_lock:
+            if not self._access_token:
+                request = metadata_pb2.AuthenticateRequest(username=self._username, password=self._password)
+                response = self.call(lambda stub, timeout: stub.Authenticate(request, timeout=timeout))
+                self._access_token = response.access_token
+            return self._access_token
 
     def call(self, operation: Callable[[metadata_pb2_grpc.MetadataServiceStub, float], T]) -> T:
         """Ejecuta una llamada en el líder, con redirecciones y reintentos.

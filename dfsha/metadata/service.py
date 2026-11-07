@@ -6,6 +6,7 @@ se cruza, se vuelve a leer y a calcular. La respuesta queda guardada 10 min para
 """
 
 import logging
+import re
 import threading
 import time
 import uuid
@@ -14,11 +15,27 @@ from dataclasses import dataclass, field
 from typing import TypeVar
 
 import grpc
-from google.protobuf.message import Message
+from google.protobuf.message import DecodeError, Message
 from google.protobuf.timestamp_pb2 import Timestamp
 
 from dfsha.common.config import ConfigError, parse_addr
 from dfsha.common.errors import DfshaError, Reason
+from dfsha.common.security import (
+    AUTHORIZATION_HEADER,
+    InvalidSignatureError,
+    create_access_token,
+    create_block_token,
+    generate_key,
+    hash_password,
+    is_expired,
+    sign_file_handle,
+    unwrap_data_key,
+    verify_access_token,
+    verify_file_handle,
+    verify_password,
+    wrap_data_key,
+)
+from dfsha.common.tls import get_peer_name, get_peer_role
 from dfsha.etcd.rpc_pb2 import Compare, RequestOp
 from dfsha.metadata.etcd_client import (
     EtcdError,
@@ -36,6 +53,7 @@ from dfsha.metadata.nodes import NodeRegistry, NodeState
 from dfsha.metadata.store import MetadataStore, Resolution, parse, path_not_found
 from dfsha.v1 import common_pb2, metadata_pb2, metadata_pb2_grpc
 from dfsha.v1.records_pb2 import (
+    AccessTokenClaims,
     EntryRecord,
     FileHandle,
     FileRecord,
@@ -43,6 +61,7 @@ from dfsha.v1.records_pb2 import (
     NodeRecord,
     PendingRecord,
     ReplicaRecord,
+    UserRecord,
     VersionRecord,
 )
 
@@ -50,10 +69,24 @@ logger = logging.getLogger(__name__)
 
 R = TypeVar("R", bound=Message)
 
-IMPLICIT_USER_ID = "local"  # único usuario hasta la etapa 6 (ADR 0041)
+ADMIN_USERNAME = "admin"
+_USERNAME_PATTERN = re.compile(r"^[a-z][a-z0-9_-]{2,31}$")
+MIN_PASSWORD_LENGTH = 8
+MAX_FAILED_LOGINS = 5  # intentos fallidos seguidos antes de bloquear el usuario (ADR 0043)
+LOGIN_BLOCK_S = 30.0
 MAX_MUTATION_ATTEMPTS = 8
 MAX_BLOCKS_PER_ALLOCATION = 4096
 _OPS_PER_TXN = 100
+
+
+@dataclass(frozen=True)
+class SecurityKeys:
+    """Secretos del servidor de metadatos (§10.7). Nunca se escriben en etcd ni en las copias."""
+
+    access_token_key: bytes  # tokens de acceso y descriptores de archivo
+    block_token_key: bytes  # tokens de bloque, compartida con los nodos de datos
+    wrapping_key: bytes  # clave de envoltura de las claves de datos
+    admin_password: str | None = None  # contraseña del primer administrador
 
 
 @dataclass(frozen=True)
@@ -132,9 +165,13 @@ class MetadataService(metadata_pb2_grpc.MetadataServiceServicer):
         store: MetadataStore,
         election: LeaderElection,
         registry: NodeRegistry,
+        security_keys: SecurityKeys,
         wall_clock: Callable[[], float] = time.time,
     ) -> None:
         self.settings = settings
+        self._security = security_keys
+        self._failed_logins: dict[str, tuple[int, float]] = {}  # usuario -> (fallos seguidos, bloqueado hasta)
+        self._failed_logins_lock = threading.Lock()
         self.store = store
         self.keys = store.keys
         self.election = election
@@ -147,6 +184,26 @@ class MetadataService(metadata_pb2_grpc.MetadataServiceServicer):
         kvs, _ = self.store.etcd.get_prefix(self.keys.nodes_prefix)
         self.registry.reset_for_election(NodeRecord.FromString(kv.value) for kv in kvs)
         logger.info("Líder con época %d; %d nodos de datos registrados", epoch, len(kvs))
+        self._create_first_admin()
+
+    def _create_first_admin(self) -> None:
+        """Crea el usuario admin la primera vez, con la contraseña del secreto de despliegue (§10.2)."""
+        if not self._security.admin_password:
+            return
+        user = self._build_user(ADMIN_USERNAME, self._security.admin_password, is_admin=True)
+        try:
+            created = self._apply_without_request(
+                [compare_absent(self.keys.username(ADMIN_USERNAME))],
+                [
+                    op_put(self.keys.username(ADMIN_USERNAME), user.user_id.encode()),
+                    op_put(self.keys.user(user.user_id), user.SerializeToString()),
+                ],
+            )
+        except (EtcdError, NotLeaderError) as error:
+            logger.warning("No se pudo comprobar el primer administrador: %s", error)
+            return
+        if created:
+            logger.info("Primer administrador creado")
 
     # ===== Infraestructura =====================================================================
 
@@ -169,8 +226,28 @@ class MetadataService(metadata_pb2_grpc.MetadataServiceServicer):
             failure = DfshaError(grpc.StatusCode.UNAVAILABLE, "El almacén de metadatos no responde")
         context.abort_with_status(failure.to_status())
 
+    def _get_claims(self, context: grpc.ServicerContext) -> AccessTokenClaims:
+        """Usuario de la llamada, a partir de su token de acceso (§10.2 y §10.3)."""
+        if get_peer_role(context) != "client":
+            raise DfshaError(grpc.StatusCode.PERMISSION_DENIED, "Solo un cliente puede hacer esta llamada")
+        header = dict(context.invocation_metadata()).get(AUTHORIZATION_HEADER, "")
+        if not isinstance(header, str) or not header.startswith("Bearer "):
+            raise DfshaError(grpc.StatusCode.UNAUTHENTICATED, "Falta el token de acceso")
+        try:
+            claims = verify_access_token(self._security.access_token_key, header.removeprefix("Bearer "))
+        except InvalidSignatureError:
+            raise DfshaError(grpc.StatusCode.UNAUTHENTICATED, "Token de acceso no válido") from None
+        if is_expired(claims.expires_at, self._now()):
+            raise DfshaError(grpc.StatusCode.UNAUTHENTICATED, "El token de acceso caducó", Reason.ACCESS_TOKEN_EXPIRED)
+        return claims
+
     def _get_user_id(self, context: grpc.ServicerContext) -> str:
-        return IMPLICIT_USER_ID  # etapa 6: el usuario del token de acceso
+        return self._get_claims(context).user_id
+
+    def _require_datanode(self, context: grpc.ServicerContext, node_id: str) -> None:
+        """Las RPC de los nodos de datos exigen su certificado, y cada nodo solo habla en su nombre (§10.3)."""
+        if get_peer_role(context) != "datanode" or get_peer_name(context) != node_id:
+            raise DfshaError(grpc.StatusCode.PERMISSION_DENIED, f"Solo el nodo de datos {node_id or '?'} puede hacer esta llamada")
 
     def _now(self) -> float:
         return self._wall_clock()
@@ -209,6 +286,83 @@ class MetadataService(metadata_pb2_grpc.MetadataServiceServicer):
         if kv is None or kv.create_revision != epoch:
             self.election.lose_leadership("la comparación de cercado falló")
             raise NotLeaderError(self.election.get_leader_addr())
+
+    # ===== Usuarios ============================================================================
+
+    def Authenticate(self, request: metadata_pb2.AuthenticateRequest, context: grpc.ServicerContext) -> metadata_pb2.AuthenticateResponse:  # noqa: N802
+        def operation() -> metadata_pb2.AuthenticateResponse:
+            if get_peer_role(context) != "client":
+                raise DfshaError(grpc.StatusCode.PERMISSION_DENIED, "Solo un cliente puede autenticarse")
+            self._check_login_allowed(request.username)
+            user = self._get_user_by_name(request.username)
+            if user is None or not verify_password(request.password, user.password_salt, user.password_hash):
+                self._record_login(request.username, succeeded=False)
+                raise DfshaError(grpc.StatusCode.UNAUTHENTICATED, "Usuario o contraseña incorrectos")
+            self._record_login(request.username, succeeded=True)
+            token, expires_at = create_access_token(self._security.access_token_key, user.user_id, user.is_admin, self._now())
+            return metadata_pb2.AuthenticateResponse(access_token=token, expires_at=expires_at)
+
+        return self._handle(context, operation)
+
+    def CreateUser(self, request: metadata_pb2.CreateUserRequest, context: grpc.ServicerContext) -> metadata_pb2.CreateUserResponse:  # noqa: N802
+        def build() -> _Plan:
+            if not self._get_claims(context).is_admin:
+                raise DfshaError(grpc.StatusCode.PERMISSION_DENIED, "Solo un administrador puede crear usuarios")
+            if not _USERNAME_PATTERN.match(request.username):
+                raise DfshaError(
+                    grpc.StatusCode.INVALID_ARGUMENT,
+                    "El nombre de usuario tiene de 3 a 32 caracteres: minúsculas, cifras, - y _, y empieza por una letra",
+                )
+            if len(request.password) < MIN_PASSWORD_LENGTH:
+                raise DfshaError(grpc.StatusCode.INVALID_ARGUMENT, f"La contraseña tiene al menos {MIN_PASSWORD_LENGTH} caracteres")
+            username_key = self.keys.username(request.username)
+            if self.store.etcd.get(username_key)[0] is not None:
+                raise DfshaError(grpc.StatusCode.ALREADY_EXISTS, f"Ya existe el usuario {request.username}")
+            user = self._build_user(request.username, request.password, request.is_admin)
+            return _Plan(
+                [compare_absent(username_key)],
+                [op_put(username_key, user.user_id.encode()), op_put(self.keys.user(user.user_id), user.SerializeToString())],
+                metadata_pb2.CreateUserResponse(user_id=user.user_id),
+            )
+
+        return self._handle(context, lambda: self._mutate(self._get_user_id(context), request.request_id, metadata_pb2.CreateUserResponse, build))
+
+    def _build_user(self, username: str, password: str, is_admin: bool) -> UserRecord:
+        salt, password_hash = hash_password(password)
+        return UserRecord(
+            user_id=uuid.uuid4().hex,
+            username=username,
+            password_salt=salt,
+            password_hash=password_hash,
+            is_admin=is_admin,
+            created_at=_now_timestamp(self._now()),
+        )
+
+    def _get_user_by_name(self, username: str) -> UserRecord | None:
+        kv, _ = self.store.etcd.get(self.keys.username(username))
+        if kv is None:
+            return None
+        user, _, _ = self.store.get(UserRecord, self.keys.user(kv.value.decode()))
+        return user
+
+    def _check_login_allowed(self, username: str) -> None:
+        """Tras 5 intentos fallidos seguidos, el usuario queda bloqueado 30 s (ADR 0043)."""
+        with self._failed_logins_lock:
+            _, blocked_until = self._failed_logins.get(username, (0, 0.0))
+        if time.monotonic() < blocked_until:
+            raise DfshaError(grpc.StatusCode.UNAUTHENTICATED, "Demasiados intentos fallidos; espera unos segundos")
+
+    def _record_login(self, username: str, succeeded: bool) -> None:
+        with self._failed_logins_lock:
+            if succeeded:
+                self._failed_logins.pop(username, None)
+                return
+            failures, _ = self._failed_logins.get(username, (0, 0.0))
+            failures += 1
+            blocked_until = time.monotonic() + LOGIN_BLOCK_S if failures >= MAX_FAILED_LOGINS else 0.0
+            self._failed_logins[username] = (0 if blocked_until else failures, blocked_until)
+            if blocked_until:
+                logger.warning("Usuario %s bloqueado %.0f s por intentos fallidos", username, LOGIN_BLOCK_S)
 
     # ===== Espacio de nombres ==================================================================
 
@@ -356,8 +510,10 @@ class MetadataService(metadata_pb2_grpc.MetadataServiceServicer):
                 if resolution.is_root or resolution.entry is not None:
                     raise DfshaError(grpc.StatusCode.ALREADY_EXISTS, f"Ya existe {request.path}", Reason.PATH_ALREADY_EXISTS)
                 assert resolution.name is not None
+                file_id = uuid.uuid4().hex
+                data_key = generate_key()
                 handle = FileHandle(
-                    file_id=uuid.uuid4().hex,
+                    file_id=file_id,
                     version=0,
                     mode=request.mode,
                     user_id=user_id,
@@ -366,11 +522,12 @@ class MetadataService(metadata_pb2_grpc.MetadataServiceServicer):
                     name=resolution.name,
                     parent_entry_key=resolution.parent_entry_key,
                     parent_create_revision=resolution.parent_create_revision,
+                    wrapped_data_key=wrap_data_key(self._security.wrapping_key, data_key, file_id),
                 )
                 info = metadata_pb2.FileInfo(
                     file_id=handle.file_id, path=request.path, block_size_bytes=handle.block_size_bytes
                 )
-                return metadata_pb2.OpenFileResponse(file_handle=handle.SerializeToString(), info=info)
+                return metadata_pb2.OpenFileResponse(file_handle=self._sign_handle(handle), info=info, data_key=data_key)
             if request.mode not in (metadata_pb2.OPEN_MODE_READ, metadata_pb2.OPEN_MODE_WRITE):
                 raise DfshaError(grpc.StatusCode.INVALID_ARGUMENT, "Modo de apertura no válido")
             file_record = self._get_file_of(resolution)
@@ -381,9 +538,10 @@ class MetadataService(metadata_pb2_grpc.MetadataServiceServicer):
                 user_id=user_id,
                 block_size_bytes=file_record.block_size_bytes,
             )
-            # La clave de datos llega en la etapa 6 (ADR 0024)
+            # La clave de datos va en claro solo al propietario autenticado, por TLS (§10.5)
+            data_key = unwrap_data_key(self._security.wrapping_key, file_record.wrapped_data_key, file_record.file_id)
             return metadata_pb2.OpenFileResponse(
-                file_handle=handle.SerializeToString(), info=self._build_file_info(request.path, file_record)
+                file_handle=self._sign_handle(handle), info=self._build_file_info(request.path, file_record), data_key=data_key
             )
 
         return self._handle(context, operation)
@@ -408,7 +566,6 @@ class MetadataService(metadata_pb2_grpc.MetadataServiceServicer):
                     addr = self.registry.get_addr(replica.node_id)
                     if addr is not None:
                         addrs.append(addr)
-                # Los tokens de lectura llegan en la etapa 6 (ADR 0022)
                 locations.append(
                     common_pb2.BlockLocation(
                         block_index=block.block_index,
@@ -416,6 +573,9 @@ class MetadataService(metadata_pb2_grpc.MetadataServiceServicer):
                         block_sha256=block.block_sha256,
                         size_bytes=block.size_bytes,
                         datanode_addrs=addrs,
+                        block_token=create_block_token(
+                            self._security.block_token_key, block.block_id, common_pb2.BLOCK_OPERATION_READ, self._now()
+                        ),
                     )
                 )
             return metadata_pb2.GetBlockLocationsResponse(locations=locations)
@@ -511,16 +671,23 @@ class MetadataService(metadata_pb2_grpc.MetadataServiceServicer):
                     f"Hay menos de {self.settings.write_quorum} nodos de datos vivos",
                     Reason.QUORUM_NOT_REACHED,
                 )
-            # Los tokens de escritura llegan en la etapa 6 (ADR 0022)
             blocks = [
                 common_pb2.BlockLocation(block_index=index, block_id=str(uuid.uuid4()), datanode_addrs=addrs)
                 for index, addrs in zip(indices, placements, strict=True)
             ]
-            pending = PendingRecord(file_id=handle.file_id, blocks=blocks)
+            pending = PendingRecord(file_id=handle.file_id, blocks=blocks)  # sin tokens
+            with_tokens = []
+            for block in blocks:
+                located = common_pb2.BlockLocation()
+                located.CopyFrom(block)
+                located.block_token.CopyFrom(
+                    create_block_token(self._security.block_token_key, block.block_id, common_pb2.BLOCK_OPERATION_WRITE, self._now())
+                )
+                with_tokens.append(located)
             return _Plan(
                 [compare_mod_revision(lease_key, lease_mod_revision)],
                 [op_put(self.keys.pending(request.lease_id, request.request_id), pending.SerializeToString())],
-                metadata_pb2.AllocateBlocksResponse(blocks=blocks),
+                metadata_pb2.AllocateBlocksResponse(blocks=with_tokens),
             )
 
         return self._handle(context, lambda: self._mutate(self._get_user_id(context), request.request_id, metadata_pb2.AllocateBlocksResponse, build))
@@ -544,7 +711,10 @@ class MetadataService(metadata_pb2_grpc.MetadataServiceServicer):
                 self._require_full_range(lease)
                 new_blocks = self._require_contiguous(committed)
                 file_record = FileRecord(
-                    file_id=handle.file_id, owner_user_id=user_id, block_size_bytes=handle.block_size_bytes
+                    file_id=handle.file_id,
+                    owner_user_id=user_id,
+                    block_size_bytes=handle.block_size_bytes,
+                    wrapped_data_key=handle.wrapped_data_key,
                 )
                 entry_key = self.keys.entry(user_id, handle.parent_directory_id, handle.name)
                 entry = EntryRecord(type=metadata_pb2.ENTRY_TYPE_FILE, target_id=handle.file_id, modified_at=_now_timestamp(now))
@@ -596,6 +766,7 @@ class MetadataService(metadata_pb2_grpc.MetadataServiceServicer):
 
     def RegisterDataNode(self, request: metadata_pb2.RegisterDataNodeRequest, context: grpc.ServicerContext) -> metadata_pb2.RegisterDataNodeResponse:  # noqa: N802
         def operation() -> metadata_pb2.RegisterDataNodeResponse:
+            self._require_datanode(context, request.node_id)
             if not request.node_id or not request.hostname or not request.addr:
                 raise DfshaError(grpc.StatusCode.INVALID_ARGUMENT, "Faltan el node_id, el nombre de host o la dirección")
             try:
@@ -619,6 +790,7 @@ class MetadataService(metadata_pb2_grpc.MetadataServiceServicer):
 
     def ReportHeartbeat(self, request: metadata_pb2.ReportHeartbeatRequest, context: grpc.ServicerContext) -> metadata_pb2.ReportHeartbeatResponse:  # noqa: N802
         def operation() -> metadata_pb2.ReportHeartbeatResponse:
+            self._require_datanode(context, request.node_id)
             first_since_election = self.registry.get_state(request.node_id) is NodeState.WITHOUT_HEARTBEAT
             if not self.registry.record_heartbeat(request.node_id, request.free_bytes):
                 raise DfshaError(grpc.StatusCode.FAILED_PRECONDITION, f"El nodo {request.node_id} no está registrado")
@@ -632,6 +804,7 @@ class MetadataService(metadata_pb2_grpc.MetadataServiceServicer):
 
     def ReportBlocks(self, request: metadata_pb2.ReportBlocksRequest, context: grpc.ServicerContext) -> metadata_pb2.ReportBlocksResponse:  # noqa: N802
         def operation() -> metadata_pb2.ReportBlocksResponse:
+            self._require_datanode(context, request.node_id)
             now = _now_timestamp(self._now())
             ops = [self._put_replica(request.node_id, block, now) for block in request.blocks]
             for start in range(0, len(ops), _OPS_PER_TXN):
@@ -643,6 +816,7 @@ class MetadataService(metadata_pb2_grpc.MetadataServiceServicer):
 
     def ReportBlockReceived(self, request: metadata_pb2.ReportBlockReceivedRequest, context: grpc.ServicerContext) -> metadata_pb2.ReportBlockReceivedResponse:  # noqa: N802
         def operation() -> metadata_pb2.ReportBlockReceivedResponse:
+            self._require_datanode(context, request.node_id)
             if not request.node_id or not request.block.block_id or len(request.block.block_sha256) != 32:
                 raise DfshaError(grpc.StatusCode.INVALID_ARGUMENT, "Aviso de bloque recibido incompleto")
             ops = [self._put_replica(request.node_id, request.block, _now_timestamp(self._now()))]
@@ -688,14 +862,18 @@ class MetadataService(metadata_pb2_grpc.MetadataServiceServicer):
             return []  # la raíz siempre existe
         return [compare_create_revision(resolution.parent_entry_key, resolution.parent_create_revision)]
 
+    def _sign_handle(self, handle: FileHandle) -> bytes:
+        return sign_file_handle(self._security.access_token_key, handle.SerializeToString())
+
     def _decode_handle(self, context: grpc.ServicerContext, file_handle: bytes) -> FileHandle:
+        """Verifica la firma del descriptor y que es del usuario de la llamada (§10.3)."""
         try:
-            handle = FileHandle.FromString(file_handle)
-        except Exception:
-            handle = FileHandle()
+            handle = FileHandle.FromString(verify_file_handle(self._security.access_token_key, file_handle))
+        except (InvalidSignatureError, DecodeError):
+            raise DfshaError(grpc.StatusCode.PERMISSION_DENIED, "Descriptor de archivo no válido") from None
         if not handle.file_id or handle.user_id != self._get_user_id(context):
-            raise DfshaError(grpc.StatusCode.INVALID_ARGUMENT, "Descriptor de archivo no válido")
-        return handle  # se firma y se verifica en la etapa 6
+            raise DfshaError(grpc.StatusCode.PERMISSION_DENIED, "El descriptor de archivo es de otro usuario")
+        return handle
 
     @staticmethod
     def _require_write_handle(handle: FileHandle) -> None:
@@ -853,4 +1031,4 @@ class MetadataService(metadata_pb2_grpc.MetadataServiceServicer):
         return {block.block_index: block for block in version.blocks}
 
 
-__all__ = ["IMPLICIT_USER_ID", "MetadataService", "MetadataSettings", "ROOT_DIRECTORY_ID"]
+__all__ = ["ADMIN_USERNAME", "MetadataService", "MetadataSettings", "ROOT_DIRECTORY_ID", "SecurityKeys"]

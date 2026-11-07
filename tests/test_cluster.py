@@ -17,12 +17,13 @@ from dfsha.v1 import metadata_pb2
 
 
 @pytest.fixture
-def cluster(etcd_addr: str, etcd_prefix: bytes, tmp_path: Path) -> Iterator[LocalCluster]:
-    local = LocalCluster(etcd_addr, etcd_prefix, tmp_path)
+def cluster(etcd_addr: str, etcd_prefix: bytes, tmp_path: Path, cluster_secrets: Path) -> Iterator[LocalCluster]:
+    local = LocalCluster(etcd_addr, etcd_prefix, tmp_path, secrets=cluster_secrets)
     try:
         for _ in range(3):
             local.start_metadata()
         assert wait_until(lambda: sum(server.election.is_leader for server in local.metadata.values()) == 1)
+        local.create_test_user()
         for index in range(1, 4):
             local.start_datanode(index)
         assert wait_until(

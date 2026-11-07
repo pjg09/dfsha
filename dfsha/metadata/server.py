@@ -5,16 +5,19 @@ import signal
 import threading
 from concurrent import futures
 from dataclasses import dataclass
+from pathlib import Path
 
 import grpc
 
 from dfsha.common import config
 from dfsha.common.log import configure_logging
+from dfsha.common.pki import ACCESS_TOKEN_KEY_FILE, ADMIN_PASSWORD_FILE, BLOCK_TOKEN_KEY_FILE, WRAPPING_KEY_FILE
+from dfsha.common.tls import DEFAULT_SECRETS_DIRECTORY, get_server_credentials, load_identity, make_channel_factory, read_secret
 from dfsha.metadata.etcd_client import EtcdClient
 from dfsha.metadata.keys import Keys
 from dfsha.metadata.leader import LeaderElection
 from dfsha.metadata.nodes import NodeRegistry
-from dfsha.metadata.service import MetadataService, MetadataSettings
+from dfsha.metadata.service import MetadataService, MetadataSettings, SecurityKeys
 from dfsha.metadata.store import MetadataStore
 from dfsha.v1 import metadata_pb2_grpc
 
@@ -33,6 +36,8 @@ class MetadataConfig:
     dead_after_s: float
     server_threads: int
     log_level: str
+    secrets_directory: Path
+    etcd_tls: bool = True  # solo las pruebas hablan con un etcd sin TLS
 
 
 def load_config() -> MetadataConfig:
@@ -57,6 +62,7 @@ def load_config() -> MetadataConfig:
         dead_after_s=config.get_float("DEAD_AFTER_S", 30.0),
         server_threads=config.get_int("SERVER_THREADS", 16),
         log_level=config.get_str("LOG_LEVEL", "INFO"),
+        secrets_directory=Path(config.get_str("SECRETS_DIRECTORY", DEFAULT_SECRETS_DIRECTORY)),
     )
 
 
@@ -79,8 +85,20 @@ class MetadataServer:
         self.etcd.close()
 
 
+def load_security_keys(secrets_directory: Path) -> SecurityKeys:
+    admin_password_path = secrets_directory / ADMIN_PASSWORD_FILE
+    return SecurityKeys(
+        access_token_key=read_secret(secrets_directory, ACCESS_TOKEN_KEY_FILE),
+        block_token_key=read_secret(secrets_directory, BLOCK_TOKEN_KEY_FILE),
+        wrapping_key=read_secret(secrets_directory, WRAPPING_KEY_FILE),
+        admin_password=admin_password_path.read_text().strip() if admin_password_path.exists() else None,
+    )
+
+
 def create_server(metadata_config: MetadataConfig) -> MetadataServer:
-    etcd = EtcdClient(metadata_config.etcd_addrs)
+    identity = load_identity(metadata_config.secrets_directory)
+    create_etcd_channel = make_channel_factory(identity) if metadata_config.etcd_tls else grpc.insecure_channel
+    etcd = EtcdClient(metadata_config.etcd_addrs, create_channel=create_etcd_channel)
     keys = Keys(metadata_config.key_prefix)
     registry = NodeRegistry(metadata_config.suspect_after_s, metadata_config.dead_after_s)
     service_holder: list[MetadataService] = []
@@ -93,12 +111,18 @@ def create_server(metadata_config: MetadataConfig) -> MetadataServer:
         metadata_config.leader_step_down_after_s,
         on_elected=lambda epoch: service_holder[0].on_elected(epoch),
     )
-    service = MetadataService(metadata_config.settings, MetadataStore(etcd, keys), election, registry)
+    service = MetadataService(
+        metadata_config.settings,
+        MetadataStore(etcd, keys),
+        election,
+        registry,
+        load_security_keys(metadata_config.secrets_directory),
+    )
     service_holder.append(service)
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=metadata_config.server_threads))
     metadata_pb2_grpc.add_MetadataServiceServicer_to_server(service, server)
     _, port = config.parse_addr(metadata_config.settings.addr)
-    bound_port = server.add_insecure_port(f"[::]:{port}")  # TLS en la etapa 6 (ADR 0023)
+    bound_port = server.add_secure_port(f"[::]:{port}", get_server_credentials(identity))  # TLS mutuo (ADR 0043)
     return MetadataServer(server, bound_port, service, election, etcd)
 
 

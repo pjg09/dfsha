@@ -17,6 +17,8 @@ import grpc
 from dfsha.client.connection import ChannelPool, MetadataConnection, RetryPolicy, get_datanode_stub
 from dfsha.common import config
 from dfsha.common.errors import DfshaError, Reason
+from dfsha.common.security import decrypt_block, encrypt_block
+from dfsha.common.tls import DEFAULT_SECRETS_DIRECTORY, load_identity, make_channel_factory
 from dfsha.v1 import common_pb2, datanode_pb2, metadata_pb2
 
 logger = logging.getLogger(__name__)
@@ -30,16 +32,25 @@ MAX_BLOCK_ATTEMPTS = 4
 @dataclass(frozen=True)
 class ClientSettings:
     metadata_addrs: list[str]
+    secrets_directory: Path  # ca.pem, cert.pem y key.pem del host cliente (TLS mutuo, ADR 0043)
+    username: str
+    password: str
     rpc_timeout_s: float = 10.0
     transfer_timeout_s: float = 120.0
     parallel_transfers: int = 4
     retry: RetryPolicy = field(default_factory=RetryPolicy)
 
 
-def load_settings() -> ClientSettings:
-    """Lee la configuración de las variables DFSHA_* (convenciones §2)."""
+def load_settings(password: str | None = None) -> ClientSettings:
+    """Lee la configuración de las variables DFSHA_* (convenciones §2).
+
+    La contraseña sale de DFSHA_PASSWORD o, si no está, del argumento (la pide la línea de órdenes).
+    """
     return ClientSettings(
         metadata_addrs=config.get_addrs("METADATA_ADDRS"),
+        secrets_directory=Path(config.get_str("SECRETS_DIRECTORY", DEFAULT_SECRETS_DIRECTORY)),
+        username=config.get_str("USERNAME"),
+        password=config.get_str("PASSWORD", password),
         rpc_timeout_s=config.get_float("RPC_TIMEOUT_S", 10.0),
         transfer_timeout_s=config.get_float("TRANSFER_TIMEOUT_S", 120.0),
         parallel_transfers=config.get_int("PARALLEL_TRANSFERS", 4),
@@ -67,7 +78,7 @@ class _LeaseKeeper:
         while not self._stopped.wait(self._renew_every_s):
             request = metadata_pb2.UpdateLeaseRequest(request_id=_request_id(), lease_id=self._lease_id)
             try:
-                self._client.metadata.call(lambda stub, timeout: stub.UpdateLease(request, timeout=timeout))
+                self._client.metadata.call_rpc("UpdateLease", request)
             except DfshaError as error:
                 self.error = error  # la confirmación fallará con LEASE_EXPIRED si de verdad caducó
                 return
@@ -80,8 +91,10 @@ class _LeaseKeeper:
 class DfshaClient:
     def __init__(self, settings: ClientSettings) -> None:
         self.settings = settings
-        self._channels = ChannelPool()
-        self.metadata = MetadataConnection(settings.metadata_addrs, self._channels, settings.rpc_timeout_s, settings.retry)
+        self._channels = ChannelPool(make_channel_factory(load_identity(settings.secrets_directory)))
+        self.metadata = MetadataConnection(
+            settings.metadata_addrs, self._channels, settings.rpc_timeout_s, settings.retry, settings.username, settings.password
+        )
 
     def close(self) -> None:
         self._channels.close()
@@ -92,31 +105,38 @@ class DfshaClient:
     def __exit__(self, *_: object) -> None:
         self.close()
 
+    # ===== Usuarios ============================================================================
+
+    def create_user(self, username: str, password: str, is_admin: bool = False) -> str:
+        """Da de alta un usuario; solo puede hacerlo un administrador (§10.2)."""
+        request = metadata_pb2.CreateUserRequest(request_id=_request_id(), username=username, password=password, is_admin=is_admin)
+        return self.metadata.call_rpc("CreateUser", request).user_id
+
     # ===== RF1: espacio de nombres =============================================================
 
     def list_directory(self, path: str) -> list[metadata_pb2.DirectoryEntry]:
         request = metadata_pb2.ListDirectoryRequest(path=path)
-        return list(self.metadata.call(lambda stub, timeout: stub.ListDirectory(request, timeout=timeout)).entries)
+        return list(self.metadata.call_rpc("ListDirectory", request).entries)
 
     def get_file_info(self, path: str) -> metadata_pb2.FileInfo:
         request = metadata_pb2.GetFileInfoRequest(path=path)
-        return self.metadata.call(lambda stub, timeout: stub.GetFileInfo(request, timeout=timeout)).info
+        return self.metadata.call_rpc("GetFileInfo", request).info
 
     def create_directory(self, path: str) -> None:
         request = metadata_pb2.CreateDirectoryRequest(request_id=_request_id(), path=path)
-        self.metadata.call(lambda stub, timeout: stub.CreateDirectory(request, timeout=timeout))
+        self.metadata.call_rpc("CreateDirectory", request)
 
     def delete_directory(self, path: str) -> None:
         request = metadata_pb2.DeleteDirectoryRequest(request_id=_request_id(), path=path)
-        self.metadata.call(lambda stub, timeout: stub.DeleteDirectory(request, timeout=timeout))
+        self.metadata.call_rpc("DeleteDirectory", request)
 
     def delete_file(self, path: str) -> None:
         request = metadata_pb2.DeleteFileRequest(request_id=_request_id(), path=path)
-        self.metadata.call(lambda stub, timeout: stub.DeleteFile(request, timeout=timeout))
+        self.metadata.call_rpc("DeleteFile", request)
 
     def move(self, source_path: str, target_path: str) -> None:
         request = metadata_pb2.MovePathRequest(request_id=_request_id(), source_path=source_path, target_path=target_path)
-        self.metadata.call(lambda stub, timeout: stub.MovePath(request, timeout=timeout))
+        self.metadata.call_rpc("MovePath", request)
 
     # ===== RF2: carga y recuperación ===========================================================
 
@@ -127,13 +147,15 @@ class DfshaClient:
         block_size = opened.info.block_size_bytes
         block_count = -(-size_bytes // block_size) if size_bytes else 0
         lock_request = metadata_pb2.LockBlocksRequest(request_id=_request_id(), file_handle=opened.file_handle, block_range=WHOLE_FILE)
-        lease = self.metadata.call(lambda stub, timeout: stub.LockBlocks(lock_request, timeout=timeout))
+        lease = self.metadata.call_rpc("LockBlocks", lock_request)
         ttl_s = max(1.0, lease.expires_at.ToNanoseconds() / 1e9 - time.time())
         keeper = _LeaseKeeper(self, lease.lease_id, renew_every_s=ttl_s / 3)
         committed: list[metadata_pb2.CommittedBlock] = []
         try:
             with open(local_path, "rb") as source:
-                committed = self._upload_blocks(opened.file_handle, lease.lease_id, source.fileno(), block_size, block_count, size_bytes)
+                committed = self._upload_blocks(
+                    opened.file_handle, opened.data_key, lease.lease_id, source.fileno(), block_size, block_count, size_bytes
+                )
             commit_request = metadata_pb2.CommitFileRequest(
                 request_id=_request_id(),
                 file_handle=opened.file_handle,
@@ -142,7 +164,7 @@ class DfshaClient:
                 blocks=committed,
                 size_bytes=size_bytes,
             )
-            return self.metadata.call(lambda stub, timeout: stub.CommitFile(commit_request, timeout=timeout)).version
+            return self.metadata.call_rpc("CommitFile", commit_request).version
         except BaseException:
             self._abort(opened.file_handle, lease.lease_id)
             raise
@@ -153,17 +175,18 @@ class DfshaClient:
     def get(self, remote_path: str, local_path: Path) -> int:
         """Recupera la versión confirmada completa de un archivo (§6.2). Devuelve su tamaño."""
         open_request = metadata_pb2.OpenFileRequest(path=remote_path, mode=metadata_pb2.OPEN_MODE_READ)
-        opened = self.metadata.call(lambda stub, timeout: stub.OpenFile(open_request, timeout=timeout))
+        opened = self.metadata.call_rpc("OpenFile", open_request)
         locate_request = metadata_pb2.GetBlockLocationsRequest(file_handle=opened.file_handle, block_range=WHOLE_FILE)
-        locations = self.metadata.call(lambda stub, timeout: stub.GetBlockLocations(locate_request, timeout=timeout)).locations
+        locations = self.metadata.call_rpc("GetBlockLocations", locate_request).locations
         block_size = opened.info.block_size_bytes
         partial_path = local_path.with_name(local_path.name + ".dfsha-parcial")
         with open(partial_path, "wb") as target:
             descriptor = target.fileno()
 
             def fetch(location: common_pb2.BlockLocation) -> None:
-                data = self._download_block(location)
-                os.pwrite(descriptor, data, location.block_index * block_size)
+                stored = self._download_block(location, opened.file_handle)
+                plaintext = decrypt_block(opened.data_key, location.block_id, stored)  # verifica la etiqueta GCM
+                os.pwrite(descriptor, plaintext, location.block_index * block_size)
 
             with ThreadPoolExecutor(self.settings.parallel_transfers) as pool:
                 list(pool.map(fetch, locations))
@@ -183,7 +206,7 @@ class DfshaClient:
             ):
                 request = metadata_pb2.OpenFileRequest(path=remote_path, mode=mode)
                 try:
-                    return self.metadata.call(lambda stub, timeout: stub.OpenFile(request, timeout=timeout)), write_mode
+                    return self.metadata.call_rpc("OpenFile", request), write_mode
                 except DfshaError as error:
                     if error.reason not in (Reason.PATH_ALREADY_EXISTS, Reason.PATH_NOT_FOUND) or (
                         error.reason is Reason.PATH_NOT_FOUND and mode == metadata_pb2.OPEN_MODE_CREATE
@@ -198,11 +221,18 @@ class DfshaClient:
                 request_id=_request_id(), file_handle=file_handle, lease_id=lease_id,
                 block_indices=indices[start : start + MAX_BLOCKS_PER_ALLOCATION],
             )  # fmt: skip
-            locations.extend(self.metadata.call(lambda stub, timeout: stub.AllocateBlocks(request, timeout=timeout)).blocks)
+            locations.extend(self.metadata.call_rpc("AllocateBlocks", request).blocks)
         return locations
 
     def _upload_blocks(
-        self, file_handle: bytes, lease_id: str, descriptor: int, block_size: int, block_count: int, size_bytes: int
+        self,
+        file_handle: bytes,
+        data_key: bytes,
+        lease_id: str,
+        descriptor: int,
+        block_size: int,
+        block_count: int,
+        size_bytes: int,
     ) -> list[metadata_pb2.CommittedBlock]:
         if not block_count:
             return []
@@ -210,13 +240,15 @@ class DfshaClient:
 
         def upload(location: common_pb2.BlockLocation) -> metadata_pb2.CommittedBlock:
             offset = location.block_index * block_size
-            data = os.pread(descriptor, min(block_size, size_bytes - offset), offset)
-            sha256 = hashlib.sha256(data).digest()  # etapa 6: se cifra antes y el hash es del bloque cifrado
+            plaintext = os.pread(descriptor, min(block_size, size_bytes - offset), offset)
             for attempt in range(MAX_BLOCK_ATTEMPTS):
+                # Cifrado de sobre (§10.5): el block_id es el dato asociado, así que se cifra de nuevo si cambia
+                stored = encrypt_block(data_key, location.block_id, plaintext)
+                sha256 = hashlib.sha256(stored).digest()  # el hash es del bloque cifrado, el que guardan los nodos
                 try:
-                    self._write_block(location, data, sha256)
+                    self._write_block(location, stored, sha256)
                     return metadata_pb2.CommittedBlock(
-                        block_index=location.block_index, block_id=location.block_id, block_sha256=sha256, size_bytes=len(data)
+                        block_index=location.block_index, block_id=location.block_id, block_sha256=sha256, size_bytes=len(stored)
                     )
                 except DfshaError as error:
                     if attempt == MAX_BLOCK_ATTEMPTS - 1:
@@ -250,24 +282,29 @@ class DfshaClient:
     def _abort(self, file_handle: bytes, lease_id: str) -> None:
         request = metadata_pb2.AbortFileRequest(request_id=_request_id(), file_handle=file_handle, lease_id=lease_id)
         try:
-            self.metadata.call(lambda stub, timeout: stub.AbortFile(request, timeout=timeout))
+            self.metadata.call_rpc("AbortFile", request)
         except DfshaError as error:
             logger.warning("No se pudo abortar la escritura: %s", error.message)
 
     def _unlock(self, lease_id: str) -> None:
         request = metadata_pb2.UnlockBlocksRequest(request_id=_request_id(), lease_id=lease_id)
         try:
-            self.metadata.call(lambda stub, timeout: stub.UnlockBlocks(request, timeout=timeout))
+            self.metadata.call_rpc("UnlockBlocks", request)
         except DfshaError as error:
             logger.warning("No se pudo liberar el arrendamiento (caducará solo): %s", error.message)
 
     # ===== Ayudas de get =======================================================================
 
-    def _download_block(self, location: common_pb2.BlockLocation) -> bytes:
-        """Lee un bloque de una réplica al azar y verifica el hash de los metadatos; si falla, prueba otra."""
+    def _download_block(self, location: common_pb2.BlockLocation, file_handle: bytes) -> bytes:
+        """Lee un bloque de una réplica al azar y verifica el hash de los metadatos; si falla, prueba otra.
+
+        Si el token de lectura caducó (una lectura de más de 10 min), pide uno nuevo sobre el mismo
+        descriptor y, por tanto, sobre la misma versión (§6.2).
+        """
         addrs = list(location.datanode_addrs)
         random.shuffle(addrs)
         last_error: DfshaError | None = None
+        token_refreshed = False
         for addr in addrs:
             try:
                 responses = get_datanode_stub(self._channels, addr).ReadBlock(
@@ -278,6 +315,11 @@ class DfshaClient:
                 data = b"".join(response.data for response in responses)
             except grpc.RpcError as rpc_error:
                 last_error = DfshaError.from_rpc_error(rpc_error)
+                if last_error.reason is Reason.BLOCK_TOKEN_INVALID and not token_refreshed:
+                    token_refreshed = True
+                    location = self._refresh_location(file_handle, location)
+                    addrs.append(addr)  # se vuelve a intentar con el token nuevo
+                    continue
                 logger.warning("La réplica de %s en %s falló: %s", location.block_id, addr, last_error.message)
                 continue
             if hashlib.sha256(data).digest() != location.block_sha256:
@@ -291,3 +333,10 @@ class DfshaClient:
             f"No se pudo leer el bloque {location.block_index} de ninguna réplica",
             Reason.BLOCK_LOST,
         ) from last_error
+
+    def _refresh_location(self, file_handle: bytes, location: common_pb2.BlockLocation) -> common_pb2.BlockLocation:
+        request = metadata_pb2.GetBlockLocationsRequest(
+            file_handle=file_handle,
+            block_range=common_pb2.BlockRange(first_block_index=location.block_index, block_count=1),
+        )
+        return self.metadata.call_rpc("GetBlockLocations", request).locations[0]

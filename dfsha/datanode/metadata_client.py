@@ -35,7 +35,9 @@ class MetadataClient:
         heartbeat_interval_s: float = 3.0,
         timeout_s: float = 2.0,
         retry_interval_s: float = 1.0,
+        create_channel: Callable[[str], grpc.Channel] = grpc.insecure_channel,
     ) -> None:
+        self._create_channel = create_channel  # en producción, con TLS mutuo y el certificado del nodo
         self._addrs = list(metadata_addrs)
         self._node_id = node_id
         self._addr = addr
@@ -195,6 +197,6 @@ class MetadataClient:
         with self._lock:
             channel = self._channels.get(addr)
             if channel is None:
-                channel = self._channels[addr] = grpc.insecure_channel(addr)
+                channel = self._channels[addr] = self._create_channel(addr)
             return channel
 

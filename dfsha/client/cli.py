@@ -5,6 +5,8 @@ siempre rutas absolutas.
 """
 
 import argparse
+import getpass
+import os
 import posixpath
 import shlex
 import sys
@@ -14,6 +16,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from dfsha.client.client import DfshaClient, load_settings
+from dfsha.common import config
 from dfsha.common.config import ConfigError
 from dfsha.common.errors import DfshaError
 from dfsha.common.log import configure_logging
@@ -58,6 +61,7 @@ class Shell:
             "put": (2, 2, self.put),
             "get": (2, 2, self.get),
             "stat": (1, 1, self.stat),
+            "useradd": (1, 2, self.useradd),
         }
 
     def run(self, words: list[str]) -> None:
@@ -124,6 +128,21 @@ class Shell:
         print(f"bloques: {info.block_count} de {_format_size(info.block_size_bytes)}\nmodificado: {_format_time(info)}")
 
 
+    def useradd(self, username: str, role: str = "") -> None:
+        if role not in ("", "admin"):
+            raise ValueError("useradd <nombre> [admin]")
+        password = os.environ.get("DFSHA_NEW_PASSWORD") or _ask_new_password(username)
+        user_id = self.client.create_user(username, password, is_admin=role == "admin")
+        print(f"Usuario {username} creado ({user_id}){' como administrador' if role else ''}")
+
+
+def _ask_new_password(username: str) -> str:
+    first = getpass.getpass(f"Contraseña para {username}: ")
+    if first != getpass.getpass("Repítela: "):
+        raise ValueError("Las contraseñas no coinciden")
+    return first
+
+
 def _report(error: Exception) -> None:
     if isinstance(error, DfshaError):
         reason = f" [{error.reason}]" if error.reason else f" [{error.code.name}]"
@@ -133,7 +152,7 @@ def _report(error: Exception) -> None:
 
 
 def _interactive(shell: Shell) -> None:
-    print("DFSha. Órdenes: ls, cd, pwd, mkdir, rmdir, rm, mv, put, get, stat, exit")
+    print("DFSha. Órdenes: ls, cd, pwd, mkdir, rmdir, rm, mv, put, get, stat, useradd, exit")
     while True:
         try:
             line = input(f"dfsha:{shell.current_directory}> ")
@@ -152,14 +171,19 @@ def _interactive(shell: Shell) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="dfsha", description="Cliente de DFSha. Se configura con DFSHA_METADATA_ADDRS.")
-    parser.add_argument("words", nargs="+", metavar="orden", help="ls, mkdir, rmdir, rm, mv, put, get, stat o shell")
+    parser = argparse.ArgumentParser(
+        prog="dfsha",
+        description="Cliente de DFSha. Se configura con DFSHA_METADATA_ADDRS, DFSHA_USERNAME y DFSHA_PASSWORD "
+        "(si falta, la pide) y DFSHA_SECRETS_DIRECTORY con el certificado del host.",
+    )
+    parser.add_argument("words", nargs="+", metavar="orden", help="ls, mkdir, rmdir, rm, mv, put, get, stat, useradd o shell")
     parser.add_argument("-v", "--verbose", action="store_true", help="muestra los reintentos y los avisos")
     arguments = parser.parse_args(argv)
     configure_logging("INFO" if arguments.verbose else "ERROR", "client")
     try:
-        client = DfshaClient(load_settings())
-    except (ConfigError, ValueError) as error:
+        password = None if os.environ.get("DFSHA_PASSWORD") else getpass.getpass(f"Contraseña de {config.get_str('USERNAME')}: ")
+        client = DfshaClient(load_settings(password))
+    except (ConfigError, ValueError, OSError) as error:
         _report(error)
         return 2
     with client:

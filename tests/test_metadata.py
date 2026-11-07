@@ -4,19 +4,23 @@ import hashlib
 import time
 import uuid
 from collections.abc import Callable, Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from pathlib import Path
 
 import grpc
 import pytest
-from helpers import expect_error, start_on_free_addr, wait_until
+from helpers import admin_password, authenticate, expect_error, secure_channel, start_on_free_addr, wait_until, with_token
 
+from dfsha.common import security
 from dfsha.common.errors import Reason
+from dfsha.common.pki import ACCESS_TOKEN_KEY_FILE, BLOCK_TOKEN_KEY_FILE
 from dfsha.metadata.server import MetadataConfig, MetadataServer, create_server
-from dfsha.metadata.service import MetadataSettings
+from dfsha.metadata.service import MAX_FAILED_LOGINS, MetadataSettings
 from dfsha.v1 import common_pb2, metadata_pb2, metadata_pb2_grpc
 
 BLOCK_SIZE_BYTES = 1024 * 1024
 WHOLE_FILE = common_pb2.BlockRange(first_block_index=0, block_count=0)
+TEST_USER, TEST_PASSWORD = "tester", "contraseña-de-prueba"
 
 
 def _request_id() -> str:
@@ -26,13 +30,25 @@ def _request_id() -> str:
 @dataclass
 class Cluster:
     server: MetadataServer
-    stub: metadata_pb2_grpc.MetadataServiceStub
+    stub: metadata_pb2_grpc.MetadataServiceStub  # usuario de prueba, con su token y el certificado de client-1
     addr: str
+    secrets: Path
+    _datanode_channels: dict[str, grpc.Channel] = field(default_factory=dict)
+
+    def datanode_stub(self, node_id: str) -> metadata_pb2_grpc.MetadataServiceStub:
+        """Stub con el certificado de ese nodo de datos: cada nodo solo habla en su nombre (§10.3)."""
+        if node_id not in self._datanode_channels:
+            self._datanode_channels[node_id] = secure_channel(self.secrets, node_id, self.addr)
+        return metadata_pb2_grpc.MetadataServiceStub(self._datanode_channels[node_id])
+
+    def user_stub(self, username: str, password: str) -> metadata_pb2_grpc.MetadataServiceStub:
+        channel = secure_channel(self.secrets, "client-1", self.addr)
+        return metadata_pb2_grpc.MetadataServiceStub(with_token(channel, authenticate(channel, username, password)))
 
     def register_nodes(self, count: int) -> list[str]:
         node_ids = [f"datanode-{n}" for n in range(1, count + 1)]
         for node_id in node_ids:
-            self.stub.RegisterDataNode(
+            self.datanode_stub(node_id).RegisterDataNode(
                 metadata_pb2.RegisterDataNodeRequest(
                     node_id=node_id, hostname=node_id, addr=f"{node_id}:50052", capacity_bytes=10**10, free_bytes=10**10
                 ),
@@ -42,9 +58,10 @@ class Cluster:
 
     def report_replicas(self, block: common_pb2.BlockLocation, data: bytes, copies: int) -> None:
         for addr in block.datanode_addrs[:copies]:
-            self.stub.ReportBlockReceived(
+            node_id = addr.split(":")[0]
+            self.datanode_stub(node_id).ReportBlockReceived(
                 metadata_pb2.ReportBlockReceivedRequest(
-                    node_id=addr.split(":")[0],
+                    node_id=node_id,
                     block=metadata_pb2.StoredBlock(
                         block_id=block.block_id, block_sha256=hashlib.sha256(data).digest(), size_bytes=len(data)
                     ),
@@ -105,7 +122,7 @@ class Cluster:
         )
 
 
-def _start(etcd_addr: str, prefix: bytes, **overrides: int) -> tuple[MetadataServer, str]:
+def _start(etcd_addr: str, prefix: bytes, secrets: Path, **overrides: int) -> tuple[MetadataServer, str]:
     def start(addr: str) -> tuple[MetadataServer, str]:
         settings = MetadataSettings(addr=addr, block_size_bytes=BLOCK_SIZE_BYTES, **overrides)
         server = create_server(
@@ -120,6 +137,8 @@ def _start(etcd_addr: str, prefix: bytes, **overrides: int) -> tuple[MetadataSer
                 dead_after_s=30,
                 server_threads=8,
                 log_level="INFO",
+                secrets_directory=secrets / "metadata-1",
+                etcd_tls=False,  # el etcd de las pruebas no tiene TLS; test_etcd_client prueba uno con TLS
             )
         )
         return server, addr
@@ -130,15 +149,25 @@ def _start(etcd_addr: str, prefix: bytes, **overrides: int) -> tuple[MetadataSer
 
 
 @pytest.fixture
-def make_cluster(etcd_addr: str, etcd_prefix: bytes) -> Iterator[Callable[..., Cluster]]:
+def make_cluster(etcd_addr: str, etcd_prefix: bytes, cluster_secrets: Path) -> Iterator[Callable[..., Cluster]]:
     started: list[tuple[MetadataServer, grpc.Channel]] = []
 
     def make(**overrides: int) -> Cluster:
-        server, addr = _start(etcd_addr, etcd_prefix, **overrides)
-        channel = grpc.insecure_channel(addr)
+        server, addr = _start(etcd_addr, etcd_prefix, cluster_secrets, **overrides)
+        channel = secure_channel(cluster_secrets, "client-1", addr)
         started.append((server, channel))
         assert wait_until(lambda: server.election.is_leader), "el servidor no llegó a ser líder"
-        return Cluster(server, metadata_pb2_grpc.MetadataServiceStub(channel), addr)
+        # El administrador se crea al elegir líder (§10.2); da de alta al usuario de las pruebas
+        admin = metadata_pb2_grpc.MetadataServiceStub(with_token(channel, authenticate(channel, "admin", admin_password(cluster_secrets))))
+        try:
+            admin.CreateUser(
+                metadata_pb2.CreateUserRequest(request_id=_request_id(), username=TEST_USER, password=TEST_PASSWORD), timeout=10
+            )
+        except grpc.RpcError as error:
+            if error.code() is not grpc.StatusCode.ALREADY_EXISTS:  # type: ignore[attr-defined]
+                raise
+        user_channel = with_token(channel, authenticate(channel, TEST_USER, TEST_PASSWORD))
+        return Cluster(server, metadata_pb2_grpc.MetadataServiceStub(user_channel), addr, cluster_secrets)
 
     yield make
     for server, channel in started:
@@ -428,10 +457,10 @@ def test_rm(cluster: Cluster) -> None:
 # ===== Líder =================================================================================
 
 
-def test_follower_points_to_the_leader(cluster: Cluster, make_cluster: Callable[..., Cluster], etcd_addr: str, etcd_prefix: bytes) -> None:
-    follower, follower_addr = _start(etcd_addr, etcd_prefix)
+def test_follower_points_to_the_leader(cluster: Cluster, etcd_addr: str, etcd_prefix: bytes, cluster_secrets: Path) -> None:
+    follower, follower_addr = _start(etcd_addr, etcd_prefix, cluster_secrets)
     try:
-        with grpc.insecure_channel(follower_addr) as channel:
+        with secure_channel(cluster_secrets, "client-1", follower_addr) as channel:
             stub = metadata_pb2_grpc.MetadataServiceStub(channel)
             error = expect_error(lambda: stub.ListDirectory(metadata_pb2.ListDirectoryRequest(path="/"), timeout=5))
         assert (error.code, error.reason) == (grpc.StatusCode.UNAVAILABLE, Reason.NODE_NOT_LEADER)
@@ -441,7 +470,9 @@ def test_follower_points_to_the_leader(cluster: Cluster, make_cluster: Callable[
 
 
 def test_heartbeat_carries_the_leader_epoch(cluster: Cluster) -> None:
-    response = cluster.stub.ReportHeartbeat(metadata_pb2.ReportHeartbeatRequest(node_id="datanode-1", free_bytes=10**9), timeout=5)
+    response = cluster.datanode_stub("datanode-1").ReportHeartbeat(
+        metadata_pb2.ReportHeartbeatRequest(node_id="datanode-1", free_bytes=10**9), timeout=5
+    )
     assert response.leader_epoch == cluster.server.election.epoch > 0
 
 
@@ -490,3 +521,90 @@ def test_abort_discards_the_write_in_progress(cluster: Cluster) -> None:
     )  # fmt: skip
     assert error.reason is Reason.BLOCK_RANGE_INVALID
     assert cluster.ls("/") == []
+
+
+# ===== Seguridad (§10.2, §10.3, §10.5; ADR 0043) =============================================
+
+
+def test_calls_without_a_valid_token_are_refused(cluster: Cluster) -> None:
+    with secure_channel(cluster.secrets, "client-1", cluster.addr) as channel:
+        anonymous = metadata_pb2_grpc.MetadataServiceStub(channel)
+        error = expect_error(lambda: anonymous.ListDirectory(metadata_pb2.ListDirectoryRequest(path="/"), timeout=5))
+        assert error.code is grpc.StatusCode.UNAUTHENTICATED
+        key = (cluster.secrets / "ca" / ACCESS_TOKEN_KEY_FILE).read_bytes()
+        old_token, _ = security.create_access_token(key, "cualquiera", False, now=time.time() - security.ACCESS_TOKEN_TTL_S - 60)
+        stale = metadata_pb2_grpc.MetadataServiceStub(with_token(channel, old_token))
+        error = expect_error(lambda: stale.ListDirectory(metadata_pb2.ListDirectoryRequest(path="/"), timeout=5))
+        assert (error.code, error.reason) == (grpc.StatusCode.UNAUTHENTICATED, Reason.ACCESS_TOKEN_EXPIRED)
+        forged = metadata_pb2_grpc.MetadataServiceStub(with_token(channel, old_token.split(".")[0] + ".AAAA"))
+        assert expect_error(lambda: forged.ListDirectory(metadata_pb2.ListDirectoryRequest(path="/"), timeout=5)).code is grpc.StatusCode.UNAUTHENTICATED
+
+
+def _create_user(cluster: Cluster, username: str, password: str) -> metadata_pb2_grpc.MetadataServiceStub:
+    admin = cluster.user_stub("admin", admin_password(cluster.secrets))
+    admin.CreateUser(metadata_pb2.CreateUserRequest(request_id=_request_id(), username=username, password=password), timeout=10)
+    return cluster.user_stub(username, password)
+
+
+def test_users_cannot_see_or_open_each_others_files(cluster: Cluster) -> None:
+    cluster.put("/privado.bin", [b"secreto"])
+    other = _create_user(cluster, "otra", "otra-contraseña")
+    assert [entry.name for entry in other.ListDirectory(metadata_pb2.ListDirectoryRequest(path="/"), timeout=5).entries] == []
+    error = expect_error(lambda: other.OpenFile(metadata_pb2.OpenFileRequest(path="/privado.bin", mode=metadata_pb2.OPEN_MODE_READ), timeout=5))
+    assert error.reason is Reason.PATH_NOT_FOUND  # cada usuario tiene su propia raíz
+    handle = cluster.stub.OpenFile(metadata_pb2.OpenFileRequest(path="/privado.bin", mode=metadata_pb2.OPEN_MODE_READ), timeout=5).file_handle
+    locate = metadata_pb2.GetBlockLocationsRequest(file_handle=handle, block_range=WHOLE_FILE)
+    assert expect_error(lambda: other.GetBlockLocations(locate, timeout=5)).code is grpc.StatusCode.PERMISSION_DENIED
+    tampered = bytearray(handle)
+    tampered[5] ^= 1
+    forged = metadata_pb2.GetBlockLocationsRequest(file_handle=bytes(tampered), block_range=WHOLE_FILE)
+    assert expect_error(lambda: cluster.stub.GetBlockLocations(forged, timeout=5)).code is grpc.StatusCode.PERMISSION_DENIED
+
+
+def test_only_admins_create_users(cluster: Cluster) -> None:
+    request = metadata_pb2.CreateUserRequest(request_id=_request_id(), username="intruso", password="contraseña-larga")
+    assert expect_error(lambda: cluster.stub.CreateUser(request, timeout=5)).code is grpc.StatusCode.PERMISSION_DENIED
+
+
+def test_repeated_failed_logins_block_the_user(cluster: Cluster) -> None:
+    with secure_channel(cluster.secrets, "client-1", cluster.addr) as channel:
+        stub = metadata_pb2_grpc.MetadataServiceStub(channel)
+        wrong = metadata_pb2.AuthenticateRequest(username=TEST_USER, password="mala")
+        for _ in range(MAX_FAILED_LOGINS):
+            assert expect_error(lambda: stub.Authenticate(wrong, timeout=5)).code is grpc.StatusCode.UNAUTHENTICATED
+        right = metadata_pb2.AuthenticateRequest(username=TEST_USER, password=TEST_PASSWORD)
+        error = expect_error(lambda: stub.Authenticate(right, timeout=5))  # bloqueado aunque ahora acierte
+        assert "Demasiados intentos" in error.message
+
+
+def test_datanode_calls_need_the_certificate_of_that_node(cluster: Cluster) -> None:
+    block = metadata_pb2.StoredBlock(block_id=str(uuid.uuid4()), block_sha256=bytes(32), size_bytes=1)
+    impersonation = metadata_pb2.ReportBlockReceivedRequest(node_id="datanode-1", block=block)
+    error = expect_error(lambda: cluster.datanode_stub("datanode-2").ReportBlockReceived(impersonation, timeout=5))
+    assert error.code is grpc.StatusCode.PERMISSION_DENIED  # un nodo no habla en nombre de otro
+    error = expect_error(lambda: cluster.stub.ReportBlockReceived(impersonation, timeout=5))
+    assert error.code is grpc.StatusCode.PERMISSION_DENIED  # un cliente no puede avisar de réplicas (§10.3)
+
+
+def test_data_keys_and_block_tokens(cluster: Cluster) -> None:
+    created = cluster.stub.OpenFile(metadata_pb2.OpenFileRequest(path="/x", mode=metadata_pb2.OPEN_MODE_CREATE), timeout=5)
+    assert len(created.data_key) == security.KEY_BYTES
+    lease = cluster.stub.LockBlocks(
+        metadata_pb2.LockBlocksRequest(request_id=_request_id(), file_handle=created.file_handle, block_range=WHOLE_FILE), timeout=5
+    )
+    committed = cluster.write_blocks(created.file_handle, lease.lease_id, [(0, b"x")])
+    cluster.stub.CommitFile(
+        metadata_pb2.CommitFileRequest(
+            request_id=_request_id(), file_handle=created.file_handle, lease_id=lease.lease_id,
+            write_mode=common_pb2.WRITE_MODE_CREATE, blocks=committed, size_bytes=1,
+        ),
+        timeout=5,
+    )  # fmt: skip
+    reopened = cluster.stub.OpenFile(metadata_pb2.OpenFileRequest(path="/x", mode=metadata_pb2.OPEN_MODE_READ), timeout=5)
+    assert reopened.data_key == created.data_key  # la clave envuelta al crear se desenvuelve al abrir
+    block_key = (cluster.secrets / "ca" / BLOCK_TOKEN_KEY_FILE).read_bytes()
+    location = cluster.stub.GetBlockLocations(
+        metadata_pb2.GetBlockLocationsRequest(file_handle=reopened.file_handle, block_range=WHOLE_FILE), timeout=5
+    ).locations[0]
+    read = common_pb2.BLOCK_OPERATION_READ
+    assert security.check_block_token(block_key, location.block_token, location.block_id, read) is None

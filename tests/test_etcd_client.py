@@ -1,9 +1,20 @@
 """Cliente de etcd contra un etcd v3.7.3 real: lecturas, transacciones y arrendamientos (ADR 0041)."""
 
+import shutil
 import socket
+import subprocess
+import time
+from collections.abc import Iterator
+from pathlib import Path
+
+import pytest
+from conftest import ETCD_IMAGE
+
+from dfsha.common.tls import load_identity, make_channel_factory
 
 from dfsha.metadata.etcd_client import (
     EtcdClient,
+    EtcdError,
     compare_absent,
     compare_mod_revision,
     compare_prefix_empty,
@@ -98,3 +109,50 @@ def test_compare_on_an_empty_prefix(etcd: EtcdClient, etcd_prefix: bytes) -> Non
     assert etcd.txn([compare_prefix_empty(directory)], []).succeeded
     etcd.put(directory + b"hijo", b"x")
     assert not etcd.txn([compare_prefix_empty(directory)], []).succeeded
+
+
+@pytest.fixture
+def tls_etcd_addr(cluster_secrets: Path) -> Iterator[str]:
+    """Un etcd con TLS mutuo, como en producción (ADR 0039): certificado de metadata-1 y CA interna."""
+    if shutil.which("docker") is None:
+        pytest.skip("Hace falta Docker para arrancar un etcd con TLS")
+    certs = cluster_secrets / "metadata-1"
+    container = subprocess.run(
+        ["docker", "run", "-d", "--rm", "-p", "2379", "-v", f"{certs}:/certs:ro", ETCD_IMAGE, "etcd",
+         "--listen-client-urls", "https://[::]:2379", "--advertise-client-urls", "https://localhost:2379",
+         "--cert-file", "/certs/cert.pem", "--key-file", "/certs/key.pem",
+         "--trusted-ca-file", "/certs/ca.pem", "--client-cert-auth"],
+        capture_output=True, text=True, check=False,
+    )  # fmt: skip
+    if container.returncode != 0:
+        pytest.skip(f"No se pudo arrancar etcd con TLS: {container.stderr.strip()}")
+    container_id = container.stdout.strip()
+    try:
+        mapping = subprocess.run(["docker", "port", container_id, "2379/tcp"], capture_output=True, text=True, check=True)
+        yield f"localhost:{mapping.stdout.splitlines()[0].rsplit(':', 1)[1]}"
+    finally:
+        subprocess.run(["docker", "rm", "-f", container_id], capture_output=True, check=False)
+
+
+def test_etcd_with_mutual_tls(tls_etcd_addr: str, cluster_secrets: Path, etcd_prefix: bytes) -> None:
+    secure = EtcdClient([tls_etcd_addr], timeout_s=2, create_channel=make_channel_factory(load_identity(cluster_secrets / "metadata-2")))
+    try:
+        deadline = time.monotonic() + 20
+        while True:  # etcd tarda un momento en arrancar
+            try:
+                secure.put(etcd_prefix + b"clave", b"con TLS mutuo")
+                break
+            except EtcdError:
+                if time.monotonic() > deadline:
+                    raise
+                time.sleep(0.2)
+        kv, _ = secure.get(etcd_prefix + b"clave")
+        assert kv is not None and kv.value == b"con TLS mutuo"
+    finally:
+        secure.close()
+    plaintext = EtcdClient([tls_etcd_addr], timeout_s=1)
+    try:
+        with pytest.raises(EtcdError):
+            plaintext.get(etcd_prefix + b"clave")  # sin TLS no hay conexión
+    finally:
+        plaintext.close()

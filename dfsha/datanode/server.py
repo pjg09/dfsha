@@ -11,6 +11,8 @@ import grpc
 
 from dfsha.common import config
 from dfsha.common.log import configure_logging
+from dfsha.common.pki import BLOCK_TOKEN_KEY_FILE
+from dfsha.common.tls import DEFAULT_SECRETS_DIRECTORY, get_server_credentials, load_identity, make_channel_factory, read_secret
 from dfsha.datanode.block_store import BlockStore, initialize_data_directory, verify_data_directory
 from dfsha.datanode.metadata_client import MetadataClient
 from dfsha.datanode.service import BlockReporter, ChannelPool, DataNodeService, DataNodeSettings, LoggingBlockReporter
@@ -29,6 +31,7 @@ class DataNodeConfig:
     initialize_data_directory: bool
     server_threads: int
     log_level: str
+    secrets_directory: Path
     metadata_addrs: list[str] = field(default_factory=list)  # vacía: sin servidor de metadatos (pruebas)
     heartbeat_interval_s: float = 3.0
 
@@ -48,6 +51,7 @@ def load_config() -> DataNodeConfig:
         data_directory=Path(config.get_str("DATA_DIRECTORY", "/data")),
         require_mount_point=config.get_bool("REQUIRE_MOUNT_POINT", True),
         initialize_data_directory=config.get_bool("INITIALIZE_DATA_DIRECTORY", False),
+        secrets_directory=Path(config.get_str("SECRETS_DIRECTORY", DEFAULT_SECRETS_DIRECTORY)),
         server_threads=config.get_int("SERVER_THREADS", 16),
         log_level=config.get_str("LOG_LEVEL", "INFO"),
         metadata_addrs=config.get_addrs("METADATA_ADDRS"),
@@ -81,6 +85,8 @@ def create_server(
     verify_data_directory(node_config.data_directory, node_config.settings.node_id, node_config.require_mount_point)
     store = BlockStore(node_config.data_directory)
     store.clean_staging_area()
+    identity = load_identity(node_config.secrets_directory)
+    create_channel = make_channel_factory(identity)  # TLS mutuo con el certificado del nodo (ADR 0043)
     metadata_client = None
     if reporter is None and node_config.metadata_addrs:
         metadata_client = MetadataClient(
@@ -89,10 +95,15 @@ def create_server(
             node_config.settings.addr,
             store,
             node_config.heartbeat_interval_s,
+            create_channel=create_channel,
         )
         reporter = metadata_client
     service = DataNodeService(
-        node_config.settings, store, reporter or LoggingBlockReporter(), channels or ChannelPool()
+        node_config.settings,
+        store,
+        reporter or LoggingBlockReporter(),
+        channels or ChannelPool(create_channel),
+        read_secret(node_config.secrets_directory, BLOCK_TOKEN_KEY_FILE),
     )
     options = [
         ("grpc.max_receive_message_length", MAX_MESSAGE_BYTES),
@@ -101,7 +112,7 @@ def create_server(
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=node_config.server_threads), options=options)
     datanode_pb2_grpc.add_DataNodeServiceServicer_to_server(service, server)
     _, port = config.parse_addr(node_config.settings.addr)
-    bound_port = server.add_insecure_port(f"[::]:{port}")  # TLS en la etapa 6 (ADR 0023)
+    bound_port = server.add_secure_port(f"[::]:{port}", get_server_credentials(identity))  # TLS mutuo (ADR 0043)
     return DataNodeServer(server, bound_port, metadata_client)
 
 

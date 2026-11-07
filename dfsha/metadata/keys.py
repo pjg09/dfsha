@@ -52,6 +52,12 @@ class Keys:
     def request(self, user_id: str, request_id: str) -> bytes:
         return self._key("requests", user_id, request_id)
 
+    def user(self, user_id: str) -> bytes:
+        return self._key("users", user_id)
+
+    def username(self, username: str) -> bytes:
+        return self._key("usernames", username)
+
     def node(self, node_id: str) -> bytes:
         return self._key("nodes", node_id)
 

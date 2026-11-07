@@ -13,7 +13,9 @@ import grpc
 
 from dfsha.common.errors import DfshaError, Reason
 from dfsha.datanode.block_store import BlockMeta, BlockStore, StagingBlock
-from dfsha.v1 import datanode_pb2, datanode_pb2_grpc, metadata_pb2
+from dfsha.common.security import check_block_token
+from dfsha.common.tls import get_peer_role
+from dfsha.v1 import common_pb2, datanode_pb2, datanode_pb2_grpc, metadata_pb2
 
 logger = logging.getLogger(__name__)
 
@@ -114,16 +116,19 @@ class DataNodeService(datanode_pb2_grpc.DataNodeServiceServicer):
         store: BlockStore,
         reporter: BlockReporter,
         channels: ChannelPool,
+        block_token_key: bytes,
     ) -> None:
         self._settings = settings
         self._store = store
         self._reporter = reporter
         self._channels = channels
+        self._block_token_key = block_token_key
 
     def WriteBlock(  # noqa: N802 (nombre del RPC)
         self, request_iterator: Iterator[datanode_pb2.WriteBlockRequest], context: grpc.ServicerContext
     ) -> datanode_pb2.WriteBlockResponse:
         try:
+            self._require_peer(context)
             return self._write_block(request_iterator)
         except DfshaError as error:
             context.abort_with_status(error.to_status())
@@ -132,9 +137,24 @@ class DataNodeService(datanode_pb2_grpc.DataNodeServiceServicer):
         self, request: datanode_pb2.ReadBlockRequest, context: grpc.ServicerContext
     ) -> Iterator[datanode_pb2.ReadBlockResponse]:
         try:
+            self._require_peer(context)
             yield from self._read_block(request)
         except DfshaError as error:
             context.abort_with_status(error.to_status())
+
+    @staticmethod
+    def _require_peer(context: grpc.ServicerContext) -> None:
+        """Solo clientes y nodos de datos (reenvío y re-replicación) llaman a un nodo de datos (§10.3)."""
+        if get_peer_role(context) not in ("client", "datanode"):
+            raise DfshaError(grpc.StatusCode.PERMISSION_DENIED, "Este certificado no puede llamar a un nodo de datos")
+
+    def _verify_block_token(self, token: common_pb2.BlockToken, block_id: str, operation: common_pb2.BlockOperation) -> None:
+        """Firma, bloque, operación y caducidad, sin consultar a nadie (§10.3)."""
+        problem = check_block_token(self._block_token_key, token, block_id, operation)
+        if problem is not None:
+            raise DfshaError(
+                grpc.StatusCode.PERMISSION_DENIED, f"Token de bloque no válido: {problem.message}", Reason.BLOCK_TOKEN_INVALID
+            )
 
     def _write_block(self, request_iterator: Iterator[datanode_pb2.WriteBlockRequest]) -> datanode_pb2.WriteBlockResponse:
         header = self._read_header(request_iterator)
@@ -174,6 +194,7 @@ class DataNodeService(datanode_pb2_grpc.DataNodeServiceServicer):
         if first is None or first.WhichOneof("content") != "header":
             raise DfshaError(grpc.StatusCode.INVALID_ARGUMENT, "El primer mensaje de WriteBlock tiene que ser la cabecera")
         header = first.header
+        self._verify_block_token(header.block_token, header.block_id, common_pb2.BLOCK_OPERATION_WRITE)
         if len(header.block_sha256) != 32:
             raise DfshaError(grpc.StatusCode.INVALID_ARGUMENT, "block_sha256 tiene que tener 32 bytes")
         max_size_bytes = self._settings.block_size_bytes + ENCRYPTION_OVERHEAD_MAX_BYTES
@@ -218,6 +239,7 @@ class DataNodeService(datanode_pb2_grpc.DataNodeServiceServicer):
         )
 
     def _read_block(self, request: datanode_pb2.ReadBlockRequest) -> Iterator[datanode_pb2.ReadBlockResponse]:
+        self._verify_block_token(request.block_token, request.block_id, common_pb2.BLOCK_OPERATION_READ)
         block_path, meta = self._store.get_block(request.block_id)
         yield datanode_pb2.ReadBlockResponse(
             header=datanode_pb2.ReadBlockHeader(size_bytes=meta.size_bytes, block_sha256=meta.sha256)

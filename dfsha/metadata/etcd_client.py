@@ -73,14 +73,21 @@ def op_get(key: bytes) -> RequestOp:
 
 
 class EtcdClient:
-    def __init__(self, addrs: Sequence[str], timeout_s: float = 2.0) -> None:
+    def __init__(
+        self,
+        addrs: Sequence[str],
+        timeout_s: float = 2.0,
+        create_channel: Callable[[str], grpc.Channel] = grpc.insecure_channel,
+    ) -> None:
+        """``create_channel`` crea el canal hacia un miembro; en producción, con TLS mutuo (ADR 0039)."""
         if not addrs:
             raise ValueError("Hace falta al menos una dirección de etcd")
         self._addrs = list(addrs)
         self._timeout_s = timeout_s
+        self._create_channel = create_channel
         self._lock = threading.Lock()
         self._current = 0
-        self._channel = grpc.insecure_channel(self._addrs[0])  # TLS mutuo en la etapa 6 (ADR 0039)
+        self._channel = create_channel(self._addrs[0])
 
     def close(self) -> None:
         with self._lock:
@@ -168,5 +175,5 @@ class EtcdClient:
                 return  # otro hilo ya cambió de miembro
             self._current = (self._current + 1) % len(self._addrs)
             failed_channel.close()
-            self._channel = grpc.insecure_channel(self._addrs[self._current])
+            self._channel = self._create_channel(self._addrs[self._current])
             logger.warning("Cambio al miembro de etcd %s", self._addrs[self._current])

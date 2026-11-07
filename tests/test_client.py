@@ -18,12 +18,13 @@ from dfsha.common.errors import DfshaError, Reason
 
 
 @pytest.fixture
-def cluster(etcd_addr: str, etcd_prefix: bytes, tmp_path: Path) -> Iterator[LocalCluster]:
-    local = LocalCluster(etcd_addr, etcd_prefix, tmp_path, suspect_after_s=0.5)
+def cluster(etcd_addr: str, etcd_prefix: bytes, tmp_path: Path, cluster_secrets: Path) -> Iterator[LocalCluster]:
+    local = LocalCluster(etcd_addr, etcd_prefix, tmp_path, cluster_secrets, suspect_after_s=0.5)
     try:
         for _ in range(3):
             local.start_metadata()
         assert wait_until(lambda: sum(server.election.is_leader for server in local.metadata.values()) == 1)
+        local.create_test_user()
         for index in range(1, 5):
             local.start_datanode(index)
         assert wait_until(lambda: all(d.metadata_client is not None and d.metadata_client.is_registered for d in local.datanodes))
@@ -33,11 +34,14 @@ def cluster(etcd_addr: str, etcd_prefix: bytes, tmp_path: Path) -> Iterator[Loca
 
 
 @pytest.fixture
-def client(cluster: LocalCluster) -> Iterator[DfshaClient]:
+def client(cluster: LocalCluster, cluster_secrets: Path) -> Iterator[DfshaClient]:
     # El primer servidor configurado es un seguidor: el cliente tiene que seguir la redirección
     follower = next(addr for addr, server in cluster.metadata.items() if not server.election.is_leader)
     addrs = [follower, *[addr for addr in cluster.metadata if addr != follower]]
-    settings = ClientSettings(metadata_addrs=addrs, rpc_timeout_s=3, transfer_timeout_s=10, retry=RetryPolicy(max_total_s=30))
+    settings = ClientSettings(
+        metadata_addrs=addrs, secrets_directory=cluster_secrets / "client-1", username=cluster.username,
+        password=cluster.password, rpc_timeout_s=3, transfer_timeout_s=10, retry=RetryPolicy(max_total_s=30),
+    )  # fmt: skip
     with DfshaClient(settings) as created:
         yield created
 
@@ -138,8 +142,13 @@ def test_client_rides_through_a_leader_crash(cluster: LocalCluster, client: Dfsh
     assert (tmp_path / "copia2").read_bytes() == after
 
 
-def test_cli(cluster: LocalCluster, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+def test_cli(
+    cluster: LocalCluster, cluster_secrets: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
     monkeypatch.setenv("DFSHA_METADATA_ADDRS", ",".join(cluster.metadata))
+    monkeypatch.setenv("DFSHA_SECRETS_DIRECTORY", str(cluster_secrets / "client-1"))
+    monkeypatch.setenv("DFSHA_USERNAME", cluster.username)
+    monkeypatch.setenv("DFSHA_PASSWORD", cluster.password)
     _write(tmp_path / "a.bin", 1234)
     assert main(["mkdir", "/docs"]) == 0
     assert main(["put", str(tmp_path / "a.bin"), "/docs/a.bin"]) == 0
@@ -150,3 +159,31 @@ def test_cli(cluster: LocalCluster, tmp_path: Path, monkeypatch: pytest.MonkeyPa
     assert (tmp_path / "b.bin").read_bytes() == (tmp_path / "a.bin").read_bytes()
     assert main(["rmdir", "/docs"]) == 1
     assert "[DIRECTORY_NOT_EMPTY]" in capsys.readouterr().err
+
+
+def test_blocks_on_disk_are_encrypted(cluster: LocalCluster, client: DfshaClient, tmp_path: Path) -> None:
+    marker = b"TEXTO-EN-CLARO-QUE-NO-DEBE-VERSE "
+    (tmp_path / "claro.txt").write_bytes(marker * 1000)
+    client.put(tmp_path / "claro.txt", "/claro.txt")
+    stored = [path.read_bytes() for path in tmp_path.glob("datanode-*/blocks/*/*") if not path.name.endswith(".meta")]
+    assert stored, "no se encontraron bloques en disco"
+    assert all(marker not in data for data in stored)  # ningún nodo de datos ve el texto en claro (§10.5)
+    assert all(len(data) == len(marker) * 1000 + 28 for data in stored)  # nonce y etiqueta: 28 bytes más
+    client.get("/claro.txt", tmp_path / "recuperado.txt")
+    assert (tmp_path / "recuperado.txt").read_bytes() == marker * 1000
+
+
+def test_cli_useradd_needs_an_admin(
+    cluster: LocalCluster, cluster_secrets: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setenv("DFSHA_METADATA_ADDRS", ",".join(cluster.metadata))
+    monkeypatch.setenv("DFSHA_SECRETS_DIRECTORY", str(cluster_secrets / "client-1"))
+    monkeypatch.setenv("DFSHA_NEW_PASSWORD", "contraseña-nueva")
+    monkeypatch.setenv("DFSHA_USERNAME", cluster.username)
+    monkeypatch.setenv("DFSHA_PASSWORD", cluster.password)
+    assert main(["useradd", "nueva"]) == 1  # el usuario de prueba no es administrador
+    monkeypatch.setenv("DFSHA_USERNAME", "admin")
+    monkeypatch.setenv("DFSHA_PASSWORD", (cluster_secrets / "admin-password").read_text().strip())
+    assert main(["useradd", "nueva"]) == 0
+    assert "Usuario nueva creado" in capsys.readouterr().out
+
