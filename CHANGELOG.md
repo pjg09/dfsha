@@ -2,6 +2,13 @@
 
 Generado automáticamente por semantic-release a partir de los commits. No editar a mano.
 
+## [0.13.0](https://github.com/pjg09/dfsha/compare/v0.12.1...v0.13.0) (2026-11-07)
+
+### Funcionalidades
+
+* **metadata:** registra cuándo un nodo de datos cae y cuándo vuelve ([11b3cdd](https://github.com/pjg09/dfsha/commit/11b3cdd8f9c057be8307006086fb5947c5bb9105))
+* **metadata:** registra el principio y el fin de la re-replicación ([0c43318](https://github.com/pjg09/dfsha/commit/0c4331899e9a8e52eb012db925ed2717fb148253))
+
 ## [0.12.1](https://github.com/pjg09/dfsha/compare/v0.12.0...v0.12.1) (2026-11-07)
 
 ### Correcciones
