@@ -32,7 +32,7 @@ Qué hay que entregar: enunciado §5.3. Cómo se califica: enunciado §6.
 | 7 | Despliegue en AWS | Distribución y comunicaciones | Terminada |
 | 8 | RF3 en el cliente y concurrencia | Implementación RF1–RF3; consistencia | Terminada |
 | 9 | Tolerancia a fallos | Alta disponibilidad, replicación y consistencia | Terminada |
-| 10 | Experimentos y pruebas finales | Pruebas de rendimiento | Pendiente |
+| 10 | Experimentos y pruebas finales | Pruebas de rendimiento | En curso |
 | 11 | Informe técnico final | Documentación | Pendiente |
 | 12 | Vídeo | Vídeo | Pendiente |
 | 13 | Entrega | — | Pendiente |
@@ -190,6 +190,14 @@ escenarios 3 y 4 (§11.3, §11.4), con sus evidencias registradas.
 - E1–E9 en AWS (ADR 0028): 5 repeticiones por punto, mediana y p95, CSV en `bench/resultados/`.
 - Ajustar los parámetros de la §13.2. Cambiar un valor por defecto lleva ADR.
 - Repetir las siete pruebas mínimas con la versión final, con sus scripts.
+- **Cómo se hace** (decidido al empezar la etapa 10):
+  1. **Arnés:** `bench/dfsha_bench.py` se ejecuta dentro de `client-1` con la biblioteca del cliente y escribe
+     una fila CSV por medición; `bench/ejecutar.sh` lo lanza, guarda el CSV en `bench/resultados/` y anota la
+     versión, el modo de créditos de CPU y los parámetros; `bench/resumen.py` calcula la mediana y el p95.
+  2. **Sin cambios en el sistema:** E1, E2, E6, E7 y E9.
+  3. **Con decisiones antes de medir:** E3 y E5 necesitan cambiar `WRITE_QUORUM` y `BLOCK_SIZE_BYTES` en el
+     despliegue; E8 necesita poder desactivar el cifrado y TLS; E4 con 8 clientes y E5 con bloques de 64 MiB
+     pueden no caber en la memoria de la t3.micro (`client-1` puede pasar a t3.small, con su ADR).
 
 **Terminada cuando:** el índice de `evidencias/README.md` está completo.
 
