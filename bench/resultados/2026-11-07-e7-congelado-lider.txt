@@ -1,0 +1,20 @@
+[20:03:02.149] repetición 1: metadata-2 y su etcd caídos (congelado)
+  2026-11-07T20:03:07.483Z INFO metadata-3 dfsha.metadata.leader: Elegido líder con época 24129
+  2026-11-07T20:03:07.486Z INFO metadata-3 dfsha.metadata.service: Líder con época 24129; 5 nodos de datos registrados; entra en modo seguro
+  2026-11-07T20:03:09.066Z INFO metadata-3 dfsha.metadata.service: Fin del modo seguro a los 1.6 s de la elección
+[20:05:03.473] repetición 2: metadata-3 y su etcd caídos (congelado)
+  2026-11-07T20:05:08.616Z INFO metadata-2 dfsha.metadata.leader: Elegido líder con época 24765
+  2026-11-07T20:05:08.618Z INFO metadata-2 dfsha.metadata.service: Líder con época 24765; 5 nodos de datos registrados; entra en modo seguro
+  2026-11-07T20:05:10.300Z INFO metadata-2 dfsha.metadata.service: Fin del modo seguro a los 1.7 s de la elección
+[20:07:04.312] repetición 3: metadata-2 y su etcd caídos (congelado)
+  2026-11-07T20:07:09.505Z INFO metadata-1 dfsha.metadata.leader: Elegido líder con época 25408
+  2026-11-07T20:07:09.507Z INFO metadata-1 dfsha.metadata.service: Líder con época 25408; 5 nodos de datos registrados; entra en modo seguro
+  2026-11-07T20:07:10.368Z INFO metadata-1 dfsha.metadata.service: Fin del modo seguro a los 0.9 s de la elección
+[20:46:59.499] repetición 4: metadata-2 y su etcd caídos (congelado)
+  2026-11-07T20:47:07.985Z INFO metadata-3 dfsha.metadata.leader: Elegido líder con época 26090
+  2026-11-07T20:47:07.987Z INFO metadata-3 dfsha.metadata.service: Líder con época 26090; 5 nodos de datos registrados; entra en modo seguro
+  2026-11-07T20:47:09.087Z INFO metadata-3 dfsha.metadata.service: Fin del modo seguro a los 1.1 s de la elección
+[20:48:55.577] repetición 5: metadata-3 y su etcd caídos (congelado)
+  2026-11-07T20:49:03.293Z INFO metadata-2 dfsha.metadata.leader: Elegido líder con época 26711
+  2026-11-07T20:49:03.295Z INFO metadata-2 dfsha.metadata.service: Líder con época 26711; 5 nodos de datos registrados; entra en modo seguro
+  2026-11-07T20:49:05.552Z INFO metadata-2 dfsha.metadata.service: Fin del modo seguro a los 2.2 s de la elección

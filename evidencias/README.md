@@ -30,7 +30,7 @@ Una fila sin evidencia es una evidencia que falta.
 | E4 | Clientes concurrentes | [`bench/resultados/2026-11-07-e4.md`](../bench/resultados/2026-11-07-e4.md) | Hecha |
 | E5 | Tamaño de bloque | [`bench/resultados/2026-11-07-e5.md`](../bench/resultados/2026-11-07-e5.md) | Hecha |
 | E6 | Caída de un nodo de datos | [`bench/resultados/2026-11-07-e6.md`](../bench/resultados/2026-11-07-e6.md) | Hecha |
-| E7 | Caída del líder de metadatos | — | Pendiente |
+| E7 | Caída del líder de metadatos | [`bench/resultados/2026-11-07-e7.md`](../bench/resultados/2026-11-07-e7.md) | Hecha |
 | E8 | Coste de la seguridad, por componentes (ADR 0046) | [`bench/resultados/2026-11-07-e8.md`](../bench/resultados/2026-11-07-e8.md) | Hecha |
 | E9 | Arranque en frío | — | Pendiente |
 
