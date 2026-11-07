@@ -31,6 +31,9 @@ class Keys:
     def all_versions_prefix(self) -> bytes:
         return self._key("versions") + b"/"
 
+    def all_replicas_prefix(self) -> bytes:
+        return self._key("replicas") + b"/"
+
     def replicas_prefix(self, block_id: str) -> bytes:
         return self._key("replicas", block_id) + b"/"
 

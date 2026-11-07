@@ -8,18 +8,25 @@ visto y descarta las órdenes que llegan con una menor (cercado, ADR 0039).
 import logging
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from collections.abc import Callable, Sequence
-from typing import TypeVar
+from typing import Protocol, TypeVar
 
 import grpc
 
 from dfsha.common.errors import DfshaError, Reason
 from dfsha.datanode.block_store import BlockStore
-from dfsha.v1 import metadata_pb2, metadata_pb2_grpc
+from dfsha.v1 import common_pb2, metadata_pb2, metadata_pb2_grpc
 
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
+
+
+class BlockCommandHandler(Protocol):
+    def replicate_block(self, block_id: str, target_addr: str, token: common_pb2.BlockToken) -> None: ...
+
+    def verify_block(self, block_id: str, rate_bytes_s: float = 0) -> bool: ...
 
 
 class MetadataUnavailableError(RuntimeError):
@@ -58,6 +65,8 @@ class MetadataClient:
         self._stopped = threading.Event()
         self._thread: threading.Thread | None = None
         self.executed_commands: list[metadata_pb2.DataNodeCommand] = []  # para las pruebas
+        self.block_service: BlockCommandHandler | None = None  # el servicio del nodo, para REPLICATE y VERIFY
+        self._workers = ThreadPoolExecutor(max_workers=2, thread_name_prefix="block-commands")
 
     @property
     def max_leader_epoch(self) -> int:
@@ -75,6 +84,7 @@ class MetadataClient:
 
     def stop(self) -> None:
         self._stopped.set()
+        self._workers.shutdown(wait=False, cancel_futures=True)
         if self._thread is not None:
             self._thread.join(timeout=5)
         with self._lock:
@@ -179,9 +189,31 @@ class MetadataClient:
             elif command.type == metadata_pb2.DATA_NODE_COMMAND_TYPE_DELETE:
                 if self._store.delete(command.block_id):
                     logger.info("Bloque %s borrado por orden del líder", command.block_id)
+            elif command.type in (metadata_pb2.DATA_NODE_COMMAND_TYPE_REPLICATE, metadata_pb2.DATA_NODE_COMMAND_TYPE_VERIFY):
+                # Copiar o verificar 16 MiB no puede retrasar los latidos: van a un grupo de hilos
+                self._workers.submit(self._run_block_command, command)
             else:
-                # REPLICATE y VERIFY llegan en la etapa 9 (ADR 0018 y 0032)
-                logger.warning("Orden %s todavía no implementada", metadata_pb2.DataNodeCommandType.Name(command.type))
+                logger.warning("Orden desconocida: %s", metadata_pb2.DataNodeCommandType.Name(command.type))
+
+    def _run_block_command(self, command: metadata_pb2.DataNodeCommand) -> None:
+        if self.block_service is None:
+            logger.warning("Orden %s sin servicio de bloques", metadata_pb2.DataNodeCommandType.Name(command.type))
+            return
+        try:
+            if command.type == metadata_pb2.DATA_NODE_COMMAND_TYPE_REPLICATE:
+                self.block_service.replicate_block(command.block_id, command.target_addr, command.target_block_token)
+            else:
+                self.block_service.verify_block(command.block_id)
+        except Exception as error:  # noqa: BLE001 - si falla, el líder la vuelve a ordenar en otra pasada
+            logger.warning("La orden %s sobre %s falló: %s", metadata_pb2.DataNodeCommandType.Name(command.type), command.block_id, error)
+
+    def report_corrupt_replica(self, block_id: str) -> None:
+        """Aviso de réplica corrupta: el líder la marca, deja de entregarla y la re-replica (§8.5)."""
+        self._call(
+            lambda stub: stub.ReportCorruptReplica(
+                metadata_pb2.ReportCorruptReplicaRequest(block_id=block_id, node_id=self._node_id), timeout=self._timeout_s
+            )
+        )
 
     # ----- Conexión con el líder -----------------------------------------------------------------
 

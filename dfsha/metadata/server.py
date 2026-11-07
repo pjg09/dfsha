@@ -50,6 +50,8 @@ def load_config() -> MetadataConfig:
         lease_ttl_s=config.get_int("LEASE_TTL_S", 30),
         grace_period_s=config.get_int("GRACE_PERIOD_S", 600),
         request_ttl_s=config.get_int("REQUEST_TTL_S", 600),
+        safe_mode_max_wait_s=config.get_float("SAFE_MODE_MAX_WAIT_S", 60.0),
+        maintenance_interval_s=config.get_float("MAINTENANCE_INTERVAL_S", 3.0),
     )
     return MetadataConfig(
         settings=settings,
@@ -74,12 +76,25 @@ class MetadataServer:
     election: LeaderElection
     etcd: EtcdClient
 
+    def __post_init__(self) -> None:
+        self._stopped = threading.Event()
+        self._maintenance = threading.Thread(target=self._run_maintenance, name="maintenance", daemon=True)
+
     def start(self) -> None:
         self.server.start()
         self.election.start()
+        self._maintenance.start()
+
+    def _run_maintenance(self) -> None:
+        while not self._stopped.wait(self.service.settings.maintenance_interval_s):
+            try:
+                self.service.run_maintenance()
+            except Exception:  # noqa: BLE001 - el hilo no puede morir (como el de latidos del nodo de datos)
+                logger.exception("Error en el mantenimiento del líder; se reintenta")
 
     def stop(self, resign: bool = True) -> None:
         """Para el servidor. Sin ``resign`` simula una caída: el relevo espera a que caduque el arrendamiento."""
+        self._stopped.set()
         self.election.stop(resign=resign)
         self.server.stop(grace=None)
         self.etcd.close()

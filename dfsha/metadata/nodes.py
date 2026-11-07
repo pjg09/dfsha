@@ -68,6 +68,22 @@ class NodeRegistry:
             node = self._nodes.get(node_id)
             return self._get_state(node) if node is not None else NodeState.DEAD
 
+    def get_alive_nodes(self) -> list[tuple[str, str, int]]:
+        """(node_id, dirección, espacio libre) de los nodos vivos."""
+        with self._lock:
+            return [
+                (node.record.node_id, node.record.addr, node.free_bytes)
+                for node in self._nodes.values()
+                if self._get_state(node) is NodeState.ALIVE
+            ]
+
+    def find_node_id(self, node_id_or_addr: str) -> str | None:
+        """El node_id de un nodo dado por su node_id o por su dirección (el cliente solo conoce direcciones)."""
+        with self._lock:
+            if node_id_or_addr in self._nodes:
+                return node_id_or_addr
+            return next((node_id for node_id, node in self._nodes.items() if node.record.addr == node_id_or_addr), None)
+
     def get_addr(self, node_id: str) -> str | None:
         with self._lock:
             node = self._nodes.get(node_id)

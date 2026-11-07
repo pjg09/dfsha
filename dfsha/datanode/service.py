@@ -5,6 +5,7 @@ import logging
 import os
 import queue
 import threading
+import time
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from typing import Protocol
@@ -29,12 +30,17 @@ class BlockReporter(Protocol):
 
     def report_block_received(self, block: metadata_pb2.StoredBlock) -> None: ...
 
+    def report_corrupt_replica(self, block_id: str) -> None: ...
+
 
 class LoggingBlockReporter:
     """Solo deja constancia en el log. Lo sustituye el aviso real cuando exista el servidor de metadatos."""
 
     def report_block_received(self, block: metadata_pb2.StoredBlock) -> None:
         logger.info("Bloque %s guardado y verificado (%d bytes)", block.block_id, block.size_bytes)
+
+    def report_corrupt_replica(self, block_id: str) -> None:
+        logger.error("Réplica corrupta del bloque %s", block_id)
 
 
 @dataclass(frozen=True)
@@ -141,6 +147,48 @@ class DataNodeService(datanode_pb2_grpc.DataNodeServiceServicer):
             yield from self._read_block(request)
         except DfshaError as error:
             context.abort_with_status(error.to_status())
+
+    # ----- Órdenes del líder (§8.5 y §9.3) -------------------------------------------------------
+
+    def replicate_block(self, block_id: str, target_addr: str, token: common_pb2.BlockToken) -> None:
+        """Orden REPLICATE: copia la réplica a otro nodo con WriteBlock y el token de escritura del líder."""
+        block_path, meta = self._store.get_block(block_id)
+
+        def requests() -> Iterator[datanode_pb2.WriteBlockRequest]:
+            header = datanode_pb2.WriteBlockHeader(
+                block_id=block_id, block_token=token, block_sha256=meta.sha256, size_bytes=meta.size_bytes
+            )
+            yield datanode_pb2.WriteBlockRequest(header=header)
+            with open(block_path, "rb") as block_file:
+                while data := block_file.read(CHUNK_SIZE_BYTES):
+                    yield datanode_pb2.WriteBlockRequest(data=data)
+
+        self._channels.get_stub(target_addr).WriteBlock(requests(), timeout=self._settings.transfer_timeout_s)
+        logger.info("Bloque %s copiado a %s (re-replicación)", block_id, target_addr)
+
+    def verify_block(self, block_id: str, rate_bytes_s: float = 0) -> bool:
+        """Orden VERIFY y verificador periódico: recalcula el hash y avisa si no coincide."""
+        block_path, meta = self._store.get_block(block_id)
+        hasher = hashlib.sha256()
+        started = time.monotonic()
+        read_bytes = 0
+        with open(block_path, "rb") as block_file:
+            while data := block_file.read(CHUNK_SIZE_BYTES):
+                hasher.update(data)
+                read_bytes += len(data)
+                if rate_bytes_s:
+                    time.sleep(max(0.0, read_bytes / rate_bytes_s - (time.monotonic() - started)))
+        if hasher.digest() == meta.sha256:
+            return True
+        logger.error("El bloque %s no coincide con su hash en disco (verificación)", block_id)
+        self._report_corrupt(block_id)
+        return False
+
+    def _report_corrupt(self, block_id: str) -> None:
+        try:
+            self._reporter.report_corrupt_replica(block_id)
+        except Exception as error:  # noqa: BLE001 - la verificación periódica lo volverá a encontrar
+            logger.warning("No se pudo avisar de la réplica corrupta %s: %s", block_id, error)
 
     @staticmethod
     def _require_peer(context: grpc.ServicerContext) -> None:
@@ -252,6 +300,7 @@ class DataNodeService(datanode_pb2_grpc.DataNodeServiceServicer):
         if hasher.digest() != meta.sha256:
             # Réplica corrupta en disco: el cliente descarta lo recibido y lee de otra (§8.3, §8.5)
             logger.error("El bloque %s no coincide con su hash en disco", meta.block_id)
+            self._report_corrupt(meta.block_id)
             raise DfshaError(
                 grpc.StatusCode.DATA_LOSS, f"La réplica del bloque {meta.block_id} está corrupta", Reason.BLOCK_CORRUPTED
             )

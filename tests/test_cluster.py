@@ -59,6 +59,8 @@ def test_leader_crash_loses_no_committed_write(cluster: LocalCluster) -> None:
     )
     for path, data in files.items():
         assert cluster.get(path) == data  # ninguna confirmación perdida (G1)
+    # Las escrituras esperan al fin del modo seguro, en cuanto cada bloque tiene una réplica con latido (§9.5)
+    assert wait_until(lambda: not cluster.metadata[new_leader].service.is_in_safe_mode(), timeout_s=10)
     after = os.urandom(BLOCK_SIZE_BYTES)
     assert cluster.put("/despues.bin", after) == 1
     assert cluster.get("/despues.bin") == after

@@ -48,6 +48,7 @@ from dfsha.metadata.etcd_client import (
     op_put,
 )
 from dfsha.metadata.keys import ROOT_DIRECTORY_ID
+from dfsha.metadata.replication import ReplicationManager
 from dfsha.metadata.leader import LeaderElection, NotLeaderError
 from dfsha.metadata.nodes import NodeRegistry, NodeState
 from dfsha.metadata.store import MetadataStore, Resolution, parse, path_not_found
@@ -98,6 +99,8 @@ class MetadataSettings:
     lease_ttl_s: int = 30
     grace_period_s: int = 600
     request_ttl_s: int = 600
+    safe_mode_max_wait_s: float = 60.0
+    maintenance_interval_s: float = 3.0  # salida del modo seguro y re-replicación
 
 
 @dataclass
@@ -178,13 +181,95 @@ class MetadataService(metadata_pb2_grpc.MetadataServiceServicer):
         self.registry = registry
         self._wall_clock = wall_clock
         self._request_log = _RequestLog(self, settings.request_ttl_s)
+        self._safe_mode = threading.Event()  # activo mientras está puesto (§9.5)
+        self._safe_mode_lock = threading.Lock()
+        self._elected_at = 0.0
+        self._safe_mode_checked_at = 0.0
+        self.replication = ReplicationManager(self)
 
     def on_elected(self, epoch: int) -> None:
         """Al ser elegido, carga los nodos registrados; ninguno cuenta como vivo hasta su latido (§9.5)."""
+        self._elected_at = self._now()
+        self._safe_mode_checked_at = 0.0
+        self._safe_mode.set()
+        self.replication.reset()
         kvs, _ = self.store.etcd.get_prefix(self.keys.nodes_prefix)
         self.registry.reset_for_election(NodeRecord.FromString(kv.value) for kv in kvs)
-        logger.info("Líder con época %d; %d nodos de datos registrados", epoch, len(kvs))
+        logger.info("Líder con época %d; %d nodos de datos registrados; entra en modo seguro", epoch, len(kvs))
         self._create_first_admin()
+
+    # ===== Modo seguro (§9.5) ====================================================================
+
+    def is_in_safe_mode(self) -> bool:
+        """Si sigue en modo seguro; antes comprueba si ya puede salir."""
+        if not self._safe_mode.is_set():
+            return False
+        self._try_to_leave_safe_mode()
+        return self._safe_mode.is_set()
+
+    def _try_to_leave_safe_mode(self) -> None:
+        """Sale cuando cada bloque vivo tiene una réplica en un nodo con latido desde la elección, o por tiempo."""
+        with self._safe_mode_lock:
+            now = self._now()
+            if not self._safe_mode.is_set() or now - self._safe_mode_checked_at < 0.5:
+                return
+            self._safe_mode_checked_at = now
+            missing = self._get_blocks_without_live_replica()
+            timed_out = now - self._elected_at >= self.settings.safe_mode_max_wait_s
+            if missing and not timed_out:
+                return
+            self._renew_leases_after_safe_mode(now)
+            self._safe_mode.clear()
+        if missing:
+            logger.warning(
+                "Fin del modo seguro por tiempo, a los %.0f s: %d bloques sin ninguna réplica viva, perdidos: %s",
+                now - self._elected_at, len(missing), ", ".join(sorted(missing)[:20]),
+            )  # fmt: skip
+        else:
+            logger.info("Fin del modo seguro a los %.1f s de la elección", now - self._elected_at)
+
+    def _get_blocks_without_live_replica(self) -> set[str]:
+        """Bloques de versiones vivas sin réplica sana en un nodo que haya enviado un latido desde la elección."""
+        now = self._now()
+        version_kvs, revision = self.store.etcd.get_prefix(self.keys.all_versions_prefix())
+        live: set[str] = set()
+        for kv in version_kvs:
+            version = VersionRecord.FromString(kv.value)
+            if not version.HasField("expires_at") or _timestamp_seconds(version.expires_at) > now:
+                live.update(block.block_id for block in version.blocks)
+        if not live:
+            return set()
+        replicas_prefix = self.keys.all_replicas_prefix()
+        replica_kvs, _ = self.store.etcd.get_prefix(replicas_prefix, revision=revision)
+        for kv in replica_kvs:
+            block_id, _, node_id = kv.key[len(replicas_prefix) :].decode().partition("/")
+            if block_id in live and not ReplicaRecord.FromString(kv.value).is_corrupt:
+                if self.registry.get_state(node_id) in (NodeState.ALIVE, NodeState.SUSPECT):
+                    live.discard(block_id)
+        return live
+
+    def _renew_leases_after_safe_mode(self, now: float) -> None:
+        """Los arrendamientos no caducan en modo seguro: al salir, los vigentes en la elección recuperan su TTL."""
+        lease_kvs, _ = self.store.etcd.get_prefix(self.keys.all_leases_prefix())
+        for kv in lease_kvs:
+            lease = LeaseRecord.FromString(kv.value)
+            if _timestamp_seconds(lease.expires_at) <= self._elected_at:
+                continue  # ya había caducado antes de la elección
+            lease.expires_at.CopyFrom(_now_timestamp(now + self.settings.lease_ttl_s))
+            self._apply_without_request([compare_mod_revision(kv.key, kv.mod_revision)], [op_put(kv.key, lease.SerializeToString())])
+
+    def run_maintenance(self) -> None:
+        """Una vuelta del líder: salir del modo seguro cuando toque y, fuera de él, re-replicar (§9.3)."""
+        if self.election.is_leader and not self.is_in_safe_mode():
+            self.replication.run_pass()
+
+    def _require_no_safe_mode(self) -> None:
+        if self.is_in_safe_mode():
+            raise DfshaError(
+                grpc.StatusCode.UNAVAILABLE,
+                "El líder de metadatos acaba de ser elegido y está en modo seguro; reintenta en unos segundos",
+                Reason.SAFE_MODE_ACTIVE,
+            )
 
     def _create_first_admin(self) -> None:
         """Crea el usuario admin la primera vez, con la contraseña del secreto de despliegue (§10.2)."""
@@ -256,6 +341,7 @@ class MetadataService(metadata_pb2_grpc.MetadataServiceServicer):
         """Aplica una escritura de forma atómica e idempotente (§8.4, §8.6)."""
         if not request_id:
             raise DfshaError(grpc.StatusCode.INVALID_ARGUMENT, "Falta el request_id")
+        self._require_no_safe_mode()
         request_key = self.keys.request(user_id, request_id)
         for _ in range(MAX_MUTATION_ATTEMPTS):
             stored, _, _ = self.store.get(response_type, request_key)
@@ -799,7 +885,7 @@ class MetadataService(metadata_pb2_grpc.MetadataServiceServicer):
             first_since_election = self.registry.get_state(request.node_id) is NodeState.WITHOUT_HEARTBEAT
             if not self.registry.record_heartbeat(request.node_id, request.free_bytes):
                 raise DfshaError(grpc.StatusCode.FAILED_PRECONDITION, f"El nodo {request.node_id} no está registrado")
-            commands = []
+            commands = self.replication.pop_commands(request.node_id)
             if first_since_election:
                 # Tras una elección, el líder pide el informe de bloques (Tabla 19)
                 commands.append(metadata_pb2.DataNodeCommand(type=metadata_pb2.DATA_NODE_COMMAND_TYPE_SEND_BLOCK_REPORT))
@@ -811,6 +897,12 @@ class MetadataService(metadata_pb2_grpc.MetadataServiceServicer):
         def operation() -> metadata_pb2.ReportBlocksResponse:
             self._require_datanode(context, request.node_id)
             now = _now_timestamp(self._now())
+            if self.is_in_safe_mode():
+                # Un líder que todavía no sabe qué nodos están vivos no borra nada (§9.5)
+                ops = [self._put_replica(request.node_id, block, now) for block in request.blocks]
+                for start in range(0, len(ops), _OPS_PER_TXN):
+                    self._apply_without_request([], ops[start : start + _OPS_PER_TXN])
+                return metadata_pb2.ReportBlocksResponse(leader_epoch=self.election.epoch)
             live_block_ids, expired_keys = self._collect_garbage()
             garbage = [block for block in request.blocks if block.block_id not in live_block_ids]
             ops = [self._put_replica(request.node_id, block, now) for block in request.blocks if block.block_id in live_block_ids]
@@ -838,6 +930,34 @@ class MetadataService(metadata_pb2_grpc.MetadataServiceServicer):
             if not self._apply_without_request([], ops):
                 raise DfshaError(grpc.StatusCode.ABORTED, "No se pudo anotar la réplica; reintenta")
             return metadata_pb2.ReportBlockReceivedResponse()
+
+        return self._handle(context, operation)
+
+    def ReportCorruptReplica(self, request: metadata_pb2.ReportCorruptReplicaRequest, context: grpc.ServicerContext) -> metadata_pb2.ReportCorruptReplicaResponse:  # noqa: N802
+        def operation() -> metadata_pb2.ReportCorruptReplicaResponse:
+            if not request.block_id or not request.node_id:
+                raise DfshaError(grpc.StatusCode.INVALID_ARGUMENT, "Aviso de réplica corrupta incompleto")
+            if get_peer_role(context) == "client":
+                # Un cliente no puede hacer borrar réplicas sanas: el nodo la verifica y solo él la marca (§8.5)
+                self._get_user_id(context)
+                node_id = self.registry.find_node_id(request.node_id)  # el cliente da la dirección de la réplica
+                if node_id is None:
+                    raise DfshaError(grpc.StatusCode.NOT_FOUND, f"No hay ningún nodo de datos {request.node_id}")
+                self.replication.queue(
+                    node_id,
+                    metadata_pb2.DataNodeCommand(type=metadata_pb2.DATA_NODE_COMMAND_TYPE_VERIFY, block_id=request.block_id),
+                )
+                logger.warning("Un cliente avisa de que %s en %s puede estar corrupta: se ordena verificarla", request.block_id, node_id)
+                return metadata_pb2.ReportCorruptReplicaResponse()
+            self._require_datanode(context, request.node_id)
+            key = self.keys.replica(request.block_id, request.node_id)
+            replica, kv, _ = self.store.get(ReplicaRecord, key)
+            if replica is None or kv is None:
+                return metadata_pb2.ReportCorruptReplicaResponse()
+            replica.is_corrupt = True
+            self._apply_without_request([compare_mod_revision(key, kv.mod_revision)], [op_put(key, replica.SerializeToString())])
+            logger.warning("Réplica corrupta de %s en %s: deja de entregarse y se re-replica", request.block_id, request.node_id)
+            return metadata_pb2.ReportCorruptReplicaResponse()
 
         return self._handle(context, operation)
 

@@ -626,3 +626,58 @@ def test_data_keys_and_block_tokens(cluster: Cluster) -> None:
     ).locations[0]
     read = common_pb2.BLOCK_OPERATION_READ
     assert security.check_block_token(block_key, location.block_token, location.block_id, read) is None
+
+
+# ===== Modo seguro tras cada elección (§9.5) =================================================
+
+
+def _successor(first: Cluster, etcd_addr: str, etcd_prefix: bytes, secrets: Path, **overrides: int) -> Cluster:
+    """Para el líder y arranca otro servidor sobre los mismos metadatos, que es elegido y entra en modo seguro."""
+    first.server.stop()
+    server, addr = _start(etcd_addr, etcd_prefix, secrets, **overrides)
+    assert wait_until(lambda: server.election.is_leader), "el sucesor no llegó a ser líder"
+    channel = secure_channel(secrets, "client-1", addr)
+    stub = metadata_pb2_grpc.MetadataServiceStub(with_token(channel, authenticate(channel, TEST_USER, TEST_PASSWORD)))
+    return Cluster(server, stub, addr, secrets)
+
+
+def _heartbeat(cluster: Cluster, node_ids: list[str]) -> None:
+    for node_id in node_ids:
+        cluster.datanode_stub(node_id).ReportHeartbeat(metadata_pb2.ReportHeartbeatRequest(node_id=node_id, free_bytes=10**10), timeout=5)
+
+
+def test_safe_mode_rejects_writes_until_the_datanodes_heartbeat(
+    make_cluster: Callable[..., Cluster], etcd_addr: str, etcd_prefix: bytes, cluster_secrets: Path
+) -> None:
+    first = make_cluster()
+    nodes = first.register_nodes(3)
+    first.put("/datos.bin", [b"0", b"1"])
+    second = _successor(first, etcd_addr, etcd_prefix, cluster_secrets)
+    try:
+        error = expect_error(lambda: second.mkdir("/nuevo"))
+        assert (error.code, error.reason) == (grpc.StatusCode.UNAVAILABLE, Reason.SAFE_MODE_ACTIVE)
+        assert second.ls("/") == ["datos.bin"]  # las lecturas se atienden
+        _heartbeat(second, nodes)  # cada bloque tiene ya una réplica en un nodo con latido: sale
+        assert wait_until(lambda: not second.server.service.is_in_safe_mode(), timeout_s=3)
+        second.mkdir("/nuevo")
+    finally:
+        second.server.stop()
+
+
+def test_safe_mode_ends_by_time_and_keeps_leases(
+    make_cluster: Callable[..., Cluster], etcd_addr: str, etcd_prefix: bytes, cluster_secrets: Path
+) -> None:
+    first = make_cluster(lease_ttl_s=2)
+    first.register_nodes(3)
+    first.put("/datos.bin", [b"0", b"1"])
+    lease = _lock(first, _open_for_write(first, "/datos.bin"), 0, 1)
+    # Ningún nodo envía latidos: el sucesor solo sale por el tope, que es mayor que el TTL del arrendamiento
+    second = _successor(first, etcd_addr, etcd_prefix, cluster_secrets, lease_ttl_s=2, safe_mode_max_wait_s=4)
+    try:
+        assert expect_error(lambda: second.mkdir("/nuevo")).reason == Reason.SAFE_MODE_ACTIVE
+        assert wait_until(lambda: not second.server.service.is_in_safe_mode(), timeout_s=8)
+        # El arrendamiento no caducó durante el modo seguro: al salir recuperó su TTL completo
+        second.stub.UpdateLease(metadata_pb2.UpdateLeaseRequest(request_id=_request_id(), lease_id=lease.lease_id), timeout=5)
+        second.mkdir("/nuevo")
+    finally:
+        second.server.stop()

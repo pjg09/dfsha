@@ -334,8 +334,10 @@ class DfshaClient:
                 logger.warning("La réplica de %s en %s falló: %s", location.block_id, addr, last_error.message)
                 continue
             if hashlib.sha256(data).digest() != location.block_sha256:
-                # El hash que vale es el de los metadatos, no el del nodo (§4.5). El aviso llega en la etapa 9.
+                # El hash que vale es el de los metadatos, no el del nodo (§4.5). El nodo solo la marca si la
+                # verifica él (§8.5): un cliente no puede hacer borrar réplicas sanas
                 logger.warning("La réplica de %s en %s no coincide con su hash", location.block_id, addr)
+                self._report_corrupt(location.block_id, addr)
                 last_error = DfshaError(grpc.StatusCode.DATA_LOSS, "Réplica corrupta", Reason.BLOCK_CORRUPTED)
                 continue
             return data
@@ -344,6 +346,13 @@ class DfshaClient:
             f"No se pudo leer el bloque {location.block_index} de ninguna réplica",
             Reason.BLOCK_LOST,
         ) from last_error
+
+    def _report_corrupt(self, block_id: str, addr: str) -> None:
+        request = metadata_pb2.ReportCorruptReplicaRequest(block_id=block_id, node_id=addr)
+        try:
+            self.metadata.call_rpc("ReportCorruptReplica", request)
+        except DfshaError as error:
+            logger.warning("No se pudo avisar de la réplica corrupta: %s", error.message)
 
     def _refresh_location(self, file_handle: bytes, location: common_pb2.BlockLocation) -> common_pb2.BlockLocation:
         request = metadata_pb2.GetBlockLocationsRequest(

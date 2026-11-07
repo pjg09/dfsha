@@ -35,6 +35,8 @@ class DataNodeConfig:
     metadata_addrs: list[str] = field(default_factory=list)  # vacía: sin servidor de metadatos (pruebas)
     heartbeat_interval_s: float = 3.0
     block_report_interval_s: float = 300.0
+    verify_interval_s: float = 86400.0
+    verify_rate_bytes_s: float = 4e6
 
 
 def load_config() -> DataNodeConfig:
@@ -58,6 +60,8 @@ def load_config() -> DataNodeConfig:
         metadata_addrs=config.get_addrs("METADATA_ADDRS"),
         heartbeat_interval_s=config.get_float("HEARTBEAT_INTERVAL_S", 3.0),
         block_report_interval_s=config.get_float("BLOCK_REPORT_INTERVAL_S", 300.0),
+        verify_interval_s=config.get_float("VERIFY_INTERVAL_S", 86400.0),
+        verify_rate_bytes_s=config.get_float("VERIFY_RATE_BYTES_S", 4e6),
     )
 
 
@@ -66,16 +70,40 @@ class DataNodeServer:
     server: grpc.Server
     port: int
     metadata_client: MetadataClient | None
+    service: DataNodeService
+    store: BlockStore
+    verify_interval_s: float = 86400.0
+    verify_rate_bytes_s: float = 4e6
+
+    def __post_init__(self) -> None:
+        self._stopped = threading.Event()
+        self._verifier = threading.Thread(target=self._run_verifier, name="block-verifier", daemon=True)
 
     def start(self) -> None:
         self.server.start()
         if self.metadata_client is not None:
             self.metadata_client.start()
+        self._verifier.start()
 
     def stop(self, grace_s: float | None = None) -> None:
+        self._stopped.set()
         if self.metadata_client is not None:
             self.metadata_client.stop()
         self.server.stop(grace=grace_s).wait()
+
+    def _run_verifier(self) -> None:
+        """Verificador de bloques: recalcula el hash de todos los bloques cada día, a 4 MB/s (§8.5)."""
+        while not self._stopped.wait(self.verify_interval_s):
+            corrupt = checked = 0
+            for meta in self.store.list_blocks():
+                if self._stopped.is_set():
+                    return
+                try:
+                    corrupt += not self.service.verify_block(meta.block_id, self.verify_rate_bytes_s)
+                    checked += 1
+                except Exception as error:  # noqa: BLE001 - un bloque borrado entre medias no para la pasada
+                    logger.debug("No se pudo verificar %s: %s", meta.block_id, error)
+            logger.info("Verificación periódica: %d bloques, %d corruptos", checked, corrupt)
 
 
 def create_server(
@@ -116,7 +144,11 @@ def create_server(
     datanode_pb2_grpc.add_DataNodeServiceServicer_to_server(service, server)
     _, port = config.parse_addr(node_config.settings.addr)
     bound_port = server.add_secure_port(f"[::]:{port}", get_server_credentials(identity))  # TLS mutuo (ADR 0043)
-    return DataNodeServer(server, bound_port, metadata_client)
+    if metadata_client is not None:
+        metadata_client.block_service = service  # REPLICATE y VERIFY (§8.5, §9.3)
+    return DataNodeServer(
+        server, bound_port, metadata_client, service, store, node_config.verify_interval_s, node_config.verify_rate_bytes_s
+    )
 
 
 def main() -> None:

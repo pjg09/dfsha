@@ -34,9 +34,13 @@ def _token(block_id: str, operation: common_pb2.BlockOperation, key: bytes | Non
 class RecordingReporter:
     def __init__(self) -> None:
         self.blocks: list[metadata_pb2.StoredBlock] = []
+        self.corrupt: list[str] = []
 
     def report_block_received(self, block: metadata_pb2.StoredBlock) -> None:
         self.blocks.append(block)
+
+    def report_corrupt_replica(self, block_id: str) -> None:
+        self.corrupt.append(block_id)
 
 
 @dataclass
@@ -210,6 +214,7 @@ def test_corrupt_replica_on_disk_is_detected_when_read(nodes: list[Node]) -> Non
     path.write_bytes(bytes(damaged))
     error = _expect_error(lambda: _read(node, block_id))
     assert (error.code, error.reason) == (grpc.StatusCode.DATA_LOSS, Reason.BLOCK_CORRUPTED)
+    assert node.reporter.corrupt == [block_id]  # avisa al líder, que la marca y la re-replica (§8.5)
 
 
 def test_missing_block(nodes: list[Node]) -> None:
