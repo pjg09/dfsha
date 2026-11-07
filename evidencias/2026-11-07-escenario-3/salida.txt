@@ -1,0 +1,46 @@
+
+## Versión desplegada y preparación (17:43:46)
+    dfsha-client:0.12.0
+/dev/root       6.7G  4.3G  2.4G  65% /
+31304a7bdde3e560443267c178a3c7d364a86b1d8a330fed9faf76fd011c058d  /data/escenario-3.bin
+
+## Carga de 1 GiB; a los 3 s cae datanode-4 mientras recibe bloques
+[17:44:17] datanode-4 parado
+la carga termina (el cliente recibe la confirmación) a las 17:44:20
+[2026-11-07T17:44:17.282Z] cliente: El bloque 41 falló en datanode-4:50052 (failed to connect to all addresses; last error: UNKNOWN: ipv4:172.31.29.2:50052: Failed to connect to remote host: Connectio
+[2026-11-07T17:44:17.623Z] cliente: El bloque 43 falló en datanode-4:50052 (failed to connect to all addresses; last error: UNKNOWN: ipv4:172.31.29.2:50052: Failed to connect to remote host: Connectio
+[2026-11-07T17:44:17.729Z] cliente: El bloque 45 falló en datanode-4:50052 (failed to connect to all addresses; last error: UNKNOWN: ipv4:172.31.29.2:50052: Failed to connect to remote host: Connectio
+[2026-11-07T17:44:19.303Z] cliente: El bloque 56 falló en datanode-4:50052 (failed to connect to all addresses; last error: UNKNOWN: ipv4:172.31.29.2:50052: Failed to connect to remote host: Connectio
+[2026-11-07T17:44:19.562Z] cliente: El bloque 58 falló en datanode-4:50052 (failed to connect to all addresses; last error: UNKNOWN: ipv4:172.31.29.2:50052: Failed to connect to remote host: Connectio
+[2026-11-07T17:44:19.808Z] cliente: El bloque 60 falló en datanode-4:50052 (failed to connect to all addresses; last error: UNKNOWN: ipv4:172.31.29.2:50052: Failed to connect to remote host: Connectio
+/escenario-3.bin: versión 1, 1.0 GiB en 8.0 s (135 MB/s)
+
+## Lo que vio el otro proceso durante la carga
+[17:44:09 → 17:44:12] observador: Error: No existe /escenario-3.bin [PATH_NOT_FOUND] 
+[17:44:12 → 17:44:16] observador: Error: No existe /escenario-3.bin [PATH_NOT_FOUND] 
+[17:44:16 → 17:44:20] observador: Error: No existe /escenario-3.bin [PATH_NOT_FOUND] 
+[17:44:20 → 17:44:22] observador: ruta: /escenario-3.bin versión: 1 
+[17:44:22 → 17:44:25] observador: ruta: /escenario-3.bin versión: 1 
+[17:44:25 → 17:44:29] observador: ruta: /escenario-3.bin versión: 1 
+[17:44:29 → 17:44:31] observador: ruta: /escenario-3.bin versión: 1 
+[17:44:31 → 17:44:34] observador: ruta: /escenario-3.bin versión: 1 
+[17:44:34 → 17:44:37] observador: ruta: /escenario-3.bin versión: 1 
+[17:44:37 → 17:44:39] observador: ruta: /escenario-3.bin versión: 1 
+[17:44:39 → 17:44:42] observador: ruta: /escenario-3.bin versión: 1 
+[17:44:42 → 17:44:45] observador: ruta: /escenario-3.bin versión: 1 
+
+## Área temporal de datanode-4 mientras está caído: lo recibido a medias, sin renombrar
+  6291456 35eb099e-212a-4691-88c5-4d5f47653117.fd65d5db4e84434095b1653f7c1727bd
+  14680064 fd07ff2f-edc0-4828-a1ef-6715e46a6bfd.3e77073f686d4296bdabac23f1135c39
+
+## Recuperación: el archivo cargado es idéntico
+/data/escenario-3-copia.bin: 1.0 GiB en 7.8 s (137 MB/s)
+31304a7bdde3e560443267c178a3c7d364a86b1d8a330fed9faf76fd011c058d  /data/escenario-3.bin
+31304a7bdde3e560443267c178a3c7d364a86b1d8a330fed9faf76fd011c058d  /data/escenario-3-copia.bin
+
+## datanode-4 vuelve (17:45:15): descarta su área temporal al arrancar
+[17:45:18] datanode-4 arrancado
+[2026-11-07T17:45:19.429Z] datanode-4: Borrados 2 bloques a medias del área temporal
+[2026-11-07T17:45:19.457Z] datanode-4: Dado de alta en el líder de metadatos metadata-1:50051
+[2026-11-07T17:45:19.601Z] datanode-4: Informe de bloques enviado: 111 bloques
+  archivos en el área temporal: 0

@@ -1,0 +1,55 @@
+
+## Versión desplegada y preparación (17:24:56)
+    dfsha-client:0.11.1
+/dev/root       6.7G  4.3G  2.4G  65% /
+731e63b77508c410569932b643565769e1093f4dbd0337c6ce51b7a2300ee257  /data/escenario-3.bin
+
+## Carga de 1 GiB; a los 3 s cae datanode-4 mientras recibe bloques
+[17:25:28] datanode-4 parado
+la carga termina (el cliente recibe la confirmación) a las 17:25:32
+[2026-11-07T17:25:28.069Z] cliente: El bloque 34 falló en datanode-4:50052 (Stream removed (Socket closed (GOAWAY received; Error code: 0; Debug Text: Server shutdown))); se reserva de nuevo
+[2026-11-07T17:25:28.149Z] cliente: El bloque 37 falló en datanode-4:50052 (failed to connect to all addresses; last error: UNKNOWN: ipv4:172.31.29.2:50052: Failed to connect to remote host: Connectio
+[2026-11-07T17:25:28.532Z] cliente: El bloque 40 falló en datanode-4:50052 (failed to connect to all addresses; last error: UNKNOWN: ipv4:172.31.29.2:50052: Failed to connect to remote host: Connectio
+[2026-11-07T17:25:29.244Z] cliente: El bloque 46 falló en datanode-4:50052 (failed to connect to all addresses; last error: UNKNOWN: ipv4:172.31.29.2:50052: Failed to connect to remote host: Connectio
+[2026-11-07T17:25:29.989Z] cliente: El bloque 52 falló en datanode-4:50052 (failed to connect to all addresses; last error: UNKNOWN: ipv4:172.31.29.2:50052: Failed to connect to remote host: Connectio
+[2026-11-07T17:25:30.654Z] cliente: El bloque 58 falló en datanode-4:50052 (failed to connect to all addresses; last error: UNKNOWN: ipv4:172.31.29.2:50052: Failed to connect to remote host: Connectio
+[2026-11-07T17:25:30.891Z] cliente: El bloque 58 falló en datanode-4:50052 (failed to connect to all addresses; last error: UNKNOWN: ipv4:172.31.29.2:50052: Failed to connect to remote host: Connectio
+[2026-11-07T17:25:31.262Z] cliente: El bloque 58 falló en datanode-4:50052 (failed to connect to all addresses; last error: UNKNOWN: ipv4:172.31.29.2:50052: Failed to connect to remote host: Connectio
+Error: failed to connect to all addresses; last error: UNKNOWN: ipv4:172.31.29.2:50052: Failed to connect to remote host: Connection refused [UNAVAILABLE]
+
+## Lo que vio el otro proceso durante la carga
+[17:25:20 → 17:25:23] observador: Error: No existe /escenario-3.bin [PATH_NOT_FOUND] 
+[17:25:23 → 17:25:26] observador: Error: No existe /escenario-3.bin [PATH_NOT_FOUND] 
+[17:25:26 → 17:25:30] observador: Error: No existe /escenario-3.bin [PATH_NOT_FOUND] 
+[17:25:30 → 17:25:33] observador: Error: No existe /escenario-3.bin [PATH_NOT_FOUND] 
+[17:25:33 → 17:25:36] observador: Error: No existe /escenario-3.bin [PATH_NOT_FOUND] 
+[17:25:36 → 17:25:38] observador: Error: No existe /escenario-3.bin [PATH_NOT_FOUND] 
+[17:25:38 → 17:25:41] observador: Error: No existe /escenario-3.bin [PATH_NOT_FOUND] 
+[17:25:41 → 17:25:44] observador: Error: No existe /escenario-3.bin [PATH_NOT_FOUND] 
+[17:25:44 → 17:25:46] observador: Error: No existe /escenario-3.bin [PATH_NOT_FOUND] 
+[17:25:46 → 17:25:49] observador: Error: No existe /escenario-3.bin [PATH_NOT_FOUND] 
+[17:25:49 → 17:25:51] observador: Error: No existe /escenario-3.bin [PATH_NOT_FOUND] 
+[17:25:51 → 17:25:54] observador: Error: No existe /escenario-3.bin [PATH_NOT_FOUND] 
+
+## Área temporal de datanode-4 mientras está caído: lo recibido a medias, sin renombrar
+  4194304 2361d54c-4f63-4006-a62c-d576483337bb.4b07601a9b3140ecb4b5952f7ac9096d
+  16777244 2d6461ff-6310-43a6-a1c2-fc747c31c128.308d359e182b4c60b8b61d5e2c52cc70
+  102 2d6461ff-6310-43a6-a1c2-fc747c31c128.308d359e182b4c60b8b61d5e2c52cc70.meta
+  9437184 c68e911a-e744-4431-9465-19f88d946cdc.021e29ed211c4b2aa5ca12b7da06186c
+
+## Recuperación: el archivo cargado es idéntico
+Error: No existe /escenario-3.bin [PATH_NOT_FOUND]
+731e63b77508c410569932b643565769e1093f4dbd0337c6ce51b7a2300ee257  /data/escenario-3.bin
+sha256sum: /data/escenario-3-copia.bin: No such file or directory
+
+## datanode-4 vuelve (17:26:09): descarta su área temporal al arrancar
+[17:26:12] datanode-4 arrancado
+[2026-11-07T17:26:12.948Z] datanode-4: Borrados 4 bloques a medias del área temporal
+[2026-11-07T17:26:12.984Z] datanode-4: Dado de alta en el líder de metadatos metadata-2:50051
+[2026-11-07T17:26:13.112Z] datanode-4: Informe de bloques enviado: 110 bloques
+[2026-11-07T17:26:13.116Z] datanode-4: Bloque 0d1679ab-cfb7-4acb-bd6c-7e2c7a058837 borrado por orden del líder
+[2026-11-07T17:26:13.119Z] datanode-4: Bloque 880124c2-4b9c-462f-a67a-457c4c13c704 borrado por orden del líder
+[2026-11-07T17:26:13.123Z] datanode-4: Bloque d0c4ad18-22d8-4c6f-84ff-93c39d30ed04 borrado por orden del líder
+[2026-11-07T17:26:13.126Z] datanode-4: Bloque 9e2d8941-efe4-4a42-affa-8a6917dad2d2 borrado por orden del líder
+[2026-11-07T17:26:13.129Z] datanode-4: Bloque fd3ca6a3-6672-41a5-975e-549e547abf90 borrado por orden del líder
+  archivos en el área temporal: 0
