@@ -2,6 +2,14 @@
 
 Generado automáticamente por semantic-release a partir de los commits. No editar a mano.
 
+## [0.9.0](https://github.com/pjg09/dfsha/compare/v0.8.0...v0.9.0) (2026-11-07)
+
+### Funcionalidades
+
+* integra la seguridad en metadatos, nodos de datos y cliente ([8c95a0c](https://github.com/pjg09/dfsha/commit/8c95a0cb95086dec042669c0d772b68a2745c647))
+* **proto:** añade usuarios, token de acceso y clave envuelta ([8da98cf](https://github.com/pjg09/dfsha/commit/8da98cf054fa32b77f6978cb5f9e1fbcb6644666))
+* **security:** añade firmas, cifrado de sobre, PKI y TLS mutuo ([51d85af](https://github.com/pjg09/dfsha/commit/51d85af61839d2a0b6cf645244a0a2f16c0ef1ea))
+
 ## [0.8.0](https://github.com/pjg09/dfsha/compare/v0.7.0...v0.8.0) (2026-11-07)
 
 ### Funcionalidades
