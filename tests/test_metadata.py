@@ -681,3 +681,26 @@ def test_safe_mode_ends_by_time_and_keeps_leases(
         second.mkdir("/nuevo")
     finally:
         second.server.stop()
+
+
+def test_allocation_skips_excluded_nodes(cluster: Cluster) -> None:
+    # Al repetir un bloque, el cliente pide que no se elijan los nodos que ya fallaron (§11.3, ADR 0044)
+    opened = cluster.stub.OpenFile(metadata_pb2.OpenFileRequest(path="/x", mode=metadata_pb2.OPEN_MODE_CREATE), timeout=5)
+    lease = cluster.stub.LockBlocks(
+        metadata_pb2.LockBlocksRequest(request_id=_request_id(), file_handle=opened.file_handle, block_range=WHOLE_FILE), timeout=5
+    )
+
+    def allocate(excluded: list[str]) -> metadata_pb2.AllocateBlocksResponse:
+        return cluster.stub.AllocateBlocks(
+            metadata_pb2.AllocateBlocksRequest(
+                request_id=_request_id(), file_handle=opened.file_handle, lease_id=lease.lease_id,
+                block_indices=list(range(10)), excluded_datanode_addrs=excluded,
+            ),
+            timeout=5,
+        )  # fmt: skip
+
+    excluded = ["datanode-1:50052", "datanode-2:50052"]
+    for block in allocate(excluded).blocks:
+        assert not set(block.datanode_addrs) & set(excluded)
+    error = expect_error(lambda: allocate([f"datanode-{n}:50052" for n in range(1, 5)]))  # queda un nodo: W = 2 imposible
+    assert (error.code, error.reason) == (grpc.StatusCode.UNAVAILABLE, Reason.QUORUM_NOT_REACHED)

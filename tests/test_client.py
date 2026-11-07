@@ -254,6 +254,37 @@ def test_failed_replicas_do_not_retain_blocks(cluster: LocalCluster, client: Dfs
     assert retained < 4 * BLOCK_SIZE_BYTES, f"quedan {retained / 2**20:.0f} MiB retenidos"
 
 
+def test_put_avoids_a_dead_node_the_leader_still_counts_as_alive(
+    etcd_addr: str, etcd_prefix: bytes, tmp_path: Path, cluster_secrets: Path
+) -> None:
+    # Escenario 3 en AWS (etapa 9): el nodo recién caído sigue vivo para el líder hasta 9 s y, con más espacio
+    # libre que nadie, era siempre la primaria al repetir el bloque. El cliente agotaba sus intentos.
+    local = LocalCluster(etcd_addr, etcd_prefix, tmp_path, cluster_secrets)
+    try:
+        for _ in range(3):
+            local.start_metadata()
+        assert wait_until(lambda: sum(server.election.is_leader for server in local.metadata.values()) == 1)
+        local.create_test_user()
+        for index in range(1, 5):
+            local.start_datanode(index)
+        assert wait_until(lambda: all(d.metadata_client is not None and d.metadata_client.is_registered for d in local.datanodes))
+        leader = local.metadata[local.get_leader()].service
+        assert wait_until(lambda: not leader.is_in_safe_mode())
+        local.datanodes[0].stop()
+        leader.registry._nodes["datanode-1"].free_bytes = 10**15  # el que más espacio libre anuncia
+        settings = ClientSettings(
+            metadata_addrs=list(local.metadata), secrets_directory=cluster_secrets / "client-1", username=local.username,
+            password=local.password, rpc_timeout_s=3, transfer_timeout_s=10, retry=RetryPolicy(max_total_s=30),
+        )  # fmt: skip
+        data = _write(tmp_path / "origen.bin", 6 * BLOCK_SIZE_BYTES)
+        with DfshaClient(settings) as client:
+            client.put(tmp_path / "origen.bin", "/x.bin")
+            client.get("/x.bin", tmp_path / "copia.bin")
+        assert (tmp_path / "copia.bin").read_bytes() == data
+    finally:
+        local.stop()
+
+
 # ===== RF3: open, read, write, lock, unlock y close (§7) ======================================
 
 B = BLOCK_SIZE_BYTES

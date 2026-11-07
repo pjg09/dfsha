@@ -265,6 +265,7 @@ class DataNodeService(datanode_pb2_grpc.DataNodeServiceServicer):
     def _wait_for_quorum(self, meta: BlockMeta, forwards: list[_Forward]) -> datanode_pb2.WriteBlockResponse:
         """Responde en cuanto W réplicas, la primaria incluida, tienen el bloque (fase I §4.4)."""
         stored_on = [self._settings.addr]
+        failed: list[str] = []
         done: queue.Queue[_Forward] = queue.Queue()
         for forward in forwards:
             forward.future.add_done_callback(lambda _future, forward=forward: done.put(forward))
@@ -274,6 +275,7 @@ class DataNodeService(datanode_pb2_grpc.DataNodeServiceServicer):
                 forward.future.result()
                 stored_on.append(forward.addr)
             except (grpc.RpcError, grpc.FutureCancelledError) as error:
+                failed.append(forward.addr)
                 logger.warning("La secundaria %s no guardó el bloque %s: %s", forward.addr, meta.block_id, error)
             if len(stored_on) >= self._settings.write_quorum:
                 # La réplica que falta termina en segundo plano; si falla, la re-replicación lo corrige (§9.3)
@@ -284,6 +286,7 @@ class DataNodeService(datanode_pb2_grpc.DataNodeServiceServicer):
             grpc.StatusCode.UNAVAILABLE,
             f"El bloque {meta.block_id} solo está en {len(stored_on)} réplicas; hacen falta {self._settings.write_quorum}",
             Reason.QUORUM_NOT_REACHED,
+            {"failed_addrs": ",".join(failed)},  # el cliente no los vuelve a pedir al repetir el bloque (ADR 0044)
         )
 
     def _read_block(self, request: datanode_pb2.ReadBlockRequest) -> Iterator[datanode_pb2.ReadBlockResponse]:

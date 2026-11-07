@@ -7,7 +7,7 @@ import random
 import threading
 import time
 import uuid
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Iterable, Iterator
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -61,6 +61,19 @@ def load_settings(password: str | None = None) -> ClientSettings:
 
 def _request_id() -> str:
     return str(uuid.uuid4())
+
+
+def _get_failed_addrs(error: DfshaError, primary: str) -> list[str]:
+    """Nodos que fallaron al escribir un bloque, para no volver a pedirlos (ADR 0044).
+
+    Sin motivo de DFSha, no se llegó a hablar con la primaria. Con QUORUM_NOT_REACHED, la primaria sí respondió
+    y dice qué secundarias fallaron. En cualquier otro caso no se sabe de nadie que haya fallado.
+    """
+    if error.reason is None and error.code in (grpc.StatusCode.UNAVAILABLE, grpc.StatusCode.DEADLINE_EXCEEDED):
+        return [primary]
+    if error.reason is Reason.QUORUM_NOT_REACHED:
+        return [addr for addr in error.metadata.get("failed_addrs", "").split(",") if addr]
+    return []
 
 
 class _LeaseKeeper:
@@ -227,12 +240,14 @@ class DfshaClient:
                         raise
         raise DfshaError(grpc.StatusCode.ABORTED, f"{remote_path} cambia demasiado deprisa; vuelve a intentarlo")
 
-    def _allocate(self, file_handle: bytes, lease_id: str, indices: list[int]) -> list[common_pb2.BlockLocation]:
+    def _allocate(
+        self, file_handle: bytes, lease_id: str, indices: list[int], excluded_addrs: Iterable[str] = ()
+    ) -> list[common_pb2.BlockLocation]:
         locations: list[common_pb2.BlockLocation] = []
         for start in range(0, len(indices), MAX_BLOCKS_PER_ALLOCATION):
             request = metadata_pb2.AllocateBlocksRequest(
                 request_id=_request_id(), file_handle=file_handle, lease_id=lease_id,
-                block_indices=indices[start : start + MAX_BLOCKS_PER_ALLOCATION],
+                block_indices=indices[start : start + MAX_BLOCKS_PER_ALLOCATION], excluded_datanode_addrs=excluded_addrs,
             )  # fmt: skip
             locations.extend(self.metadata.call_rpc("AllocateBlocks", request).blocks)
         return locations
@@ -252,6 +267,7 @@ class DfshaClient:
 
         def upload(location: common_pb2.BlockLocation) -> metadata_pb2.CommittedBlock:
             plaintext = read_block(location.block_index)
+            failed_addrs: set[str] = set()
             for attempt in range(MAX_BLOCK_ATTEMPTS):
                 # Cifrado de sobre (§10.5): el block_id es el dato asociado, así que se cifra de nuevo si cambia
                 stored = encrypt_block(data_key, location.block_id, plaintext)
@@ -264,10 +280,12 @@ class DfshaClient:
                 except DfshaError as error:
                     if attempt == MAX_BLOCK_ATTEMPTS - 1:
                         raise
-                    # Se repite el bloque en otros nodos, con un block_id nuevo (§11.3)
+                    # Se repite el bloque en otros nodos, con un block_id nuevo (§11.3). El líder puede seguir
+                    # contando como vivo un nodo que acaba de caer (§9.2): se le pide que no elija los que fallaron
+                    failed_addrs.update(_get_failed_addrs(error, location.datanode_addrs[0]))
                     logger.warning("El bloque %d falló en %s (%s); se reserva de nuevo", location.block_index, location.datanode_addrs[0], error.message)
                     time.sleep(self.settings.retry.get_backoff_s(attempt))
-                    location = self._allocate(file_handle, lease_id, [location.block_index])[0]
+                    location = self._allocate(file_handle, lease_id, [location.block_index], failed_addrs)[0]
             raise AssertionError("inalcanzable")
 
         with ThreadPoolExecutor(self.settings.parallel_transfers) as pool:

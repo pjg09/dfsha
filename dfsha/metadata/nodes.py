@@ -89,15 +89,23 @@ class NodeRegistry:
             node = self._nodes.get(node_id)
             return node.record.addr if node is not None else None
 
-    def choose_nodes(self, block_count: int, replication_factor: int, block_size_bytes: int) -> list[list[str]]:
+    def choose_nodes(
+        self, block_count: int, replication_factor: int, block_size_bytes: int, excluded_addrs: Iterable[str] = ()
+    ) -> list[list[str]]:
         """Elige los nodos de cada bloque, con la primaria primero (fase I §4.3).
 
         Solo nodos vivos; los de más espacio libre, con desempate aleatorio; nunca dos réplicas de un
         bloque en el mismo nodo. Cada bloque asignado descuenta su tamaño del espacio libre previsto de
-        sus nodos, para que los bloques de una misma reserva se repartan entre todos los nodos.
+        sus nodos, para que los bloques de una misma reserva se repartan entre todos los nodos. Los nodos de
+        ``excluded_addrs`` ya fallaron con esos bloques y no se eligen (ADR 0044).
         """
+        excluded = set(excluded_addrs)
         with self._lock:
-            candidates = [node for node in self._nodes.values() if self._get_state(node) is NodeState.ALIVE]
+            candidates = [
+                node
+                for node in self._nodes.values()
+                if self._get_state(node) is NodeState.ALIVE and node.record.addr not in excluded
+            ]
             projected_free = {node.record.node_id: node.free_bytes for node in candidates}
             addrs = {node.record.node_id: node.record.addr for node in candidates}
         replicas = min(replication_factor, len(candidates))

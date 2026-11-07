@@ -754,7 +754,9 @@ class MetadataService(metadata_pb2_grpc.MetadataServiceServicer):
                 )
             if not all(_range_contains(lease.block_range, index) for index in indices):
                 raise DfshaError(grpc.StatusCode.INVALID_ARGUMENT, "Hay índices fuera del rango arrendado", Reason.BLOCK_RANGE_INVALID)
-            placements = self.registry.choose_nodes(len(indices), self.settings.replication_factor, handle.block_size_bytes)
+            placements = self.registry.choose_nodes(
+                len(indices), self.settings.replication_factor, handle.block_size_bytes, request.excluded_datanode_addrs
+            )
             if not placements or len(placements[0]) < self.settings.write_quorum:
                 raise DfshaError(
                     grpc.StatusCode.UNAVAILABLE,
