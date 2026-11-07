@@ -6,9 +6,11 @@ import subprocess
 import time
 import uuid
 from collections.abc import Iterator
+from pathlib import Path
 
 import pytest
 
+from dfsha.common import pki
 from dfsha.metadata.etcd_client import EtcdClient, EtcdError
 
 # La misma versión y digest que el despliegue (ADR 0040)
@@ -75,3 +77,13 @@ def etcd(etcd_addr: str) -> Iterator[EtcdClient]:
     client = EtcdClient([etcd_addr])
     yield client
     client.close()
+
+
+@pytest.fixture(scope="session")
+def cluster_secrets(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """Secretos de un clúster de prueba: CA interna, certificados con localhost en el SAN y claves (§10.7)."""
+    directory = tmp_path_factory.mktemp("secretos")
+    hosts = [f"metadata-{n}" for n in (1, 2, 3)] + [f"datanode-{n}" for n in range(1, 6)] + ["client-1", "client-2"]
+    pki.create_cluster_secrets(directory, hosts, extra_names=["localhost"])
+    return directory
+
