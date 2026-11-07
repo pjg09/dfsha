@@ -35,7 +35,7 @@ export AWS_DEFAULT_REGION=$REGION
 
 log() { printf '[%s] %s\n' "$(date -u +%H:%M:%S)" "$*" >&2; }
 role_of() { echo "${1%-*}"; }
-instance_type() { [[ $(role_of "$1") == metadata ]] && echo t3.small || echo t3.micro; }
+instance_type() { [[ $(role_of "$1") == datanode ]] && echo t3.micro || echo t3.small; }  # cliente en t3.small (ADR 0045)
 volume_size() { case $(role_of "$1") in metadata) echo 4 ;; datanode) echo 10 ;; *) echo 0 ;; esac; }
 version_tag() { scripts/get-version.sh --image; }
 registry() { echo "$(aws sts get-caller-identity --query Account --output text).dkr.ecr.$REGION.amazonaws.com"; }
