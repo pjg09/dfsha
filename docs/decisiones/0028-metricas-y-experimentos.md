@@ -1,6 +1,6 @@
 # 0028 · Métricas y experimentos
 
-- **Estado:** Aceptada
+- **Estado:** Sustituida por 0046
 - **Fecha:** 2026-10-23
 - **Requisitos relacionados:** §4.1 (métricas y experimentos), §5.1, §5.2 (rendimiento con al menos dos condiciones); C10, C16, C19, C20, C21
 

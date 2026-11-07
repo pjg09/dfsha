@@ -41,7 +41,7 @@ Reglas:
 | [0025](0025-espacio-de-nombres-y-operaciones-rf1.md) | Espacio de nombres por usuario y operaciones de RF1 | Aceptada | 2026-10-23 |
 | [0026](0026-almacenamiento-en-volumen-ebs.md) | Almacenamiento de bloques en un volumen EBS por nodo de datos | Aceptada | 2026-10-23 |
 | [0027](0027-despliegue-en-aws-con-docker.md) | Despliegue en AWS: una imagen por rol y un contenedor por instancia | Sustituida por 0040 | 2026-10-23 |
-| [0028](0028-metricas-y-experimentos.md) | Métricas y experimentos | Aceptada | 2026-10-23 |
+| [0028](0028-metricas-y-experimentos.md) | Métricas y experimentos | Sustituida por 0046 | 2026-10-23 |
 | [0029](0029-especificacion-de-apis-en-la-fase-1.md) | Especificación de las APIs en el documento de la fase I | Aceptada | 2026-10-23 |
 | [0030](0030-entorno-local-de-desarrollo.md) | Entorno local de desarrollo con las mismas imágenes que AWS | Aceptada | 2026-10-23 |
 | [0031](0031-modo-seguro-tras-la-eleccion-de-lider.md) | Modo seguro tras cada elección de líder | Aceptada | 2026-10-23 |
@@ -58,6 +58,8 @@ Reglas:
 | [0042](0042-direccion-del-nodo-de-datos.md) | El nodo de datos envía su dirección al darse de alta | Aceptada | 2026-11-07 |
 | [0043](0043-implementacion-de-la-seguridad.md) | Implementación de la seguridad: TLS mutuo en todas las conexiones, formatos y secretos | Aceptada | 2026-11-07 |
 | [0044](0044-nodos-excluidos-al-repetir-un-bloque.md) | Nodos excluidos al repetir un bloque | Aceptada | 2026-11-07 |
+| [0045](0045-cliente-en-t3-small.md) | El cliente pasa a una t3.small para los experimentos | Aceptada | 2026-11-07 |
+| [0046](0046-e8-por-componentes.md) | Métricas y experimentos, con E8 medido por componentes | Aceptada | 2026-11-07 |
 
 ## Plantilla
 
