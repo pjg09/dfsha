@@ -309,6 +309,10 @@ class MetadataService(metadata_pb2_grpc.MetadataServiceServicer):
         except EtcdError as error:
             logger.warning("etcd no responde: %s", error)
             failure = DfshaError(grpc.StatusCode.UNAVAILABLE, "El almacén de metadatos no responde")
+        except grpc.RpcError as error:
+            # Un servidor que se para cierra su canal con etcd: la llamada se puede repetir en otro (etapa 7)
+            logger.warning("Llamada a etcd interrumpida: %s", error)
+            failure = DfshaError(grpc.StatusCode.UNAVAILABLE, "El servidor de metadatos se está parando o perdió etcd; reintenta")
         context.abort_with_status(failure.to_status())
 
     def _get_claims(self, context: grpc.ServicerContext) -> AccessTokenClaims:
