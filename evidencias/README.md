@@ -45,6 +45,7 @@ Una fila sin evidencia es una evidencia que falta.
 | Comprobación | Qué tiene que verse | Evidencia | Estado |
 |---|---|---|---|
 | Recolección de basura | Se borran los bloques de escrituras abortadas y de versiones sustituidas hace más de 10 min, y ninguno vivo (§8.4, §9.3) | [`2026-11-07-recoleccion-de-basura`](2026-11-07-recoleccion-de-basura/) | Hecha |
+| Arranque en frío real | Al arrancar el lab, el clúster se levanta solo, elige líder, los nodos de datos se dan de alta y los datos siguen íntegros (§9.6; E9 lo mide en la etapa 10) | [`2026-11-07-arranque-en-frio`](2026-11-07-arranque-en-frio/) | Hecha |
 
 ### Otros fallos provocados
 

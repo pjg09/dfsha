@@ -1,0 +1,81 @@
+
+## Arranque de las instancias (lo hace el Learner Lab al empezar la sesión)
+dfsha-client-1	running	2026-11-07T16:52:42+00:00
+dfsha-datanode-1	running	2026-11-07T16:52:42+00:00
+dfsha-datanode-2	running	2026-11-07T16:52:42+00:00
+dfsha-datanode-3	running	2026-11-07T16:52:42+00:00
+dfsha-datanode-4	running	2026-11-07T16:52:42+00:00
+dfsha-datanode-5	running	2026-11-07T16:52:42+00:00
+dfsha-metadata-1	running	2026-11-07T16:52:42+00:00
+dfsha-metadata-2	running	2026-11-07T16:52:42+00:00
+dfsha-metadata-3	running	2026-11-07T16:52:42+00:00
+ahora: 2026-11-07T16:55:17
+
+## Cada host: arranque del sistema, volumen montado y contenedores (hora de arranque y reinicios)
+metadata-1:
+  sistema en marcha desde: 2026-11-07 16:52:48
+  volumen: /dev/nvme1n1 /srv/dfsha/data
+  metadata-1 dfsha-metadata:0.10.0 running desde 2026-11-07T16:52:58.658498535Z reinicios=0
+  etcd gcr.io/etcd-development/etcd:v3.7.3@sha256:0d27b9478551f431f82d1e0ddb6c87ad07ebae8b904c637f3a99213349523910 running desde 2026-11-07T16:52:58.667802511Z reinicios=0
+metadata-2:
+  sistema en marcha desde: 2026-11-07 16:52:47
+  volumen: /dev/nvme1n1 /srv/dfsha/data
+  metadata-2 dfsha-metadata:0.10.0 running desde 2026-11-07T16:52:56.919033856Z reinicios=0
+  etcd gcr.io/etcd-development/etcd:v3.7.3@sha256:0d27b9478551f431f82d1e0ddb6c87ad07ebae8b904c637f3a99213349523910 running desde 2026-11-07T16:52:56.934990824Z reinicios=0
+metadata-3:
+  sistema en marcha desde: 2026-11-07 16:52:47
+  volumen: /dev/nvme1n1 /srv/dfsha/data
+  metadata-3 dfsha-metadata:0.10.0 running desde 2026-11-07T16:52:57.272296382Z reinicios=0
+  etcd gcr.io/etcd-development/etcd:v3.7.3@sha256:0d27b9478551f431f82d1e0ddb6c87ad07ebae8b904c637f3a99213349523910 running desde 2026-11-07T16:52:57.289902959Z reinicios=0
+datanode-1:
+  sistema en marcha desde: 2026-11-07 16:52:48
+  volumen: /dev/nvme1n1 /srv/dfsha/data
+  datanode-1 dfsha-datanode:0.10.0 running desde 2026-11-07T16:52:57.250547765Z reinicios=0
+datanode-2:
+  sistema en marcha desde: 2026-11-07 16:52:50
+  volumen: /dev/nvme1n1 /srv/dfsha/data
+  datanode-2 dfsha-datanode:0.10.0 running desde 2026-11-07T16:52:57.983244454Z reinicios=0
+datanode-3:
+  sistema en marcha desde: 2026-11-07 16:52:48
+  volumen: /dev/nvme1n1 /srv/dfsha/data
+  datanode-3 dfsha-datanode:0.10.0 running desde 2026-11-07T16:52:58.465566943Z reinicios=0
+datanode-4:
+  sistema en marcha desde: 2026-11-07 16:52:48
+  volumen: /dev/nvme1n1 /srv/dfsha/data
+  datanode-4 dfsha-datanode:0.10.0 running desde 2026-11-07T16:52:56.74101437Z reinicios=0
+datanode-5:
+  sistema en marcha desde: 2026-11-07 16:52:49
+  volumen: /dev/nvme1n1 /srv/dfsha/data
+  datanode-5 dfsha-datanode:0.10.0 running desde 2026-11-07T16:52:57.267843756Z reinicios=0
+client-1:
+  sistema en marcha desde: 2026-11-07 16:52:49
+  client-1 dfsha-client:0.10.0 running desde 2026-11-07T16:52:58.452681733Z reinicios=0
+
+## Elección del líder y alta de los nodos de datos tras el arranque
+2026-11-07T16:53:00.804Z INFO metadata-1 dfsha.metadata.server: Servidor de metadatos escuchando en el puerto 50051
+2026-11-07T16:52:58.677Z INFO metadata-2 dfsha.metadata.server: Servidor de metadatos escuchando en el puerto 50051
+2026-11-07T16:52:59.453Z INFO metadata-2 dfsha.metadata.leader: Elegido líder con época 459
+2026-11-07T16:52:59.459Z INFO metadata-2 dfsha.metadata.service: Líder con época 459; 5 nodos de datos registrados
+2026-11-07T16:52:59.063Z INFO metadata-3 dfsha.metadata.server: Servidor de metadatos escuchando en el puerto 50051
+2026-11-07T16:52:58.852Z INFO datanode-1 dfsha.datanode.metadata_client: Dado de alta en el líder de metadatos metadata-2:50051
+2026-11-07T16:52:58.930Z INFO datanode-1 dfsha.datanode.metadata_client: Informe de bloques enviado: 43 bloques
+2026-11-07T16:52:59.697Z INFO datanode-2 dfsha.datanode.metadata_client: Dado de alta en el líder de metadatos metadata-2:50051
+2026-11-07T16:52:59.834Z INFO datanode-2 dfsha.datanode.metadata_client: Informe de bloques enviado: 43 bloques
+2026-11-07T16:53:00.666Z INFO datanode-3 dfsha.datanode.metadata_client: Dado de alta en el líder de metadatos metadata-2:50051
+2026-11-07T16:53:00.811Z INFO datanode-3 dfsha.datanode.metadata_client: Informe de bloques enviado: 40 bloques
+2026-11-07T16:53:00.396Z INFO datanode-4 dfsha.datanode.metadata_client: Dado de alta en el líder de metadatos metadata-2:50051
+2026-11-07T16:53:00.480Z INFO datanode-4 dfsha.datanode.metadata_client: Informe de bloques enviado: 45 bloques
+2026-11-07T16:52:58.906Z INFO datanode-5 dfsha.datanode.metadata_client: Dado de alta en el líder de metadatos metadata-2:50051
+2026-11-07T16:52:58.986Z INFO datanode-5 dfsha.datanode.metadata_client: Informe de bloques enviado: 42 bloques
+
+## Los datos sobreviven a la parada: archivos, réplicas y hash
+-    64.0 MiB  v6    2026-11-07 07:24  datos.bin
+-     1.0 GiB  v1    2026-11-07 06:49  grande.bin
+-    16.0 MiB  v7    2026-11-07 07:21  rf3.bin
+-        20 B  v3    2026-11-07 07:21  texto.txt
+/dev/root       6.7G  4.3G  2.4G  64% /
+/data/grande-tras-arranque.bin: 1.0 GiB en 8.2 s (131 MB/s)
+4b214ab4a2181b8a4d5c35046d1e0f853e7c2fc8c3c3e1c21c4e753e906d7be4  /data/grande.bin
+4b214ab4a2181b8a4d5c35046d1e0f853e7c2fc8c3c3e1c21c4e753e906d7be4  /data/grande-tras-arranque.bin
+$ dfsha read /texto.txt 0 100
+hola MUNDO desde AWS
