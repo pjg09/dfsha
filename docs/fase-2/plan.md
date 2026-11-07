@@ -31,7 +31,7 @@ Qué hay que entregar: enunciado §5.3. Cómo se califica: enunciado §6.
 | 6 | Seguridad | Seguridad | Terminada |
 | 7 | Despliegue en AWS | Distribución y comunicaciones | Terminada |
 | 8 | RF3 en el cliente y concurrencia | Implementación RF1–RF3; consistencia | Terminada |
-| 9 | Tolerancia a fallos | Alta disponibilidad, replicación y consistencia | Pendiente |
+| 9 | Tolerancia a fallos | Alta disponibilidad, replicación y consistencia | En curso |
 | 10 | Experimentos y pruebas finales | Pruebas de rendimiento | Pendiente |
 | 11 | Informe técnico final | Documentación | Pendiente |
 | 12 | Vídeo | Vídeo | Pendiente |
@@ -169,6 +169,19 @@ evidencias registradas.
 ### 9. Tolerancia a fallos
 - Estados de un nodo, re-replicación y resincronización (§9.2, §9.3), réplicas corruptas y verificación
   periódica (§8.5), modo seguro (§9.5) y arranque en frío (§9.6).
+- **Cómo se hace** (decidido al empezar la etapa 9; los estados de un nodo ya existen desde la etapa 4 y el
+  contrato ya trae `REPLICATE`, `VERIFY`, `ReportCorruptReplica` y `SAFE_MODE_ACTIVE`):
+  1. **Modo seguro** en el líder: rechaza las operaciones del cliente que cambian metadatos, no recolecta
+     basura ni re-replica, y los arrendamientos no caducan; al salir, cada arrendamiento vigente recupera su
+     TTL completo.
+  2. **Re-replicación** con una tarea periódica del líder: los bloques vivos con menos de R réplicas sanas
+     reciben una orden `REPLICATE` al nodo origen, primero los que tienen una sola; las réplicas de más se
+     borran con `DELETE`, nunca la última. El nodo de datos copia el bloque al destino con `WriteBlock`.
+  3. **Réplicas corruptas** (§8.5): el nodo de datos verifica el hash al leer y avisa; el aviso de un
+     cliente solo provoca una orden `VERIFY`; verificador periódico a 4 MB/s.
+  4. **Arranque en frío** (§9.6): Docker no arranca si el volumen de datos no está montado
+     (`RequiresMountsFor`), para que etcd nunca arranque sobre un directorio vacío del disco raíz.
+  5. El servidor de metadatos que se para responde `UNAVAILABLE`, no `UNKNOWN` (pendiente de la etapa 7).
 
 **Terminada cuando:** pasan en AWS «Replicación y fallos», «Consistencia» (escenario 2, §11.2) y los
 escenarios 3 y 4 (§11.3, §11.4), con sus evidencias registradas.
