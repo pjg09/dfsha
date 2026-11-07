@@ -49,6 +49,10 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
   reales, el segundo escritor recibe `LOCK_CONFLICT` al momento y `VERSION_CONFLICT` si reintenta desde la
   versión que abrió. Tras un `kill -9` al primero, el segundo escribe 27 s después, dentro del TTL de 30 s
   (`evidencias/2026-11-07-acceso-rf3` y `evidencias/2026-11-07-concurrencia`).
+- **2026-11-07 · Memoria del cliente en AWS** (etapa 9, v0.12.0). Pico del proceso (`getrusage`) en `client-1`,
+  una t3.micro con unos 514 MiB disponibles: `put` de 1 GiB 247 MiB y `get` de 1 GiB 291 MiB, con 4
+  transferencias en paralelo. Basta para un cliente; dos o más procesos cliente de 1 GiB a la vez en la misma
+  t3.micro no caben (E4, etapa 10).
 - **2026-11-07 · Memoria de los nodos de datos en AWS** (etapa 7). Durante el `put` de 1 GiB, el pico del
   proceso (`VmHWM`) de cada nodo de datos fue de 103 a 132 MiB, con unos 440 MiB disponibles en cada t3.micro.
   Confirma en AWS la medición local de la etapa 3.
