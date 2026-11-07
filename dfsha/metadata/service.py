@@ -757,10 +757,10 @@ class MetadataService(metadata_pb2_grpc.MetadataServiceServicer):
             placements = self.registry.choose_nodes(
                 len(indices), self.settings.replication_factor, handle.block_size_bytes, request.excluded_datanode_addrs
             )
-            if not placements or len(placements[0]) < self.settings.write_quorum:
+            if not placements or any(len(nodes) < self.settings.write_quorum for nodes in placements):
                 raise DfshaError(
                     grpc.StatusCode.UNAVAILABLE,
-                    f"Hay menos de {self.settings.write_quorum} nodos de datos vivos",
+                    f"Hay menos de {self.settings.write_quorum} nodos de datos vivos y con espacio",
                     Reason.QUORUM_NOT_REACHED,
                 )
             blocks = [

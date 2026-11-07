@@ -94,8 +94,8 @@ class NodeRegistry:
     ) -> list[list[str]]:
         """Elige los nodos de cada bloque, con la primaria primero (fase I §4.3).
 
-        Solo nodos vivos; los de más espacio libre, con desempate aleatorio; nunca dos réplicas de un
-        bloque en el mismo nodo. Cada bloque asignado descuenta su tamaño del espacio libre previsto de
+        Solo nodos vivos y con sitio para el bloque; los de más espacio libre, con desempate aleatorio; nunca
+        dos réplicas de un bloque en el mismo nodo. Cada bloque asignado descuenta su tamaño del espacio libre previsto de
         sus nodos, para que los bloques de una misma reserva se repartan entre todos los nodos. Los nodos de
         ``excluded_addrs`` ya fallaron con esos bloques y no se eligen (ADR 0044).
         """
@@ -108,16 +108,16 @@ class NodeRegistry:
             ]
             projected_free = {node.record.node_id: node.free_bytes for node in candidates}
             addrs = {node.record.node_id: node.record.addr for node in candidates}
-        replicas = min(replication_factor, len(candidates))
         placements: list[list[str]] = []
         for block_position in range(block_count):
-            order = list(projected_free)
+            # Un nodo sin sitio para el bloque no se elige, aunque esté vivo (se llenaba en E2, etapa 10)
+            order = [node_id for node_id, free in projected_free.items() if free >= block_size_bytes]
             random.shuffle(order)  # desempate aleatorio
             order.sort(key=lambda node_id: projected_free[node_id], reverse=True)
-            chosen = order[:replicas]
+            chosen = order[:replication_factor]
             for node_id in chosen:
                 projected_free[node_id] -= block_size_bytes
-            rotation = block_position % replicas if replicas else 0
+            rotation = block_position % len(chosen) if chosen else 0
             chosen = chosen[rotation:] + chosen[:rotation]  # la primaria rota entre bloques consecutivos
             placements.append([addrs[node_id] for node_id in chosen])
         return placements
