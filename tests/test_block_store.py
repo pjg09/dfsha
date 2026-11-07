@@ -116,3 +116,18 @@ def test_clean_staging_area(store: BlockStore) -> None:
 def test_list_blocks(store: BlockStore) -> None:
     written = {_write(store, os.urandom(100)) for _ in range(3)}
     assert {meta.block_id for meta in store.list_blocks()} == written
+
+
+def test_same_block_id_with_other_content_is_refused(store: BlockStore) -> None:
+    block_id = str(uuid.uuid4())
+    for data in (b"original", b"distinto"):
+        staging = store.create_staging(block_id, hashlib.sha256(data).digest(), len(data))
+        staging.append(data)
+        meta = staging.finish()
+        if data == b"original":
+            store.commit(staging, meta)
+            continue
+        with pytest.raises(DfshaError) as raised:
+            store.commit(staging, meta)
+        assert raised.value.code is grpc.StatusCode.ALREADY_EXISTS
+    assert store.get_block(block_id)[0].read_bytes() == b"original"

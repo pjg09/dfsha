@@ -192,12 +192,17 @@ class BlockStore:
     def commit(self, staging: StagingBlock, meta: BlockMeta) -> bool:
         """Pasa un bloque verificado al almacén con un renombrado atómico.
 
-        Devuelve False si el bloque ya estaba (un reintento): los bloques son inmutables y un
-        ``block_id`` identifica siempre el mismo contenido.
+        Devuelve False si el bloque ya estaba con el mismo hash (un reintento, Tabla 28 de la fase I). Si
+        ya estaba con otro hash, lo rechaza: un ``block_id`` identifica siempre el mismo contenido.
         """
         block_path = self._get_block_path(meta.block_id)
         if block_path.exists():
             staging.path.unlink(missing_ok=True)
+            _, stored = self.get_block(meta.block_id)
+            if (stored.sha256, stored.size_bytes) != (meta.sha256, meta.size_bytes):
+                raise DfshaError(
+                    grpc.StatusCode.ALREADY_EXISTS, f"El bloque {meta.block_id} ya existe con otro contenido"
+                )
             return False
         block_path.parent.mkdir(exist_ok=True)
         meta_path = block_path.with_name(block_path.name + _META_SUFFIX)
