@@ -1,0 +1,67 @@
+
+## Versión desplegada
+    dfsha-metadata:0.9.0
+    dfsha-datanode:0.9.0
+    dfsha-client:0.9.0
+
+## Réplicas en cada nodo de datos antes de la carga
+datanode-1: 0
+datanode-2: 0
+datanode-3: 0
+datanode-4: 0
+datanode-5: 0
+
+## Archivo de 1 GiB con contenido aleatorio en client-1
+-rw-r--r-- 1 dfsha dfsha 1073741824 Nov  7 05:15 /data/grande.bin
+4993c4a8ed94568b64a5749a8aad13b8169c0e8b8f2dc7612f9e0535d66a4be1  /data/grande.bin
+
+## put /data/grande.bin /grande.bin
+/grande.bin: versión 1, 1.0 GiB en 7.8 s (137 MB/s)
+tiempo: 11.6 s (92 MB/s)
+
+## stat /grande.bin y ls /
+ruta: /grande.bin
+versión: 1
+tamaño: 1073741824 bytes (1.0 GiB)
+bloques: 64 de 16.0 MiB
+modificado: 2026-11-07 05:16
+-     1.0 GiB  v1    2026-11-07 05:16  grande.bin
+
+## Réplicas en cada nodo de datos después de la carga (64 bloques x 3 réplicas = 192)
+datanode-1: 39 réplicas, 654312516 bytes
+datanode-2: 38 réplicas, 637535272 bytes
+datanode-3: 39 réplicas, 654312516 bytes
+datanode-4: 38 réplicas, 637535272 bytes
+datanode-5: 38 réplicas, 637535272 bytes
+total: 192 réplicas
+
+## Tamaño de una réplica en disco (16 MiB + 28 bytes de nonce y etiqueta de AES-GCM)
+     39 16777244
+
+## get /grande.bin /data/recuperado.bin
+/data/recuperado.bin: 1.0 GiB en 7.9 s (136 MB/s)
+tiempo: 10.8 s (100 MB/s)
+
+## Comparación de hashes
+4993c4a8ed94568b64a5749a8aad13b8169c0e8b8f2dc7612f9e0535d66a4be1  /data/grande.bin
+4993c4a8ed94568b64a5749a8aad13b8169c0e8b8f2dc7612f9e0535d66a4be1  /data/recuperado.bin
+cmp: idénticos
+
+## Pico de memoria (VmHWM) del proceso de cada nodo de datos desde que arrancó
+datanode-1: grep: /proc/3340: Is a directory
+grep: 4195/status: No such file or directory
+    memoria disponible del host: 442 MiB
+datanode-2: grep: /proc/3342: Is a directory
+grep: 3906/status: No such file or directory
+    memoria disponible del host: 440 MiB
+datanode-3: grep: /proc/3336: Is a directory
+grep: 3924/status: No such file or directory
+    memoria disponible del host: 450 MiB
+datanode-4: grep: /proc/3340: Is a directory
+grep: 3890/status: No such file or directory
+    memoria disponible del host: 432 MiB
+datanode-5: grep: /proc/3336: Is a directory
+grep: 3880/status: No such file or directory
+    memoria disponible del host: 439 MiB
+
+## Log del líder durante la carga

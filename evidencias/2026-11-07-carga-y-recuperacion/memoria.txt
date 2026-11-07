@@ -1,0 +1,10 @@
+datanode-1: VmHWM:	 105544 kB
+    memoria disponible del host: 447 MiB
+datanode-2: VmHWM:	 135176 kB
+    memoria disponible del host: 441 MiB
+datanode-3: VmHWM:	 110484 kB
+    memoria disponible del host: 453 MiB
+datanode-4: VmHWM:	 126312 kB
+    memoria disponible del host: 430 MiB
+datanode-5: VmHWM:	 111696 kB
+    memoria disponible del host: 443 MiB
