@@ -44,6 +44,9 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
 - **2026-11-07 · Despliegue desde cero con una orden** (etapa 7, `ddb9bc6`). Con la cuenta vacía,
   `deploy.sh all` levanta los 9 hosts en 6 min 50 s sin intervención, y el clúster pasa la prueba de carga y
   recuperación. `down` necesitó dos pasadas para borrar los grupos de seguridad, que se citan entre sí.
+- **2026-11-07 · El SHA-256 cuesta más que el cifrado** (etapa 10, E8, v0.13.0). En `client-1` (t3.small),
+  AES-256-GCM cifra a 1,5 GB/s y SHA-256 va a 397 MB/s. TLS mutuo quita entre un 25 y un 32 % a un canal gRPC
+  (unos 450 frente a 615 MB/s). Ninguna pieza explica por sí sola el techo de unos 130 MB/s de un cliente.
 - **2026-11-07 · Varios clientes en el mismo host tampoco escalan** (etapa 10, E4, v0.12.1). Con 4 y 8 clientes
   a la vez en `client-1` (t3.small), la tasa agregada se queda en 128–136 MB/s, el mismo techo que un solo
   cliente: el límite es la máquina cliente. Para mostrar RNF1 harían falta clientes en varias máquinas; con el
