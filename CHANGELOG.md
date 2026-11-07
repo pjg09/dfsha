@@ -2,6 +2,13 @@
 
 Generado automáticamente por semantic-release a partir de los commits. No editar a mano.
 
+## [0.12.1](https://github.com/pjg09/dfsha/compare/v0.12.0...v0.12.1) (2026-11-07)
+
+### Correcciones
+
+* **datanode:** responde RESOURCE_EXHAUSTED con el disco lleno ([d23146a](https://github.com/pjg09/dfsha/commit/d23146a66d820976753ab8bedb3735790ba1c769))
+* **metadata:** no elige nodos de datos sin espacio para el bloque ([b583af0](https://github.com/pjg09/dfsha/commit/b583af0c29d9ff2ae90f3c8cc04aeebeef7b8f44))
+
 ## [0.12.0](https://github.com/pjg09/dfsha/compare/v0.11.1...v0.12.0) (2026-11-07)
 
 ### Funcionalidades
