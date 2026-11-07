@@ -15,6 +15,9 @@ dependencies = [
   "protobuf==7.36.2",
 ]
 
+[project.scripts]
+dfsha = "dfsha.client.cli:main"
+
 [dependency-groups]
 dev = [
   "grpcio-tools==1.85.1",
