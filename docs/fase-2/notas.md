@@ -44,6 +44,11 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
 - **2026-11-07 · Despliegue desde cero con una orden** (etapa 7, `ddb9bc6`). Con la cuenta vacía,
   `deploy.sh all` levanta los 9 hosts en 6 min 50 s sin intervención, y el clúster pasa la prueba de carga y
   recuperación. `down` necesitó dos pasadas para borrar los grupos de seguridad, que se citan entre sí.
+- **2026-11-07 · Un nodo de datos congelado detiene lecturas durante minutos** (etapa 10, E6, v0.13.0). Con
+  `docker pause`, el nodo acepta conexiones pero no responde. El cliente, con la conexión ya abierta, espera los
+  120 s del plazo de transferencia por cada bloque que lee de ese nodo, y dentro de un mismo `get` lo vuelve a
+  probar con otros bloques: lecturas de 120, 240 y 360 s. Ninguna falla, pero la §11.4 pide pasar a otra réplica
+  si una no responde. Con el nodo parado (conexión rechazada), el cambio de réplica es inmediato.
 - **2026-11-07 · Bloques de 4 MiB rinden como los de 16** (etapa 10, E5, v0.13.0). La tasa de transferencia es
   la misma con 4 y 16 MiB y baja un 12 % con 64 MiB; la modificación parcial de 4 KiB tarda 204, 513 y
   1 828 ms. 4 MiB sería mejor para escrituras parciales, a cambio de cuatro veces más bloques en los metadatos,
