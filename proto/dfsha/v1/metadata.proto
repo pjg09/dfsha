@@ -216,6 +216,8 @@ message AllocateBlocksRequest {
   bytes file_handle = 2;
   string lease_id = 3;
   repeated uint64 block_indices = 4;   // dentro del rango arrendado
+  // Nodos de datos que ya fallaron con estos bloques: el líder no los vuelve a elegir (ADR 0044)
+  repeated string excluded_datanode_addrs = 5;
 }
 message AllocateBlocksResponse {
   repeated BlockLocation blocks = 1;   // block_id nuevos, primaria primero, tokens de escritura

@@ -297,16 +297,18 @@ class UnlockBlocksResponse(_message.Message):
     def __init__(self) -> None: ...
 
 class AllocateBlocksRequest(_message.Message):
-    __slots__ = ("request_id", "file_handle", "lease_id", "block_indices")
+    __slots__ = ("request_id", "file_handle", "lease_id", "block_indices", "excluded_datanode_addrs")
     REQUEST_ID_FIELD_NUMBER: _ClassVar[int]
     FILE_HANDLE_FIELD_NUMBER: _ClassVar[int]
     LEASE_ID_FIELD_NUMBER: _ClassVar[int]
     BLOCK_INDICES_FIELD_NUMBER: _ClassVar[int]
+    EXCLUDED_DATANODE_ADDRS_FIELD_NUMBER: _ClassVar[int]
     request_id: str
     file_handle: bytes
     lease_id: str
     block_indices: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(self, request_id: _Optional[str] = ..., file_handle: _Optional[bytes] = ..., lease_id: _Optional[str] = ..., block_indices: _Optional[_Iterable[int]] = ...) -> None: ...
+    excluded_datanode_addrs: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, request_id: _Optional[str] = ..., file_handle: _Optional[bytes] = ..., lease_id: _Optional[str] = ..., block_indices: _Optional[_Iterable[int]] = ..., excluded_datanode_addrs: _Optional[_Iterable[str]] = ...) -> None: ...
 
 class AllocateBlocksResponse(_message.Message):
     __slots__ = ("blocks",)
