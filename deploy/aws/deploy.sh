@@ -7,6 +7,8 @@
 #   install  configura cada instancia (o solo los hosts indicados) por SSH y arranca sus contenedores
 #   status   estado de las instancias y de los contenedores
 #   backup   guarda en S3 una instantánea de etcd (copia de seguridad de los metadatos, ADR 0035)
+#   restore  restaura en los tres servidores de metadatos una instantánea de S3 (la última o la indicada)
+#   all      images, up e install: levanta el clúster desde cero con una sola orden
 #   down     termina las instancias y borra volúmenes y grupos de seguridad (las imágenes de ECR se quedan)
 #
 # Requisitos: credenciales de la sesión del lab en ~/.aws, ~/.ssh/labsuser.pem, Docker y uv, y los secretos
@@ -308,9 +310,11 @@ cmd_status() {
   done
 }
 
+backup_bucket() { echo "dfsha-copias-$(aws sts get-caller-identity --query Account --output text | tail -c 7)"; }
+
 cmd_backup() {  # instantánea de etcd en S3 (ADR 0035): se hace al final de cada sesión de trabajo
   local bucket ip snapshot
-  bucket=dfsha-copias-$(aws sts get-caller-identity --query Account --output text | tail -c 7)
+  bucket=$(backup_bucket)
   if ! aws s3api head-bucket --bucket "$bucket" 2>/dev/null; then
     aws s3api create-bucket --bucket "$bucket" >/dev/null
     aws s3api put-public-access-block --bucket "$bucket" --public-access-block-configuration \
@@ -326,6 +330,40 @@ cmd_backup() {  # instantánea de etcd en S3 (ADR 0035): se hace al final de cad
     snapshot save /data/$snapshot >/dev/null 2>&1 && sudo cat /srv/dfsha/data/etcd/$snapshot && sudo rm /srv/dfsha/data/etcd/$snapshot" |
     aws s3 cp - "s3://$bucket/$snapshot" --only-show-errors
   log "Copia de seguridad en s3://$bucket/$snapshot"
+}
+
+cmd_restore() {  # restauración manual de la copia de seguridad (ADR 0035; fase I §4.2)
+  local bucket snapshot tmp cluster="" host ip
+  bucket=$(backup_bucket)
+  snapshot=${1:-$(aws s3 ls "s3://$bucket/" | awk '{print $4}' | sort | tail -1)}
+  [[ -n $snapshot ]] || { log "ERROR: no hay ninguna copia en s3://$bucket"; exit 1; }
+  tmp=$(mktemp -d)
+  aws s3 cp "s3://$bucket/$snapshot" "$tmp/snapshot.db" --only-show-errors
+  for host in "${METADATA_HOSTS[@]}"; do cluster+="${cluster:+,}$host=https://$host:2380"; done
+  for host in "${METADATA_HOSTS[@]}"; do
+    ssh "${SSH_OPTIONS[@]}" "ubuntu@$(instance_field "$host" PublicIpAddress)" \
+      "sudo docker compose -f /srv/dfsha/compose.yaml stop 2>&1 | tail -1" | sed "s/^/[$host] /"
+  done
+  for host in "${METADATA_HOSTS[@]}"; do
+    ip=$(instance_field "$host" PublicIpAddress)
+    scp -q "${SSH_OPTIONS[@]}" "$tmp/snapshot.db" "ubuntu@$ip:/tmp/dfsha-snapshot.db"
+    # El directorio anterior se aparta, no se borra. --bump-revision evita que las revisiones retrocedan: la época
+    # del líder es una revisión, y los nodos de datos descartan épocas menores que la mayor que ya vieron.
+    ssh "${SSH_OPTIONS[@]}" "ubuntu@$ip" "sudo bash -c 'set -e
+      mv /srv/dfsha/data/etcd /srv/dfsha/data/etcd-anterior-\$(date -u +%Y%m%dT%H%M%SZ)
+      docker run --rm --entrypoint etcdutl -v /srv/dfsha/data:/data -v /tmp/dfsha-snapshot.db:/snapshot.db:ro \
+        $ETCD_IMAGE snapshot restore /snapshot.db --name $host --data-dir /data/etcd --initial-cluster $cluster \
+        --initial-advertise-peer-urls https://$host:2380 --bump-revision 1000000000 --mark-compacted >/dev/null 2>&1
+      chmod 0700 /srv/dfsha/data/etcd && rm /tmp/dfsha-snapshot.db'"
+    log "$host restaurado desde $snapshot"
+  done
+  rm -rf "$tmp"
+  for host in "${METADATA_HOSTS[@]}"; do
+    ssh "${SSH_OPTIONS[@]}" "ubuntu@$(instance_field "$host" PublicIpAddress)" \
+      "sudo docker compose -f /srv/dfsha/compose.yaml up -d 2>&1 | tail -1" | sed "s/^/[$host] /" &
+  done
+  wait
+  log "Servidores de metadatos arrancados con la copia $snapshot"
 }
 
 cmd_down() {
@@ -353,6 +391,8 @@ case ${1:-} in
   install) shift; cmd_install "$@" ;;
   status) cmd_status ;;
   backup) cmd_backup ;;
+  restore) shift; cmd_restore "$@" ;;
+  all) cmd_images; cmd_up; cmd_install ;;
   down) cmd_down ;;
-  *) sed -n '2,13p' "$0"; exit 2 ;;
+  *) sed -n '2,15p' "$0"; exit 2 ;;
 esac
