@@ -105,8 +105,34 @@ class NodeRecord(_message.Message):
     registered_at: _timestamp_pb2.Timestamp
     def __init__(self, node_id: _Optional[str] = ..., hostname: _Optional[str] = ..., addr: _Optional[str] = ..., capacity_bytes: _Optional[int] = ..., registered_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
+class AccessTokenClaims(_message.Message):
+    __slots__ = ("user_id", "is_admin", "expires_at")
+    USER_ID_FIELD_NUMBER: _ClassVar[int]
+    IS_ADMIN_FIELD_NUMBER: _ClassVar[int]
+    EXPIRES_AT_FIELD_NUMBER: _ClassVar[int]
+    user_id: str
+    is_admin: bool
+    expires_at: _timestamp_pb2.Timestamp
+    def __init__(self, user_id: _Optional[str] = ..., is_admin: _Optional[bool] = ..., expires_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+
+class UserRecord(_message.Message):
+    __slots__ = ("user_id", "username", "password_salt", "password_hash", "is_admin", "created_at")
+    USER_ID_FIELD_NUMBER: _ClassVar[int]
+    USERNAME_FIELD_NUMBER: _ClassVar[int]
+    PASSWORD_SALT_FIELD_NUMBER: _ClassVar[int]
+    PASSWORD_HASH_FIELD_NUMBER: _ClassVar[int]
+    IS_ADMIN_FIELD_NUMBER: _ClassVar[int]
+    CREATED_AT_FIELD_NUMBER: _ClassVar[int]
+    user_id: str
+    username: str
+    password_salt: bytes
+    password_hash: bytes
+    is_admin: bool
+    created_at: _timestamp_pb2.Timestamp
+    def __init__(self, user_id: _Optional[str] = ..., username: _Optional[str] = ..., password_salt: _Optional[bytes] = ..., password_hash: _Optional[bytes] = ..., is_admin: _Optional[bool] = ..., created_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+
 class FileHandle(_message.Message):
-    __slots__ = ("file_id", "version", "mode", "user_id", "block_size_bytes", "parent_directory_id", "name", "parent_entry_key", "parent_create_revision")
+    __slots__ = ("file_id", "version", "mode", "user_id", "block_size_bytes", "parent_directory_id", "name", "parent_entry_key", "parent_create_revision", "wrapped_data_key")
     FILE_ID_FIELD_NUMBER: _ClassVar[int]
     VERSION_FIELD_NUMBER: _ClassVar[int]
     MODE_FIELD_NUMBER: _ClassVar[int]
@@ -116,6 +142,7 @@ class FileHandle(_message.Message):
     NAME_FIELD_NUMBER: _ClassVar[int]
     PARENT_ENTRY_KEY_FIELD_NUMBER: _ClassVar[int]
     PARENT_CREATE_REVISION_FIELD_NUMBER: _ClassVar[int]
+    WRAPPED_DATA_KEY_FIELD_NUMBER: _ClassVar[int]
     file_id: str
     version: int
     mode: _metadata_pb2.OpenMode
@@ -125,4 +152,5 @@ class FileHandle(_message.Message):
     name: str
     parent_entry_key: bytes
     parent_create_revision: int
-    def __init__(self, file_id: _Optional[str] = ..., version: _Optional[int] = ..., mode: _Optional[_Union[_metadata_pb2.OpenMode, str]] = ..., user_id: _Optional[str] = ..., block_size_bytes: _Optional[int] = ..., parent_directory_id: _Optional[str] = ..., name: _Optional[str] = ..., parent_entry_key: _Optional[bytes] = ..., parent_create_revision: _Optional[int] = ...) -> None: ...
+    wrapped_data_key: bytes
+    def __init__(self, file_id: _Optional[str] = ..., version: _Optional[int] = ..., mode: _Optional[_Union[_metadata_pb2.OpenMode, str]] = ..., user_id: _Optional[str] = ..., block_size_bytes: _Optional[int] = ..., parent_directory_id: _Optional[str] = ..., name: _Optional[str] = ..., parent_entry_key: _Optional[bytes] = ..., parent_create_revision: _Optional[int] = ..., wrapped_data_key: _Optional[bytes] = ...) -> None: ...

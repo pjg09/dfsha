@@ -70,7 +70,24 @@ message NodeRecord {
   google.protobuf.Timestamp registered_at = 5;
 }
 
-// Contenido del descriptor de archivo (file_handle). Se firma en la etapa 6.
+// Contenido del token de acceso (ADR 0022). Va firmado con la clave de los tokens de acceso.
+message AccessTokenClaims {
+  string user_id = 1;
+  bool is_admin = 2;
+  google.protobuf.Timestamp expires_at = 3;  // 1 h tras Authenticate
+}
+
+// users/<user_id>
+message UserRecord {
+  string user_id = 1;
+  string username = 2;
+  bytes password_salt = 3;
+  bytes password_hash = 4;                   // scrypt (§10.2)
+  bool is_admin = 5;
+  google.protobuf.Timestamp created_at = 6;
+}
+
+// Contenido del descriptor de archivo (file_handle). Va firmado por el servidor de metadatos.
 message FileHandle {
   string file_id = 1;
   uint64 version = 2;                        // versión abierta; 0 si el archivo se crea al confirmar
@@ -82,4 +99,5 @@ message FileHandle {
   string name = 7;
   bytes parent_entry_key = 8;                // vacío si el padre es la raíz
   int64 parent_create_revision = 9;          // la entrada del padre al abrir; si cambia, falla
+  bytes wrapped_data_key = 10;               // solo en OPEN_MODE_CREATE: la clave que guardará al confirmar
 }
