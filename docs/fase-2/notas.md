@@ -141,6 +141,13 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
 - **2026-11-07 · La recolección de basura recorre todos los metadatos** (etapa 8, §9.3). Con cada informe de
   bloques, el líder lee todas las versiones, arrendamientos y escrituras en curso. Con 5 nodos cada 5 min y
   pocos archivos es barato; con muchos archivos habría que llevar un índice de bloques vivos.
+- **2026-11-07 · Un nodo de datos lleno seguía recibiendo bloques** (etapa 10, v0.12.1). La primera ejecución
+  de E2 se cortó al llenarse el volumen de 10 GiB de un nodo. Con 3 nodos y R = 3 cada nodo guarda todos los
+  bloques, y los archivos borrados de E1 seguían vivos durante su periodo de gracia de 10 min. Salieron dos
+  fallos: el líder elegía nodos sin espacio (ordenaba por espacio libre pero no descartaba los llenos, y solo
+  comprobaba W en el primer bloque de cada reserva), y el nodo lleno respondía `UNKNOWN` en lugar de
+  `RESOURCE_EXHAUSTED`. Corregidos, con pruebas que fallan sin la corrección. Para medir, `deploy.sh` admite
+  ahora `DFSHA_EXTRA_ENV` con parámetros como el periodo de gracia o W.
 - **2026-11-07 · Al repetir un bloque, el líder devolvía el nodo que acababa de caer** (etapa 9, ADR 0044). En
   el escenario 3 en AWS, `datanode-4` cayó durante una carga de 1 GiB. El líder lo sigue contando como vivo
   hasta 9 s y, por ser el de más espacio libre, lo dio como primaria en las cuatro reservas del bloque 58: el
