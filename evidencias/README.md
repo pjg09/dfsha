@@ -2,7 +2,7 @@
 
 Salida registrada de las pruebas mínimas (§5.2 del enunciado), de los experimentos y de los fallos
 provocados. Cuándo se registra, con qué formato y qué se quita antes de commitear: [ADR 0036](../docs/decisiones/0036-evidencias-y-material-del-informe.md).
-Las mediciones de los experimentos están en `bench/resultados/` (ADR 0028).
+Las mediciones de los experimentos están en `bench/resultados/` (ADR 0046).
 
 ## Índice
 
@@ -20,7 +20,7 @@ Una fila sin evidencia es una evidencia que falta.
 | Seguridad | Acceso autorizado y denegado; TLS en el canal y bloques cifrados en disco (fase I, §10) | [`2026-11-07-seguridad`](2026-11-07-seguridad/) | Hecha |
 | Rendimiento | Latencia y tasa de transferencia en al menos dos condiciones (experimentos) | — | Pendiente |
 
-### Experimentos (ADR 0028)
+### Experimentos (ADR 0046)
 
 | Exp. | Variable | Evidencia | Estado |
 |---|---|---|---|

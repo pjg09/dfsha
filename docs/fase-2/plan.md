@@ -187,7 +187,7 @@ evidencias registradas.
 escenarios 3 y 4 (§11.3, §11.4), con sus evidencias registradas.
 
 ### 10. Experimentos y pruebas finales
-- E1–E9 en AWS (ADR 0028): 5 repeticiones por punto, mediana y p95, CSV en `bench/resultados/`.
+- E1–E9 en AWS (ADR 0046, que sustituye al 0028 y mide E8 por componentes): 5 repeticiones por punto, mediana y p95, CSV en `bench/resultados/`.
 - Ajustar los parámetros de la §13.2. Cambiar un valor por defecto lleva ADR.
 - Repetir las siete pruebas mínimas con la versión final, con sus scripts.
 - **Cómo se hace** (decidido al empezar la etapa 10):
