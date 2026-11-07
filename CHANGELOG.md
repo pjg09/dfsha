@@ -2,6 +2,18 @@
 
 Generado automáticamente por semantic-release a partir de los commits. No editar a mano.
 
+## [0.10.0](https://github.com/pjg09/dfsha/compare/v0.9.1...v0.10.0) (2026-11-07)
+
+### Funcionalidades
+
+* añade la recolección de basura de bloques ([bb4396e](https://github.com/pjg09/dfsha/commit/bb4396e37a0637eabc6a286e64645618a079da0a))
+* **client:** añade las órdenes de RF3 a la línea de órdenes ([c364304](https://github.com/pjg09/dfsha/commit/c36430476050f917c040a09e65aca181236cd750))
+* **client:** añade open, read, write, lock, unlock y close (RF3) ([2c159f6](https://github.com/pjg09/dfsha/commit/2c159f6f7f8c10408a41fabd49461e53f54790a3))
+
+### Correcciones
+
+* **metadata:** no trunca lo anexado al confirmar una escritura parcial ([d718d00](https://github.com/pjg09/dfsha/commit/d718d00f2c832f319daf6e927a893c7de44db88a))
+
 ## [0.9.1](https://github.com/pjg09/dfsha/compare/v0.9.0...v0.9.1) (2026-11-07)
 
 ### Correcciones
