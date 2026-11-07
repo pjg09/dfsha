@@ -32,3 +32,6 @@ ENV PATH=/app/.venv/bin:$PATH
 
 FROM base AS datanode
 ENTRYPOINT ["python", "-m", "dfsha.datanode"]
+
+FROM base AS metadata
+ENTRYPOINT ["python", "-m", "dfsha.metadata"]

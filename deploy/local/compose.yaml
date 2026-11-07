@@ -1,21 +1,120 @@
-# Entorno local de desarrollo (ADR 0030): el clúster en una sola máquina con las mismas imágenes que AWS.
-# No sirve como evidencia: las pruebas mínimas y los experimentos se hacen en AWS (ADR 0036).
+# Entorno local de desarrollo (ADR 0030): el clúster en una sola máquina con las mismas imágenes y las
+# mismas direcciones que AWS. No sirve como evidencia: las pruebas mínimas y los experimentos se hacen en
+# AWS (ADR 0036).
 #   DFSHA_VERSION=$(scripts/get-version.sh) DFSHA_IMAGE_TAG=$(scripts/get-version.sh --image) \
 #     docker compose -f deploy/local/compose.yaml up -d --build
-# Etapa 3: nodos de datos. Los servidores de metadatos, etcd y el cliente llegan en las etapas 4 y 5.
+# Cada miembro de etcd tiene el nombre de host de su servidor de metadatos, y el servidor de metadatos
+# comparte su red: metadata-1:2379 es etcd y metadata-1:50051 el servicio, igual que en una instancia
+# con red del host (ADR 0040).
 name: dfsha
+
+x-build: &build
+  context: ../..
+  args:
+    DFSHA_VERSION: ${DFSHA_VERSION:-0.0.0}
+
+x-etcd: &etcd
+  image: gcr.io/etcd-development/etcd:v3.7.3@sha256:0d27b9478551f431f82d1e0ddb6c87ad07ebae8b904c637f3a99213349523910
+  restart: always
+  networks: [dfsha-net]
+
+x-metadata: &metadata
+  image: dfsha-metadata:${DFSHA_IMAGE_TAG:-0.0.0}
+  build:
+    <<: *build
+    target: metadata
+  restart: always
 
 x-datanode: &datanode
   image: dfsha-datanode:${DFSHA_IMAGE_TAG:-0.0.0}
   build:
-    context: ../..
+    <<: *build
     target: datanode
-    args:
-      DFSHA_VERSION: ${DFSHA_VERSION:-0.0.0}
   restart: always
   networks: [dfsha-net]
 
 services:
+  metadata-1-etcd:
+    <<: *etcd
+    hostname: metadata-1
+    container_name: metadata-1-etcd
+    command:
+      - etcd
+      - --name=metadata-1
+      - --data-dir=/data
+      - --listen-client-urls=http://[::]:2379
+      - --advertise-client-urls=http://metadata-1:2379
+      - --listen-peer-urls=http://[::]:2380
+      - --initial-advertise-peer-urls=http://metadata-1:2380
+      - --initial-cluster=metadata-1=http://metadata-1:2380,metadata-2=http://metadata-2:2380,metadata-3=http://metadata-3:2380
+      - --initial-cluster-state=new
+      - --auto-compaction-mode=periodic
+      - --auto-compaction-retention=1h
+    volumes: [metadata-1-data:/data]
+
+  metadata-1:
+    <<: *metadata
+    container_name: metadata-1
+    network_mode: service:metadata-1-etcd
+    depends_on: [metadata-1-etcd]
+    environment:
+      DFSHA_METADATA_ADDR: metadata-1:50051
+      DFSHA_ETCD_ADDRS: metadata-1:2379,metadata-2:2379,metadata-3:2379
+
+  metadata-2-etcd:
+    <<: *etcd
+    hostname: metadata-2
+    container_name: metadata-2-etcd
+    command:
+      - etcd
+      - --name=metadata-2
+      - --data-dir=/data
+      - --listen-client-urls=http://[::]:2379
+      - --advertise-client-urls=http://metadata-2:2379
+      - --listen-peer-urls=http://[::]:2380
+      - --initial-advertise-peer-urls=http://metadata-2:2380
+      - --initial-cluster=metadata-1=http://metadata-1:2380,metadata-2=http://metadata-2:2380,metadata-3=http://metadata-3:2380
+      - --initial-cluster-state=new
+      - --auto-compaction-mode=periodic
+      - --auto-compaction-retention=1h
+    volumes: [metadata-2-data:/data]
+
+  metadata-2:
+    <<: *metadata
+    container_name: metadata-2
+    network_mode: service:metadata-2-etcd
+    depends_on: [metadata-2-etcd]
+    environment:
+      DFSHA_METADATA_ADDR: metadata-2:50051
+      DFSHA_ETCD_ADDRS: metadata-2:2379,metadata-1:2379,metadata-3:2379
+
+  metadata-3-etcd:
+    <<: *etcd
+    hostname: metadata-3
+    container_name: metadata-3-etcd
+    command:
+      - etcd
+      - --name=metadata-3
+      - --data-dir=/data
+      - --listen-client-urls=http://[::]:2379
+      - --advertise-client-urls=http://metadata-3:2379
+      - --listen-peer-urls=http://[::]:2380
+      - --initial-advertise-peer-urls=http://metadata-3:2380
+      - --initial-cluster=metadata-1=http://metadata-1:2380,metadata-2=http://metadata-2:2380,metadata-3=http://metadata-3:2380
+      - --initial-cluster-state=new
+      - --auto-compaction-mode=periodic
+      - --auto-compaction-retention=1h
+    volumes: [metadata-3-data:/data]
+
+  metadata-3:
+    <<: *metadata
+    container_name: metadata-3
+    network_mode: service:metadata-3-etcd
+    depends_on: [metadata-3-etcd]
+    environment:
+      DFSHA_METADATA_ADDR: metadata-3:50051
+      DFSHA_ETCD_ADDRS: metadata-3:2379,metadata-1:2379,metadata-2:2379
+
   datanode-1:
     <<: *datanode
     hostname: datanode-1
@@ -23,8 +122,10 @@ services:
     environment:
       DFSHA_NODE_ID: datanode-1
       DFSHA_DATANODE_ADDR: datanode-1:50052
+      DFSHA_METADATA_ADDRS: metadata-1:50051,metadata-2:50051,metadata-3:50051
       DFSHA_INITIALIZE_DATA_DIRECTORY: "true"  # solo en local; en AWS la marca la pone el script de despliegue
     volumes: [datanode-1-data:/data]
+
   datanode-2:
     <<: *datanode
     hostname: datanode-2
@@ -32,8 +133,10 @@ services:
     environment:
       DFSHA_NODE_ID: datanode-2
       DFSHA_DATANODE_ADDR: datanode-2:50052
+      DFSHA_METADATA_ADDRS: metadata-1:50051,metadata-2:50051,metadata-3:50051
       DFSHA_INITIALIZE_DATA_DIRECTORY: "true"  # solo en local; en AWS la marca la pone el script de despliegue
     volumes: [datanode-2-data:/data]
+
   datanode-3:
     <<: *datanode
     hostname: datanode-3
@@ -41,8 +144,10 @@ services:
     environment:
       DFSHA_NODE_ID: datanode-3
       DFSHA_DATANODE_ADDR: datanode-3:50052
+      DFSHA_METADATA_ADDRS: metadata-1:50051,metadata-2:50051,metadata-3:50051
       DFSHA_INITIALIZE_DATA_DIRECTORY: "true"  # solo en local; en AWS la marca la pone el script de despliegue
     volumes: [datanode-3-data:/data]
+
   datanode-4:
     <<: *datanode
     hostname: datanode-4
@@ -50,8 +155,10 @@ services:
     environment:
       DFSHA_NODE_ID: datanode-4
       DFSHA_DATANODE_ADDR: datanode-4:50052
+      DFSHA_METADATA_ADDRS: metadata-1:50051,metadata-2:50051,metadata-3:50051
       DFSHA_INITIALIZE_DATA_DIRECTORY: "true"  # solo en local; en AWS la marca la pone el script de despliegue
     volumes: [datanode-4-data:/data]
+
   datanode-5:
     <<: *datanode
     hostname: datanode-5
@@ -59,6 +166,7 @@ services:
     environment:
       DFSHA_NODE_ID: datanode-5
       DFSHA_DATANODE_ADDR: datanode-5:50052
+      DFSHA_METADATA_ADDRS: metadata-1:50051,metadata-2:50051,metadata-3:50051
       DFSHA_INITIALIZE_DATA_DIRECTORY: "true"  # solo en local; en AWS la marca la pone el script de despliegue
     volumes: [datanode-5-data:/data]
 
@@ -67,6 +175,9 @@ networks:
     name: dfsha-net
 
 volumes:
+  metadata-1-data:
+  metadata-2-data:
+  metadata-3-data:
   datanode-1-data:
   datanode-2-data:
   datanode-3-data:
