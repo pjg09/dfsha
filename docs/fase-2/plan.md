@@ -128,6 +128,10 @@ un bloque en disco no se puede leer sin la clave.
   los grupos de seguridad y los volúmenes EBS, instala Docker y chrony, genera `/etc/hosts` y los
   certificados, y arranca los contenedores.
 - Copia de seguridad de los metadatos en S3 y su restauración (§4.2, ADR 0035).
+- **Cómo se hace** (decidido al empezar la etapa 7): `deploy/aws/deploy.sh` con las órdenes `images`
+  (construye y envía a ECR), `up` (grupos de seguridad, volúmenes e instancias), `install` (por SSH con
+  `~/.ssh/labsuser.pem`: nombre de host, `/etc/hosts`, Docker, volumen montado por UUID con `nofail`,
+  secretos, `compose.yaml` del rol con red del host y arranque), `status`, `backup` y `down`.
 - **Pendiente de la etapa 6** (ADR 0043): generar los secretos con `python -m dfsha.common.pki`, copiar a
   cada instancia solo los de su host, con dueño el usuario de las imágenes (10001) y permisos de solo
   lectura, y dejar el directorio de datos de etcd con permisos `0700`.

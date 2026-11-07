@@ -36,6 +36,19 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
   cifrado AES-256-GCM en el cliente: `put` en 5,2 s (206 MB/s) y `get` en 2,6 s (415 MB/s), mismo SHA-256.
   Sin seguridad eran 4,3 s y 1,8 s (etapa 5). Es una referencia del coste de TLS y del cifrado; E8 lo mide
   en AWS.
+- **2026-11-07 · Primer despliegue en AWS** (etapa 7, imágenes v0.9.0, `57d91bc`). `deploy.sh images` construye
+  y envía las tres imágenes a ECR en 1 min 34 s; `up` crea los grupos de seguridad, las 9 instancias y los 8
+  volúmenes en 5 min 20 s (los volúmenes, uno tras otro, unos 24 s cada uno); `install` configura los 9 hosts
+  en paralelo en 1 min. `metadata-1` sale elegido líder y los cinco nodos de datos se dan de alta en cuanto
+  hay líder. El directorio de datos de etcd queda con `0700`.
+- **2026-11-07 · Memoria de los nodos de datos en AWS** (etapa 7). Durante el `put` de 1 GiB, el pico del
+  proceso (`VmHWM`) de cada nodo de datos fue de 103 a 132 MiB, con unos 440 MiB disponibles en cada t3.micro.
+  Confirma en AWS la medición local de la etapa 3.
+- **2026-11-07 · Reparto de réplicas en AWS** (etapa 7). Con un volumen por nodo, las 192 réplicas de 1 GiB
+  quedan en 39, 38, 39, 38 y 38. El reparto desigual del entorno local venía del disco compartido.
+- **2026-11-07 · Copia de seguridad de etcd en S3** (etapa 7, ADR 0035). `deploy.sh backup` guarda una
+  instantánea de 120 KiB (con 1 GiB y 1 MiB cargados) en el bucket `dfsha-copias-<sufijo>`, con SSE-S3 y
+  acceso público bloqueado, en 11 s.
 - **2026-11-07 · Bloques ilegibles en disco** (etapa 6, local). Un archivo de texto con una marca repetida
   20 000 veces se carga con `put`, y ningún bloque de los cinco nodos de datos contiene la marca. Cada
   bloque guardado mide 28 bytes más que el bloque en claro (nonce y etiqueta de AES-GCM).
@@ -67,6 +80,10 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
 - **2026-11-07 · El bloqueo por intentos fallidos vive en la memoria del líder** (etapa 6, ADR 0043): tras
   5 fallos seguidos, el usuario queda bloqueado 30 s, pero un cambio de líder reinicia el contador.
 
+- **2026-11-07 · La contraseña de ECR caduca a las 12 h** (etapa 7). `install` la entrega a cada instancia
+  y las imágenes quedan en caché, así que reiniciar un contenedor no la necesita; recrear una instancia
+  pasadas 12 h exige volver a ejecutar `install`.
+
 ## Problemas encontrados y cómo se resolvieron
 
 - **2026-11-07 · gRPC para Python no permite un certificado de cliente opcional** (etapa 6, ADR 0043). Con
@@ -77,6 +94,25 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
   tiene permisos `drwxr-xr-x` y recomienda `0700`. En AWS el script de despliegue tiene que dejar el
   directorio de datos de etcd con `0700` (etapa 7).
 
+- **2026-11-07 · Las 9 instancias se instalaron como `client-1`** (etapa 7). En `deploy.sh`, el bucle de
+  `hosts_file` usaba la variable `host` sin declararla local, y en bash eso pisa la variable local de la
+  función que llama. Cada instalación terminaba con el nombre, el `compose.yaml` y los secretos de `client-1`.
+  Se detectó en la salida de la primera instalación, antes de cargar ningún dato; se corrigió y se reinstaló.
+- **2026-11-07 · Un contenedor en marcha deja de ver sus secretos** (etapa 7). `install` sustituía el
+  directorio de secretos (`rm -rf` y `mv`); un contenedor que no se recreaba seguía montando el directorio
+  borrado. Ahora se cambia el contenido sin borrar el directorio.
+- **2026-11-07 · Pruebas de seguridad que no probaban lo que decían** (etapa 7). Al pasar las contraseñas a
+  `client-1`, la contraseña nueva de `useradd` llegaba vacía y la CLI fallaba sin llamar al servidor. Y el
+  bloqueo por intentos fallidos, probado con un proceso por intento (unos 3 s cada uno), aceptó una vez la
+  contraseña correcta cuando debía estar bloqueada; lo más probable es que pasaran los 30 s, pero no se guardó
+  la hora de cada intento. Repetido a mano con la hora, el bloqueo se cumplió. Las dos pruebas se rehicieron y
+  la evidencia es la tercera ejecución (`evidencias/2026-11-07-seguridad/README.md`).
+- **2026-11-07 · Avisos de etcd en AWS** (etapa 7). «simple token is not cryptographically signed» se refiere
+  a los tokens de los usuarios propios de etcd, que no se usan: los clientes de etcd se autentican con su
+  certificado. «Running http and grpc server on single port» es informativo. Ninguno afecta al sistema.
+- **2026-11-07 · Sin certificado, el servidor gRPC cierra la conexión sin alerta** (etapa 7). Con TLS 1.3 el
+  cliente da la negociación por terminada antes de que el servidor compruebe su certificado; después, el
+  servidor cierra la conexión y `openssl s_client` informa de «unexpected eof» en lugar de una alerta TLS.
 - **2026-11-06 · Memoria de la primaria con escrituras simultáneas** (etapa 3). Con 8 escrituras a la vez,
   el pico de memoria del proceso tenía una mediana de 257 MiB (246–269, 5 repeticiones), por las arenas de
   `malloc` de glibc que crea cada hilo. Con `MALLOC_ARENA_MAX=2` en la imagen base baja a 167 MiB, sin
