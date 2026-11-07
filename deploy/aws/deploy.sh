@@ -4,7 +4,8 @@
 # Uso: deploy/aws/deploy.sh <orden>
 #   images   construye las imágenes de la versión actual y las envía a ECR (etiquetas inmutables)
 #   up       crea los grupos de seguridad, los volúmenes EBS y las 9 instancias (o arranca las paradas)
-#   install  configura cada instancia (o solo los hosts indicados) por SSH y arranca sus contenedores
+#   install  configura cada instancia (o solo los hosts indicados) por SSH y arranca sus contenedores; con
+#            DFSHA_EXTRA_ENV="DFSHA_WRITE_QUORUM=3 ..." añade esas variables a todos los contenedores
 #   status   estado de las instancias y de los contenedores
 #   backup   guarda en S3 una instantánea de etcd (copia de seguridad de los metadatos, ADR 0035)
 #   restore  restaura en los tres servidores de metadatos una instantánea de S3 (la última o la indicada)
@@ -155,6 +156,11 @@ hosts_file() {
   for each in "${ALL_HOSTS[@]}"; do printf '%s %s\n' "$(instance_field "$each" PrivateIpAddress)" "$each"; done
 }
 
+extra_env() {  # pares CLAVE=valor de DFSHA_EXTRA_ENV (experimentos de la etapa 10), como entradas de environment
+  local pair
+  for pair in ${DFSHA_EXTRA_ENV:-}; do printf ', %s: "%s"' "${pair%%=*}" "${pair#*=}"; done
+}
+
 compose_for() {  # compose.yaml del rol, con red del host (ADR 0040)
   local host=$1 role tag reg
   role=$(role_of "$host"); tag=$(version_tag); reg=$(registry)
@@ -197,7 +203,7 @@ compose_for() {  # compose.yaml del rol, con red del host (ADR 0040)
     network_mode: host
     restart: always
     depends_on: [etcd]
-    environment: {DFSHA_METADATA_ADDR: "$host:50051", DFSHA_ETCD_ADDRS: "$etcd_addrs"}
+    environment: {DFSHA_METADATA_ADDR: "$host:50051", DFSHA_ETCD_ADDRS: "$etcd_addrs"$(extra_env)}
     volumes: [/srv/dfsha/secrets:/run/secrets/dfsha:ro]
 EOF
   elif [[ $role == datanode ]]; then
@@ -207,7 +213,7 @@ EOF
     container_name: $host
     network_mode: host
     restart: always
-    environment: {DFSHA_NODE_ID: "$host", DFSHA_DATANODE_ADDR: "$host:50052", DFSHA_METADATA_ADDRS: "$metadata_addrs"}
+    environment: {DFSHA_NODE_ID: "$host", DFSHA_DATANODE_ADDR: "$host:50052", DFSHA_METADATA_ADDRS: "$metadata_addrs"$(extra_env)}
     volumes: [/srv/dfsha/data:/data, /srv/dfsha/secrets:/run/secrets/dfsha:ro]
 EOF
   else
@@ -217,7 +223,7 @@ EOF
     container_name: $host
     network_mode: host
     restart: always
-    environment: {DFSHA_METADATA_ADDRS: "$metadata_addrs"}
+    environment: {DFSHA_METADATA_ADDRS: "$metadata_addrs"$(extra_env)}
     volumes: [/srv/dfsha/client:/data, /srv/dfsha/secrets:/run/secrets/dfsha:ro]
 EOF
   fi
