@@ -35,6 +35,9 @@ para desarrollar: las evidencias se obtienen en AWS (ADR 0036). Levanta los tres
 su miembro de etcd, los cinco nodos de datos y el cliente `client-1`.
 
 ```bash
+# Secretos del clúster local: CA interna, certificados y claves (una vez; nunca se versionan)
+uv run python -m dfsha.common.pki deploy/local/secrets metadata-1 metadata-2 metadata-3 \
+  datanode-1 datanode-2 datanode-3 datanode-4 datanode-5 client-1
 export DFSHA_VERSION=$(scripts/get-version.sh) DFSHA_IMAGE_TAG=$(scripts/get-version.sh --image)
 docker compose -f deploy/local/compose.yaml up -d --build   # construye las imágenes y arranca el clúster
 docker compose -f deploy/local/compose.yaml logs -f          # logs de todos los nodos
@@ -43,18 +46,24 @@ docker compose -f deploy/local/compose.yaml down -v          # para el clúster 
 
 ## Cliente
 
-`dfsha <orden>` ejecuta una orden; `dfsha shell` abre el modo interactivo, el único con `cd` y `pwd`. Solo
-necesita `DFSHA_METADATA_ADDRS` con los servidores de metadatos (ADR 0021). En el entorno local:
+`dfsha <orden>` ejecuta una orden; `dfsha shell` abre el modo interactivo, el único con `cd` y `pwd`. Se
+configura con `DFSHA_METADATA_ADDRS` (los servidores de metadatos, ADR 0021), `DFSHA_USERNAME`,
+`DFSHA_PASSWORD` (si falta, la pide) y `DFSHA_SECRETS_DIRECTORY` con el certificado del host (ADR 0043).
+El primer usuario es `admin`, con la contraseña de `deploy/local/secrets/admin-password`; él da de alta a
+los demás. En el entorno local:
 
 ```bash
-docker exec client-1 dfsha mkdir /docs
-docker exec client-1 dfsha put /data/archivo.bin /docs/archivo.bin   # carga (crea o reemplaza)
-docker exec client-1 dfsha ls /docs
-docker exec client-1 dfsha get /docs/archivo.bin /data/copia.bin     # recuperación
-docker exec -it client-1 dfsha shell
+docker exec -e DFSHA_USERNAME=admin -e DFSHA_PASSWORD="$(cat deploy/local/secrets/admin-password)" \
+  -e DFSHA_NEW_PASSWORD=una-contraseña client-1 dfsha useradd pedro
+export DFSHA_CLIENT="-e DFSHA_USERNAME=pedro -e DFSHA_PASSWORD=una-contraseña"
+docker exec $DFSHA_CLIENT client-1 dfsha mkdir /docs
+docker exec $DFSHA_CLIENT client-1 dfsha put /data/archivo.bin /docs/archivo.bin   # carga (crea o reemplaza)
+docker exec $DFSHA_CLIENT client-1 dfsha ls /docs
+docker exec $DFSHA_CLIENT client-1 dfsha get /docs/archivo.bin /data/copia.bin     # recuperación
+docker exec -it $DFSHA_CLIENT client-1 dfsha shell
 ```
 
-Órdenes: `ls`, `cd`, `pwd`, `mkdir`, `rmdir`, `rm`, `mv`, `put`, `get` y `stat`. Con `-v` muestra los
+Órdenes: `ls`, `cd`, `pwd`, `mkdir`, `rmdir`, `rm`, `mv`, `put`, `get`, `stat` y `useradd` (solo administradores). Con `-v` muestra los
 reintentos.
 
 ## Cómo trabajar en el repositorio
