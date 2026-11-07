@@ -44,6 +44,11 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
 - **2026-11-07 · Despliegue desde cero con una orden** (etapa 7, `ddb9bc6`). Con la cuenta vacía,
   `deploy.sh all` levanta los 9 hosts en 6 min 50 s sin intervención, y el clúster pasa la prueba de carga y
   recuperación. `down` necesitó dos pasadas para borrar los grupos de seguridad, que se citan entre sí.
+- **2026-11-07 · RF3 y concurrencia en AWS** (etapa 8, v0.10.0). Los cuatro modos de escritura coinciden con
+  un modelo local y solo reescriben los bloques que cambian (Tabla 22). En el escenario 1 con procesos
+  reales, el segundo escritor recibe `LOCK_CONFLICT` al momento y `VERSION_CONFLICT` si reintenta desde la
+  versión que abrió. Tras un `kill -9` al primero, el segundo escribe 27 s después, dentro del TTL de 30 s
+  (`evidencias/2026-11-07-acceso-rf3` y `evidencias/2026-11-07-concurrencia`).
 - **2026-11-07 · Memoria de los nodos de datos en AWS** (etapa 7). Durante el `put` de 1 GiB, el pico del
   proceso (`VmHWM`) de cada nodo de datos fue de 103 a 132 MiB, con unos 440 MiB disponibles en cada t3.micro.
   Confirma en AWS la medición local de la etapa 3.
@@ -92,6 +97,17 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
   El nodo de datos ya lo tolera; el cliente no reintenta `UNKNOWN`, así que una operación en curso durante la
   parada del líder puede fallar en lugar de reintentarse. Por revisar en la etapa 9 (tolerancia a fallos).
 
+- **2026-11-07 · El disco de `client-1` se llena con las pruebas** (etapa 8). Tiene un disco raíz de 8 GiB, y
+  cada `get` de 1 GiB deja una copia en `/srv/dfsha/client`. Una comprobación falló por falta de espacio y,
+  peor, mostró el hash de una copia anterior. Los scripts de evidencia tienen que borrar sus copias y mirar
+  el espacio libre antes de leer; para los experimentos de la etapa 10 (E1, archivos grandes) puede hacer
+  falta un volumen para el cliente.
+- **2026-11-07 · Un modo de escritura por apertura** (etapa 8). `CommitFile` lleva un solo modo y un solo
+  arrendamiento, así que cada apertura del archivo admite un modo (salvo al crear, donde anexar y modificar
+  forman parte de la creación) y las escrituras tienen que caber en el rango arrendado: una escritura fuera
+  de él falla y pide `lock()` con el rango completo. `write()` prepara los bloques en un archivo temporal
+  local y `close()` los envía, así que cerrar un archivo con muchos cambios tarda lo que tarda enviarlos.
+
 ## Problemas encontrados y cómo se resolvieron
 
 - **2026-11-07 · gRPC para Python no permite un certificado de cliente opcional** (etapa 6, ADR 0043). Con
@@ -102,6 +118,10 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
   tiene permisos `drwxr-xr-x` y recomienda `0700`. En AWS el script de despliegue tiene que dejar el
   directorio de datos de etcd con `0700` (etapa 7).
 
+- **2026-11-07 · Dos modos por defecto mal elegidos en el cliente** (etapa 8). Al abrir para escribir, el
+  modo por defecto era reemplazar, que pide el archivo entero y chocaba con un `lock` de un rango; y al
+  abrir para crear no se podía anexar. Lo encontró la prueba de la sesión de `dfsha shell`, antes de
+  publicarse: el modo por defecto pasó a ser la modificación parcial, como en POSIX.
 - **2026-11-07 · Una confirmación parcial podía truncar lo anexado por otro escritor** (etapa 8). `CommitFile`
   tomaba el tamaño de la versión nueva del cliente, calculado sobre su versión base. Con un escritor que anexa
   y confirma primero y otro que modifica el bloque 0 y confirma después, el archivo volvía al tamaño antiguo y
