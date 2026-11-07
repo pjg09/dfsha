@@ -31,7 +31,7 @@ Una fila sin evidencia es una evidencia que falta.
 | E5 | Tamaño de bloque | — | Pendiente |
 | E6 | Caída de un nodo de datos | — | Pendiente |
 | E7 | Caída del líder de metadatos | — | Pendiente |
-| E8 | Con y sin cifrado | — | Pendiente |
+| E8 | Coste de la seguridad, por componentes (ADR 0046) | [`bench/resultados/2026-11-07-e8.md`](../bench/resultados/2026-11-07-e8.md) | Hecha |
 | E9 | Arranque en frío | — | Pendiente |
 
 ### Despliegue
