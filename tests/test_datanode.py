@@ -1,5 +1,6 @@
 """Tres nodos de datos reales en localhost: reenvío desde la primaria, quórum W = 2 e integridad."""
 
+import errno
 import hashlib
 import os
 import time
@@ -215,6 +216,15 @@ def test_corrupt_replica_on_disk_is_detected_when_read(nodes: list[Node]) -> Non
     error = _expect_error(lambda: _read(node, block_id))
     assert (error.code, error.reason) == (grpc.StatusCode.DATA_LOSS, Reason.BLOCK_CORRUPTED)
     assert node.reporter.corrupt == [block_id]  # avisa al líder, que la marca y la re-replica (§8.5)
+
+
+def test_full_disk_is_resource_exhausted(nodes: list[Node], monkeypatch: pytest.MonkeyPatch) -> None:
+    def full(*_: object) -> bool:
+        raise OSError(errno.ENOSPC, "No space left on device")
+
+    monkeypatch.setattr(BlockStore, "commit", full)
+    error = _expect_error(lambda: nodes[0].stub.WriteBlock(_write_requests(str(uuid.uuid4()), b"datos", []), timeout=10))
+    assert error.code is grpc.StatusCode.RESOURCE_EXHAUSTED
 
 
 def test_missing_block(nodes: list[Node]) -> None:

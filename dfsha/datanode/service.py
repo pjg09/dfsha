@@ -1,5 +1,6 @@
 """Servicio DataNodeService: escritura y lectura de bloques en flujo (fase I §4.4, §6.1, §6.2 y §8.4)."""
 
+import errno
 import hashlib
 import logging
 import os
@@ -138,6 +139,13 @@ class DataNodeService(datanode_pb2_grpc.DataNodeServiceServicer):
             return self._write_block(request_iterator)
         except DfshaError as error:
             context.abort_with_status(error.to_status())
+        except OSError as error:
+            if error.errno != errno.ENOSPC:
+                raise
+            # Disco lleno: un error que el cliente y el líder entienden, no un UNKNOWN genérico (etapa 10)
+            logger.error("Sin espacio en el disco de datos: %s", error)
+            failure = DfshaError(grpc.StatusCode.RESOURCE_EXHAUSTED, f"El nodo de datos {self._settings.node_id} no tiene espacio")
+            context.abort_with_status(failure.to_status())
 
     def ReadBlock(  # noqa: N802 (nombre del RPC)
         self, request: datanode_pb2.ReadBlockRequest, context: grpc.ServicerContext
