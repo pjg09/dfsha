@@ -102,6 +102,15 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
   tiene permisos `drwxr-xr-x` y recomienda `0700`. En AWS el script de despliegue tiene que dejar el
   directorio de datos de etcd con `0700` (etapa 7).
 
+- **2026-11-07 · Una confirmación parcial podía truncar lo anexado por otro escritor** (etapa 8). `CommitFile`
+  tomaba el tamaño de la versión nueva del cliente, calculado sobre su versión base. Con un escritor que anexa
+  y confirma primero y otro que modifica el bloque 0 y confirma después, el archivo volvía al tamaño antiguo y
+  lo anexado quedaba fuera, en contra de la Tabla 24. Se vio al diseñar la biblioteca del cliente, antes de
+  que ningún cliente usara esos modos. Como anexar y modificar no encogen el archivo, ahora vale el mayor de
+  los dos tamaños; una prueba reproduce el caso (falla sin la corrección).
+- **2026-11-07 · La recolección de basura recorre todos los metadatos** (etapa 8, §9.3). Con cada informe de
+  bloques, el líder lee todas las versiones, arrendamientos y escrituras en curso. Con 5 nodos cada 5 min y
+  pocos archivos es barato; con muchos archivos habría que llevar un índice de bloques vivos.
 - **2026-11-07 · El hilo de latidos del nodo de datos moría con un error del líder** (etapa 7, `v0.9.1`). Al
   restaurar los metadatos, un líder que se paraba respondió `UNKNOWN` a `ReportBlocks` (su canal con etcd ya
   estaba cerrado). La excepción salió del bucle y el hilo de latidos murió en los cinco nodos de datos: el
