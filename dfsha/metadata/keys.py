@@ -28,6 +28,9 @@ class Keys:
     def version(self, file_id: str, version: int) -> bytes:
         return self._key("versions", file_id, f"{version:020d}")
 
+    def all_versions_prefix(self) -> bytes:
+        return self._key("versions") + b"/"
+
     def replicas_prefix(self, block_id: str) -> bytes:
         return self._key("replicas", block_id) + b"/"
 
@@ -37,11 +40,17 @@ class Keys:
     def pending_prefix(self, lease_id: str) -> bytes:
         return self._key("pending", lease_id) + b"/"
 
+    def all_pending_prefix(self) -> bytes:
+        return self._key("pending") + b"/"
+
     def pending(self, lease_id: str, request_id: str) -> bytes:
         return self._key("pending", lease_id, request_id)
 
     def leases_prefix(self, file_id: str) -> bytes:
         return self._key("leases", file_id) + b"/"
+
+    def all_leases_prefix(self) -> bytes:
+        return self._key("leases") + b"/"
 
     def lease(self, file_id: str, lease_id: str) -> bytes:
         return self._key("leases", file_id, lease_id)

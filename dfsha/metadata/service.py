@@ -806,11 +806,21 @@ class MetadataService(metadata_pb2_grpc.MetadataServiceServicer):
         def operation() -> metadata_pb2.ReportBlocksResponse:
             self._require_datanode(context, request.node_id)
             now = _now_timestamp(self._now())
-            ops = [self._put_replica(request.node_id, block, now) for block in request.blocks]
+            live_block_ids, expired_keys = self._collect_garbage()
+            garbage = [block for block in request.blocks if block.block_id not in live_block_ids]
+            ops = [self._put_replica(request.node_id, block, now) for block in request.blocks if block.block_id in live_block_ids]
+            ops += [op_delete(self.keys.replica(block.block_id, request.node_id)) for block in garbage]
+            ops += [op_delete(key) for key in expired_keys]
             for start in range(0, len(ops), _OPS_PER_TXN):
                 self._apply_without_request([], ops[start : start + _OPS_PER_TXN])
-            # Las órdenes de borrado y de re-replicación llegan en la etapa 9 (ADR 0018)
-            return metadata_pb2.ReportBlocksResponse(leader_epoch=self.election.epoch)
+            if garbage:
+                logger.info("%d bloques de %s no pertenecen a nada vivo: se ordena borrarlos", len(garbage), request.node_id)
+            commands = [
+                metadata_pb2.DataNodeCommand(type=metadata_pb2.DATA_NODE_COMMAND_TYPE_DELETE, block_id=block.block_id)
+                for block in garbage
+            ]
+            # La re-replicación llega en la etapa 9 (ADR 0018)
+            return metadata_pb2.ReportBlocksResponse(commands=commands, leader_epoch=self.election.epoch)
 
         return self._handle(context, operation)
 
@@ -900,6 +910,41 @@ class MetadataService(metadata_pb2_grpc.MetadataServiceServicer):
             return []
         version.expires_at.CopyFrom(_now_timestamp(now + self.settings.grace_period_s))
         return [op_put(key, version.SerializeToString())]
+
+    def _collect_garbage(self) -> tuple[set[str], list[bytes]]:
+        """Bloques vivos y registros caducados, leídos en una sola revisión de etcd (§9.3).
+
+        Un bloque está vivo si pertenece a una versión no caducada o a una escritura en curso cuyo
+        arrendamiento sigue vigente. Un bloque que no está vivo ya no puede volver a estarlo: CommitFile
+        exige el arrendamiento vigente, y una versión caducada no vuelve. Por eso borrarlo es seguro.
+        """
+        now = self._now()
+        live: set[str] = set()
+        expired_keys: list[bytes] = []
+        version_kvs, revision = self.store.etcd.get_prefix(self.keys.all_versions_prefix())
+        for kv in version_kvs:
+            version = VersionRecord.FromString(kv.value)
+            if version.HasField("expires_at") and _timestamp_seconds(version.expires_at) <= now:
+                expired_keys.append(kv.key)
+            else:
+                live.update(block.block_id for block in version.blocks)
+        lease_kvs, _ = self.store.etcd.get_prefix(self.keys.all_leases_prefix(), revision=revision)
+        alive_lease_ids = set()
+        for kv in lease_kvs:
+            lease = LeaseRecord.FromString(kv.value)
+            if self._is_lease_alive(lease):
+                alive_lease_ids.add(lease.lease_id)
+            else:
+                expired_keys.append(kv.key)
+        pending_prefix = self.keys.all_pending_prefix()
+        pending_kvs, _ = self.store.etcd.get_prefix(pending_prefix, revision=revision)
+        for kv in pending_kvs:
+            lease_id = kv.key[len(pending_prefix) :].split(b"/", 1)[0].decode()
+            if lease_id in alive_lease_ids:
+                live.update(block.block_id for block in PendingRecord.FromString(kv.value).blocks)
+            else:
+                expired_keys.append(kv.key)  # escritura abortada o con el arrendamiento caducado
+        return live, expired_keys
 
     def _put_replica(self, node_id: str, block: metadata_pb2.StoredBlock, now: Timestamp) -> RequestOp:
         replica = ReplicaRecord(

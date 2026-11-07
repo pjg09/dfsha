@@ -34,6 +34,8 @@ class LocalCluster:
     tmp_path: Path
     secrets: Path
     suspect_after_s: float = 9
+    grace_period_s: int = 600
+    block_report_interval_s: float = 300
     metadata: dict[str, MetadataServer] = field(default_factory=dict)
     datanodes: list[DataNodeServer] = field(default_factory=list)
     channels: dict[str, grpc.Channel] = field(default_factory=dict)
@@ -45,7 +47,7 @@ class LocalCluster:
     def start_metadata(self) -> str:
         def start(addr: str) -> tuple[str, MetadataServer]:
             config = MetadataConfig(
-                settings=MetadataSettings(addr=addr, block_size_bytes=BLOCK_SIZE_BYTES),
+                settings=MetadataSettings(addr=addr, block_size_bytes=BLOCK_SIZE_BYTES, grace_period_s=self.grace_period_s),
                 etcd_addrs=[self.etcd_addr], key_prefix=self.prefix,
                 leader_ttl_s=2, leader_refresh_interval_s=0.2, leader_step_down_after_s=1.4,
                 suspect_after_s=self.suspect_after_s, dead_after_s=30, server_threads=8, log_level="INFO",
@@ -68,6 +70,7 @@ class LocalCluster:
                 settings=DataNodeSettings(node_id=f"datanode-{index}", addr=addr, block_size_bytes=BLOCK_SIZE_BYTES),
                 data_directory=data_directory, require_mount_point=False, initialize_data_directory=False,
                 server_threads=8, log_level="INFO", metadata_addrs=list(self.metadata), heartbeat_interval_s=0.3,
+                block_report_interval_s=self.block_report_interval_s,
                 secrets_directory=self.secrets / f"datanode-{index}",
             )  # fmt: skip
             return create_datanode(config)
@@ -115,8 +118,11 @@ class LocalCluster:
                 addr = error.metadata["leader_addr"]
         raise AssertionError("demasiadas redirecciones")
 
-    def put(self, path: str, data: bytes) -> int:
-        """Carga completa de §6.1 con los RPC reales: abrir, arrendar, reservar, enviar y confirmar."""
+    def put(self, path: str, data: bytes, commit: bool = True) -> int:
+        """Carga completa de §6.1 con los RPC reales: abrir, arrendar, reservar, enviar y confirmar.
+
+        Con ``commit=False`` aborta en lugar de confirmar: los bloques ya enviados quedan huérfanos.
+        """
         stub = self.stub(self.get_leader())
         opened = stub.OpenFile(metadata_pb2.OpenFileRequest(path=path, mode=metadata_pb2.OPEN_MODE_CREATE), timeout=5)
         lease = stub.LockBlocks(
@@ -142,6 +148,12 @@ class LocalCluster:
                     block_index=location.block_index, block_id=location.block_id, block_sha256=sha256, size_bytes=len(piece)
                 )
             )
+        if not commit:
+            stub.AbortFile(
+                metadata_pb2.AbortFileRequest(request_id=_request_id(), file_handle=opened.file_handle, lease_id=lease.lease_id),
+                timeout=5,
+            )
+            return 0
         version = stub.CommitFile(
             metadata_pb2.CommitFileRequest(
                 request_id=_request_id(), file_handle=opened.file_handle, lease_id=lease.lease_id,

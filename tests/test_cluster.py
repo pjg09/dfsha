@@ -5,6 +5,7 @@ WriteBlock con reenvío y se confirma con los avisos reales, y tirar el líder n
 """
 
 import os
+import uuid
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -13,6 +14,7 @@ from helpers import expect_error, wait_until
 from local_cluster import BLOCK_SIZE_BYTES, LocalCluster
 
 from dfsha.common.errors import Reason
+from dfsha.datanode.block_store import BlockStore
 from dfsha.v1 import metadata_pb2
 
 
@@ -79,3 +81,35 @@ def test_follower_redirects_to_the_leader(cluster: LocalCluster) -> None:
     error = expect_error(lambda: cluster.stub(follower).ListDirectory(metadata_pb2.ListDirectoryRequest(path="/"), timeout=5))
     assert error.reason is Reason.NODE_NOT_LEADER
     assert error.metadata["leader_addr"] == cluster.get_leader()
+
+
+def test_garbage_collection_deletes_only_dead_blocks(
+    etcd_addr: str, etcd_prefix: bytes, tmp_path: Path, cluster_secrets: Path
+) -> None:
+    # Periodo de gracia de 1 s e informe de bloques cada segundo para no esperar 10 y 5 min (§9.3)
+    local = LocalCluster(etcd_addr, etcd_prefix, tmp_path, secrets=cluster_secrets, grace_period_s=1, block_report_interval_s=1)
+    try:
+        for _ in range(3):
+            local.start_metadata()
+        assert wait_until(lambda: sum(server.election.is_leader for server in local.metadata.values()) == 1)
+        local.create_test_user()
+        for index in range(1, 4):
+            local.start_datanode(index)
+        assert wait_until(lambda: all(d.metadata_client is not None and d.metadata_client.is_registered for d in local.datanodes))
+
+        def stored() -> set[str]:
+            return {meta.block_id for index in (1, 2, 3) for meta in BlockStore(tmp_path / f"datanode-{index}").list_blocks()}
+
+        kept = os.urandom(BLOCK_SIZE_BYTES + 100)
+        local.put("/vivo.bin", kept)
+        live_blocks = stored()
+        local.put("/abortado.bin", os.urandom(BLOCK_SIZE_BYTES // 2), commit=False)  # bloques huérfanos
+        local.put("/borrado.bin", os.urandom(BLOCK_SIZE_BYTES // 2))
+        local.call_leader(lambda stub: stub.DeleteFile(metadata_pb2.DeleteFileRequest(request_id=str(uuid.uuid4()), path="/borrado.bin"), timeout=5))
+        assert len(stored()) > len(live_blocks)
+
+        # Los huérfanos y la versión borrada, pasado el periodo de gracia, desaparecen de los tres nodos
+        assert wait_until(lambda: stored() == live_blocks, timeout_s=10)
+        assert local.get("/vivo.bin") == kept
+    finally:
+        local.stop()

@@ -34,6 +34,7 @@ class DataNodeConfig:
     secrets_directory: Path
     metadata_addrs: list[str] = field(default_factory=list)  # vacía: sin servidor de metadatos (pruebas)
     heartbeat_interval_s: float = 3.0
+    block_report_interval_s: float = 300.0
 
 
 def load_config() -> DataNodeConfig:
@@ -56,6 +57,7 @@ def load_config() -> DataNodeConfig:
         log_level=config.get_str("LOG_LEVEL", "INFO"),
         metadata_addrs=config.get_addrs("METADATA_ADDRS"),
         heartbeat_interval_s=config.get_float("HEARTBEAT_INTERVAL_S", 3.0),
+        block_report_interval_s=config.get_float("BLOCK_REPORT_INTERVAL_S", 300.0),
     )
 
 
@@ -95,6 +97,7 @@ def create_server(
             node_config.settings.addr,
             store,
             node_config.heartbeat_interval_s,
+            block_report_interval_s=node_config.block_report_interval_s,
             create_channel=create_channel,
         )
         reporter = metadata_client

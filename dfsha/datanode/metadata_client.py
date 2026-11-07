@@ -7,6 +7,7 @@ visto y descarta las órdenes que llegan con una menor (cercado, ADR 0039).
 
 import logging
 import threading
+import time
 from collections.abc import Callable, Sequence
 from typing import TypeVar
 
@@ -35,6 +36,7 @@ class MetadataClient:
         heartbeat_interval_s: float = 3.0,
         timeout_s: float = 2.0,
         retry_interval_s: float = 1.0,
+        block_report_interval_s: float = 300.0,
         create_channel: Callable[[str], grpc.Channel] = grpc.insecure_channel,
     ) -> None:
         self._create_channel = create_channel  # en producción, con TLS mutuo y el certificado del nodo
@@ -46,6 +48,8 @@ class MetadataClient:
         self._heartbeat_interval_s = heartbeat_interval_s
         self._timeout_s = timeout_s
         self._retry_interval_s = min(retry_interval_s, heartbeat_interval_s)
+        self._block_report_interval_s = block_report_interval_s  # 5 min (§9.3)
+        self._last_block_report = time.monotonic()
         self._lock = threading.Lock()
         self._channels: dict[str, grpc.Channel] = {}
         self._leader_addr = self._addrs[0]
@@ -132,6 +136,8 @@ class MetadataClient:
                 return
             raise
         self.handle_commands(response.leader_epoch, list(response.commands))
+        if time.monotonic() - self._last_block_report >= self._block_report_interval_s:
+            self.send_block_report()  # periódico: el líder lo compara con los metadatos y ordena borrar (§9.3)
 
     def send_block_report(self) -> None:
         blocks = [
@@ -143,6 +149,7 @@ class MetadataClient:
                 metadata_pb2.ReportBlocksRequest(node_id=self._node_id, blocks=blocks), timeout=self._timeout_s
             )
         )
+        self._last_block_report = time.monotonic()
         logger.info("Informe de bloques enviado: %d bloques", len(blocks))
         self.handle_commands(response.leader_epoch, list(response.commands))
 
@@ -169,8 +176,11 @@ class MetadataClient:
             self.executed_commands.append(command)
             if command.type == metadata_pb2.DATA_NODE_COMMAND_TYPE_SEND_BLOCK_REPORT:
                 self.send_block_report()
+            elif command.type == metadata_pb2.DATA_NODE_COMMAND_TYPE_DELETE:
+                if self._store.delete(command.block_id):
+                    logger.info("Bloque %s borrado por orden del líder", command.block_id)
             else:
-                # REPLICATE, DELETE y VERIFY llegan en la etapa 9 (ADR 0018 y 0032)
+                # REPLICATE y VERIFY llegan en la etapa 9 (ADR 0018 y 0032)
                 logger.warning("Orden %s todavía no implementada", metadata_pb2.DataNodeCommandType.Name(command.type))
 
     # ----- Conexión con el líder -----------------------------------------------------------------

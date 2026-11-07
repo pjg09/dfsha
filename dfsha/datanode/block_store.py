@@ -229,6 +229,21 @@ class BlockStore:
         stored = json.loads(meta_path.read_text())
         return block_path, BlockMeta(block_id, bytes.fromhex(stored["sha256"]), int(stored["size_bytes"]))
 
+    def delete(self, block_id: str) -> bool:
+        """Borra un bloque y sus metadatos (orden DELETE, §9.3). Devuelve False si no estaba.
+
+        Primero el bloque y después sus metadatos, para que siga valiendo que si existe el bloque existen
+        sus metadatos. Una lectura en curso conserva su descriptor abierto y termina.
+        """
+        validate_block_id(block_id)
+        block_path = self._get_block_path(block_id)
+        existed = block_path.is_file()
+        block_path.unlink(missing_ok=True)
+        block_path.with_name(block_path.name + _META_SUFFIX).unlink(missing_ok=True)
+        if existed:
+            _fsync_directory(block_path.parent)
+        return existed
+
     def get_free_bytes(self) -> int:
         return shutil.disk_usage(self.data_directory).free
 
