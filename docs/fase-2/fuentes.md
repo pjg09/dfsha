@@ -122,3 +122,20 @@ primera cita.
 - **Usada en:** ADR 0043 y `dfsha/common/security.py`
 - **Verificación:** No se leyó la documentación. El uso se comprobó en `tests/test_security.py`: AES-GCM rechaza un bit cambiado y un dato asociado distinto, y scrypt da hashes distintos con sales distintas.
 
+
+## Despliegue en AWS (etapa 7)
+
+### [etcdutl-restore]
+
+- **Referencia:** etcd Authors, «etcdutl snapshot restore», ayuda de la orden en etcd v3.7.3. [En línea]. Disponible en: https://etcd.io/docs/v3.6/op-guide/recovery/ (consultado: 7 nov. 2026).
+- **Tipo:** Software
+- **Usada en:** `deploy/aws/deploy.sh restore` (ADR 0035)
+- **Verificación:** No se leyó la página. Se leyó `etcdutl snapshot restore --help` en la imagen fijada `gcr.io/etcd-development/etcd:v3.7.3`: `--bump-revision` («How much to increase the latest revision after restore») exige `--mark-compacted`. Comprobado en AWS: tras restaurar, el líder salió con la época 2 000 000 252 y los nodos de datos lo aceptaron (`evidencias/2026-11-07-restauracion-de-metadatos`).
+- **Nota:** La versión de la URL es la última documentada que se conoce; la ayuda leída es la de v3.7.3.
+
+### [ubuntu-ami-ssm]
+
+- **Referencia:** Canonical, «Find Ubuntu images on AWS», Ubuntu on public clouds. [En línea]. Disponible en: https://documentation.ubuntu.com/aws/aws-how-to/instances/find-ubuntu-images/ (consultado: 7 nov. 2026).
+- **Tipo:** Documentación
+- **Usada en:** `deploy/aws/deploy.sh up` (parámetro de SSM con la AMI de Ubuntu 26.04)
+- **Verificación:** No se leyó la página. El parámetro `/aws/service/canonical/ubuntu/server/26.04/stable/current/amd64/hvm/ebs-gp3/ami-id` devolvió una AMI con la que las 9 instancias arrancaron con Ubuntu 26.04 y chrony sincronizado (lo comprueba `install`).
