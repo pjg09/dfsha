@@ -1,0 +1,103 @@
+/bench/e6.bin: versión 1, 256.0 MiB en 2.1 s (125 MB/s)
+[20:56:05] congelado 1: datanode-1 caído a las 2026-11-07T20:56:05.869Z
+Sin progreso en 10 s: se cancela la transferencia
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de a4620c95-dcc4-4d95-bf92-a330a84ff6e7 en datanode-1:50052 falló: Locally cancelled by application!
+La réplica de 9443fa4f-3a35-4e7a-b5f9-a01ec04dfd13 en datanode-1:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de c8e4da7d-5a21-4c37-857e-2bd982fbe24a en datanode-1:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de a4620c95-dcc4-4d95-bf92-a330a84ff6e7 en datanode-1:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de 0ff42100-bb20-4eb1-99b5-54556119a036 en datanode-1:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de d4c0fe3e-97d0-4379-84f3-c4b3ef0f99fb en datanode-1:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de 1ba30492-75f2-42ff-a6c0-3cf813c87e2e en datanode-1:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de 9443fa4f-3a35-4e7a-b5f9-a01ec04dfd13 en datanode-1:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de d4c0fe3e-97d0-4379-84f3-c4b3ef0f99fb en datanode-1:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de c8e4da7d-5a21-4c37-857e-2bd982fbe24a en datanode-1:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de 6e9b0e20-60d7-4616-8e85-9f660a6a5ff1 en datanode-1:50052 falló: Locally cancelled by application!
+[20:57:39] congelado 1: detección 31.921000000 s, re-replicación 12.069000000 s
+[20:58:33] congelado 2: datanode-2 caído a las 2026-11-07T20:58:33.180Z
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de 06d78e5f-09df-4db5-8a3a-9ee58b2343e9 en datanode-2:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de 1ba30492-75f2-42ff-a6c0-3cf813c87e2e en datanode-2:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de efd05f6e-c6b8-43a9-ae4a-9019206824e2 en datanode-2:50052 falló: Locally cancelled by application!
+La réplica de a4620c95-dcc4-4d95-bf92-a330a84ff6e7 en datanode-2:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de 3d30611a-2596-4201-b0ef-06fac543e3f5 en datanode-2:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de 9ead0524-0043-4b54-92f2-724bb18e6c58 en datanode-2:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de ebd998ce-58a9-4e08-b546-eded4cc46fbe en datanode-2:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de 06d78e5f-09df-4db5-8a3a-9ee58b2343e9 en datanode-2:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de d4c0fe3e-97d0-4379-84f3-c4b3ef0f99fb en datanode-2:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de 1f02b822-1473-4dd0-b8c8-fcffb6ffee1a en datanode-2:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de 3d30611a-2596-4201-b0ef-06fac543e3f5 en datanode-2:50052 falló: Locally cancelled by application!
+[21:00:07] congelado 2: detección 32.163000000 s, re-replicación 15.067000000 s
+[21:01:01] congelado 3: datanode-3 caído a las 2026-11-07T21:01:01.361Z
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de 06d78e5f-09df-4db5-8a3a-9ee58b2343e9 en datanode-3:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de d4c0fe3e-97d0-4379-84f3-c4b3ef0f99fb en datanode-3:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de c8e4da7d-5a21-4c37-857e-2bd982fbe24a en datanode-3:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de 4dd9ceb4-3ff5-406a-8938-a07a827ecb00 en datanode-3:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de 06d78e5f-09df-4db5-8a3a-9ee58b2343e9 en datanode-3:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de d4c0fe3e-97d0-4379-84f3-c4b3ef0f99fb en datanode-3:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de 1f02b822-1473-4dd0-b8c8-fcffb6ffee1a en datanode-3:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de c8e4da7d-5a21-4c37-857e-2bd982fbe24a en datanode-3:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de 06d78e5f-09df-4db5-8a3a-9ee58b2343e9 en datanode-3:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de 9ead0524-0043-4b54-92f2-724bb18e6c58 en datanode-3:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de 32806391-e710-4b96-b1a5-77ef8868e5e2 en datanode-3:50052 falló: Locally cancelled by application!
+[21:02:37] congelado 3: detección 31.535000000 s, re-replicación 12.059000000 s
+[21:03:30] congelado 4: datanode-4 caído a las 2026-11-07T21:03:30.395Z
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de 06d78e5f-09df-4db5-8a3a-9ee58b2343e9 en datanode-4:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de 1ba30492-75f2-42ff-a6c0-3cf813c87e2e en datanode-4:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de 1f02b822-1473-4dd0-b8c8-fcffb6ffee1a en datanode-4:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de 9ead0524-0043-4b54-92f2-724bb18e6c58 en datanode-4:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de 06d78e5f-09df-4db5-8a3a-9ee58b2343e9 en datanode-4:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de 1ba30492-75f2-42ff-a6c0-3cf813c87e2e en datanode-4:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de 1f02b822-1473-4dd0-b8c8-fcffb6ffee1a en datanode-4:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de c8e4da7d-5a21-4c37-857e-2bd982fbe24a en datanode-4:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de d4c0fe3e-97d0-4379-84f3-c4b3ef0f99fb en datanode-4:50052 falló: Locally cancelled by application!
+[21:05:05] congelado 4: detección 30.053000000 s, re-replicación 15.087000000 s
+[21:05:59] congelado 5: datanode-5 caído a las 2026-11-07T21:05:59.332Z
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de 0ff42100-bb20-4eb1-99b5-54556119a036 en datanode-5:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de 0ff42100-bb20-4eb1-99b5-54556119a036 en datanode-5:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de 0ff42100-bb20-4eb1-99b5-54556119a036 en datanode-5:50052 falló: Locally cancelled by application!
+Sin progreso en 10 s: se cancela la transferencia
+La réplica de efd05f6e-c6b8-43a9-ae4a-9019206824e2 en datanode-5:50052 falló: Locally cancelled by application!
+[21:07:31] congelado 5: detección 28.663000000 s, re-replicación 9.043000000 s
