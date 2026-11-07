@@ -4,7 +4,7 @@ import logging
 import signal
 import threading
 from concurrent import futures
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import grpc
@@ -12,6 +12,7 @@ import grpc
 from dfsha.common import config
 from dfsha.common.log import configure_logging
 from dfsha.datanode.block_store import BlockStore, initialize_data_directory, verify_data_directory
+from dfsha.datanode.metadata_client import MetadataClient
 from dfsha.datanode.service import BlockReporter, ChannelPool, DataNodeService, DataNodeSettings, LoggingBlockReporter
 from dfsha.v1 import datanode_pb2_grpc
 
@@ -28,6 +29,8 @@ class DataNodeConfig:
     initialize_data_directory: bool
     server_threads: int
     log_level: str
+    metadata_addrs: list[str] = field(default_factory=list)  # vacía: sin servidor de metadatos (pruebas)
+    heartbeat_interval_s: float = 3.0
 
 
 def load_config() -> DataNodeConfig:
@@ -47,18 +50,47 @@ def load_config() -> DataNodeConfig:
         initialize_data_directory=config.get_bool("INITIALIZE_DATA_DIRECTORY", False),
         server_threads=config.get_int("SERVER_THREADS", 16),
         log_level=config.get_str("LOG_LEVEL", "INFO"),
+        metadata_addrs=config.get_addrs("METADATA_ADDRS"),
+        heartbeat_interval_s=config.get_float("HEARTBEAT_INTERVAL_S", 3.0),
     )
+
+
+@dataclass
+class DataNodeServer:
+    server: grpc.Server
+    port: int
+    metadata_client: MetadataClient | None
+
+    def start(self) -> None:
+        self.server.start()
+        if self.metadata_client is not None:
+            self.metadata_client.start()
+
+    def stop(self, grace_s: float | None = None) -> None:
+        if self.metadata_client is not None:
+            self.metadata_client.stop()
+        self.server.stop(grace=grace_s).wait()
 
 
 def create_server(
     node_config: DataNodeConfig, reporter: BlockReporter | None = None, channels: ChannelPool | None = None
-) -> tuple[grpc.Server, int]:
-    """Prepara el almacén y el servidor gRPC. Devuelve el servidor sin arrancar y su puerto."""
+) -> DataNodeServer:
+    """Prepara el almacén, la relación con el líder de metadatos y el servidor gRPC, sin arrancarlos."""
     if node_config.initialize_data_directory:
         initialize_data_directory(node_config.data_directory, node_config.settings.node_id)
     verify_data_directory(node_config.data_directory, node_config.settings.node_id, node_config.require_mount_point)
     store = BlockStore(node_config.data_directory)
     store.clean_staging_area()
+    metadata_client = None
+    if reporter is None and node_config.metadata_addrs:
+        metadata_client = MetadataClient(
+            node_config.metadata_addrs,
+            node_config.settings.node_id,
+            node_config.settings.addr,
+            store,
+            node_config.heartbeat_interval_s,
+        )
+        reporter = metadata_client
     service = DataNodeService(
         node_config.settings, store, reporter or LoggingBlockReporter(), channels or ChannelPool()
     )
@@ -70,18 +102,18 @@ def create_server(
     datanode_pb2_grpc.add_DataNodeServiceServicer_to_server(service, server)
     _, port = config.parse_addr(node_config.settings.addr)
     bound_port = server.add_insecure_port(f"[::]:{port}")  # TLS en la etapa 6 (ADR 0023)
-    return server, bound_port
+    return DataNodeServer(server, bound_port, metadata_client)
 
 
 def main() -> None:
     node_config = load_config()
     configure_logging(node_config.log_level, node_config.settings.node_id)
-    server, port = create_server(node_config)
-    server.start()
-    logger.info("Nodo de datos %s escuchando en el puerto %d", node_config.settings.node_id, port)
+    datanode_server = create_server(node_config)
+    datanode_server.start()
+    logger.info("Nodo de datos %s escuchando en el puerto %d", node_config.settings.node_id, datanode_server.port)
     stopped = threading.Event()
     signal.signal(signal.SIGTERM, lambda *_: stopped.set())
     signal.signal(signal.SIGINT, lambda *_: stopped.set())
     stopped.wait()
     logger.info("Parando el nodo de datos")
-    server.stop(grace=5).wait()
+    datanode_server.stop(grace_s=5)

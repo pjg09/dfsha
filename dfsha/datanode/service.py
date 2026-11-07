@@ -154,9 +154,17 @@ class DataNodeService(datanode_pb2_grpc.DataNodeServiceServicer):
             raise
         if self._store.commit(staging, meta):
             logger.info("Bloque %s guardado (%d bytes)", meta.block_id, meta.size_bytes)
-        self._reporter.report_block_received(
-            metadata_pb2.StoredBlock(block_id=meta.block_id, block_sha256=meta.sha256, size_bytes=meta.size_bytes)
-        )
+        try:
+            # Antes de responder: así, cuando el cliente recibe OK, W nodos ya han avisado (§8.4)
+            self._reporter.report_block_received(
+                metadata_pb2.StoredBlock(block_id=meta.block_id, block_sha256=meta.sha256, size_bytes=meta.size_bytes)
+            )
+        except Exception as error:
+            # El bloque queda guardado; el informe de bloques lo reconciliará, pero esta réplica no cuenta
+            raise DfshaError(
+                grpc.StatusCode.UNAVAILABLE,
+                f"El bloque {meta.block_id} se guardó, pero no se pudo avisar al servidor de metadatos",
+            ) from error
         if not forwards:
             return datanode_pb2.WriteBlockResponse(stored_on=[self._settings.addr])
         return self._wait_for_quorum(meta, forwards)

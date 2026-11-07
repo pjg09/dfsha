@@ -227,6 +227,20 @@ class BlockStore:
     def get_free_bytes(self) -> int:
         return shutil.disk_usage(self.data_directory).free
 
+    def get_capacity_bytes(self) -> int:
+        return shutil.disk_usage(self.data_directory).total
+
+    def list_blocks(self) -> list[BlockMeta]:
+        """Todos los bloques confirmados del almacén, para el informe de bloques (ADR 0018)."""
+        blocks = []
+        for meta_path in self._blocks_directory.glob(f"*/*{_META_SUFFIX}"):
+            block_id = meta_path.name.removesuffix(_META_SUFFIX)
+            if not meta_path.with_name(block_id).is_file():
+                continue  # metadatos de un bloque cuyo renombrado no llegó a hacerse
+            stored = json.loads(meta_path.read_text())
+            blocks.append(BlockMeta(block_id, bytes.fromhex(stored["sha256"]), int(stored["size_bytes"])))
+        return blocks
+
     def _get_block_path(self, block_id: str) -> Path:
         return self._blocks_directory / block_id[:2] / block_id
 

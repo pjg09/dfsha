@@ -111,3 +111,8 @@ def test_clean_staging_area(store: BlockStore) -> None:
     (store.data_directory / "staging" / "restos-de-un-bloque").write_bytes(b"x" * 10)
     assert store.clean_staging_area() == 1
     assert not any((store.data_directory / "staging").iterdir())
+
+
+def test_list_blocks(store: BlockStore) -> None:
+    written = {_write(store, os.urandom(100)) for _ in range(3)}
+    assert {meta.block_id for meta in store.list_blocks()} == written

@@ -69,8 +69,7 @@ def nodes(tmp_path: Path) -> Iterator[list[Node]]:
                 server_threads=8,
                 log_level="INFO",
             )
-            server, _ = create_server(node_config, reporter)
-            return addr, server
+            return addr, create_server(node_config, reporter).server
 
         addr, server = start_on_free_addr(start)
         server.start()
