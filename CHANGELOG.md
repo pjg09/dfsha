@@ -2,6 +2,16 @@
 
 Generado automáticamente por semantic-release a partir de los commits. No editar a mano.
 
+## [0.8.0](https://github.com/pjg09/dfsha/compare/v0.7.0...v0.8.0) (2026-11-07)
+
+### Funcionalidades
+
+* **client:** añade la biblioteca y la línea de órdenes dfsha ([d431357](https://github.com/pjg09/dfsha/commit/d43135765e5adb40420cc83680850fccbe65a23e))
+
+### Correcciones
+
+* **datanode:** rechaza un block_id repetido con otro contenido ([be54bcf](https://github.com/pjg09/dfsha/commit/be54bcf8dee8586202a61b126e126fbf8c5d65f8))
+
 ## [0.7.0](https://github.com/pjg09/dfsha/compare/v0.6.0...v0.7.0) (2026-11-07)
 
 ### Funcionalidades
