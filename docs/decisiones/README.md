@@ -57,6 +57,7 @@ Reglas:
 | [0041](0041-metadatos-en-etcd.md) | Modelo de metadatos en etcd y cliente de etcd | Aceptada | 2026-11-06 |
 | [0042](0042-direccion-del-nodo-de-datos.md) | El nodo de datos envía su dirección al darse de alta | Aceptada | 2026-11-07 |
 | [0043](0043-implementacion-de-la-seguridad.md) | Implementación de la seguridad: TLS mutuo en todas las conexiones, formatos y secretos | Aceptada | 2026-11-07 |
+| [0044](0044-nodos-excluidos-al-repetir-un-bloque.md) | Nodos excluidos al repetir un bloque | Aceptada | 2026-11-07 |
 
 ## Plantilla
 
