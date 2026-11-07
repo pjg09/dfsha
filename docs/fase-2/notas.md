@@ -44,6 +44,10 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
 - **2026-11-07 · Despliegue desde cero con una orden** (etapa 7, `ddb9bc6`). Con la cuenta vacía,
   `deploy.sh all` levanta los 9 hosts en 6 min 50 s sin intervención, y el clúster pasa la prueba de carga y
   recuperación. `down` necesitó dos pasadas para borrar los grupos de seguridad, que se citan entre sí.
+- **2026-11-07 · Bloques de 4 MiB rinden como los de 16** (etapa 10, E5, v0.13.0). La tasa de transferencia es
+  la misma con 4 y 16 MiB y baja un 12 % con 64 MiB; la modificación parcial de 4 KiB tarda 204, 513 y
+  1 828 ms. 4 MiB sería mejor para escrituras parciales, a cambio de cuatro veces más bloques en los metadatos,
+  coste que no se midió. Se mantiene 16 MiB (ADR 0016) y se cuenta la alternativa en el informe.
 - **2026-11-07 · El SHA-256 cuesta más que el cifrado** (etapa 10, E8, v0.13.0). En `client-1` (t3.small),
   AES-256-GCM cifra a 1,5 GB/s y SHA-256 va a 397 MB/s. TLS mutuo quita entre un 25 y un 32 % a un canal gRPC
   (unos 450 frente a 615 MB/s). Ninguna pieza explica por sí sola el techo de unos 130 MB/s de un cliente.
