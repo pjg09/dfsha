@@ -32,7 +32,7 @@ uv run scripts/generate-proto.sh   # regenera dfsha/v1/ después de cambiar prot
 
 El clúster en una sola máquina con Docker Compose y las mismas imágenes que en AWS (ADR 0030). Solo sirve
 para desarrollar: las evidencias se obtienen en AWS (ADR 0036). Levanta los tres servidores de metadatos con
-su miembro de etcd y los cinco nodos de datos; el cliente llega en la etapa 5.
+su miembro de etcd, los cinco nodos de datos y el cliente `client-1`.
 
 ```bash
 export DFSHA_VERSION=$(scripts/get-version.sh) DFSHA_IMAGE_TAG=$(scripts/get-version.sh --image)
@@ -40,6 +40,22 @@ docker compose -f deploy/local/compose.yaml up -d --build   # construye las imá
 docker compose -f deploy/local/compose.yaml logs -f          # logs de todos los nodos
 docker compose -f deploy/local/compose.yaml down -v          # para el clúster y borra sus volúmenes
 ```
+
+## Cliente
+
+`dfsha <orden>` ejecuta una orden; `dfsha shell` abre el modo interactivo, el único con `cd` y `pwd`. Solo
+necesita `DFSHA_METADATA_ADDRS` con los servidores de metadatos (ADR 0021). En el entorno local:
+
+```bash
+docker exec client-1 dfsha mkdir /docs
+docker exec client-1 dfsha put /data/archivo.bin /docs/archivo.bin   # carga (crea o reemplaza)
+docker exec client-1 dfsha ls /docs
+docker exec client-1 dfsha get /docs/archivo.bin /data/copia.bin     # recuperación
+docker exec -it client-1 dfsha shell
+```
+
+Órdenes: `ls`, `cd`, `pwd`, `mkdir`, `rmdir`, `rm`, `mv`, `put`, `get` y `stat`. Con `-v` muestra los
+reintentos.
 
 ## Cómo trabajar en el repositorio
 
