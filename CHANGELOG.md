@@ -2,6 +2,12 @@
 
 Generado automáticamente por semantic-release a partir de los commits. No editar a mano.
 
+## [0.9.1](https://github.com/pjg09/dfsha/compare/v0.9.0...v0.9.1) (2026-11-07)
+
+### Correcciones
+
+* **datanode:** evita que un error del líder pare los latidos ([b12719f](https://github.com/pjg09/dfsha/commit/b12719fac1e638d16695c845a119ff2008ec5567))
+
 ## [0.9.0](https://github.com/pjg09/dfsha/compare/v0.8.0...v0.9.0) (2026-11-07)
 
 ### Funcionalidades
