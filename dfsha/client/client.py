@@ -38,6 +38,7 @@ class ClientSettings:
     password: str
     rpc_timeout_s: float = 10.0
     transfer_timeout_s: float = 120.0
+    transfer_inactivity_s: float = 10.0  # sin ningún mensaje en este tiempo, se corta la transferencia (E6)
     parallel_transfers: int = 4
     retry: RetryPolicy = field(default_factory=RetryPolicy)
 
@@ -54,6 +55,7 @@ def load_settings(password: str | None = None) -> ClientSettings:
         password=config.get_str("PASSWORD", password),
         rpc_timeout_s=config.get_float("RPC_TIMEOUT_S", 10.0),
         transfer_timeout_s=config.get_float("TRANSFER_TIMEOUT_S", 120.0),
+        transfer_inactivity_s=config.get_float("TRANSFER_INACTIVITY_S", 10.0),
         parallel_transfers=config.get_int("PARALLEL_TRANSFERS", 4),
         retry=RetryPolicy(max_attempts=config.get_int("MAX_ATTEMPTS", 8)),
     )
@@ -74,6 +76,30 @@ def _get_failed_addrs(error: DfshaError, primary: str) -> list[str]:
     if error.reason is Reason.QUORUM_NOT_REACHED:
         return [addr for addr in error.metadata.get("failed_addrs", "").split(",") if addr]
     return []
+
+
+class _InactivityWatchdog:
+    """Llama a ``on_timeout`` si pasan ``timeout_s`` sin un ``reset()``."""
+
+    def __init__(self, on_timeout: Callable[[], object], timeout_s: float) -> None:
+        self._on_timeout = on_timeout
+        self._timeout_s = timeout_s
+        self._last = time.monotonic()
+        self._stopped = threading.Event()
+        threading.Thread(target=self._run, name="inactivity-watchdog", daemon=True).start()
+
+    def reset(self) -> None:
+        self._last = time.monotonic()
+
+    def stop(self) -> None:
+        self._stopped.set()
+
+    def _run(self) -> None:
+        while not self._stopped.wait(min(0.5, self._timeout_s / 4)):
+            if time.monotonic() - self._last > self._timeout_s:
+                logger.warning("Sin progreso en %.0f s: se cancela la transferencia", self._timeout_s)
+                self._on_timeout()
+                return
 
 
 class _LeaseKeeper:
@@ -205,12 +231,13 @@ class DfshaClient:
         locate_request = metadata_pb2.GetBlockLocationsRequest(file_handle=opened.file_handle, block_range=WHOLE_FILE)
         locations = self.metadata.call_rpc("GetBlockLocations", locate_request).locations
         block_size = opened.info.block_size_bytes
+        failed_addrs: set[str] = set()  # réplicas que ya fallaron en este get: se prueban las últimas
         partial_path = local_path.with_name(local_path.name + ".dfsha-parcial")
         with open(partial_path, "wb") as target:
             descriptor = target.fileno()
 
             def fetch(location: common_pb2.BlockLocation) -> None:
-                stored = self._download_block(location, opened.file_handle)
+                stored = self._download_block(location, opened.file_handle, failed_addrs)
                 plaintext = decrypt_block(opened.data_key, location.block_id, stored)  # verifica la etiqueta GCM
                 os.pwrite(descriptor, plaintext, location.block_index * block_size)
 
@@ -294,6 +321,8 @@ class DfshaClient:
     def _write_block(self, location: common_pb2.BlockLocation, data: bytes, sha256: bytes) -> None:
         primary, *secondaries = location.datanode_addrs
 
+        watchdog: _InactivityWatchdog | None = None
+
         def requests() -> Iterator[datanode_pb2.WriteBlockRequest]:
             header = datanode_pb2.WriteBlockHeader(
                 block_id=location.block_id, block_token=location.block_token, block_sha256=sha256,
@@ -301,12 +330,22 @@ class DfshaClient:
             )  # fmt: skip
             yield datanode_pb2.WriteBlockRequest(header=header)
             for offset in range(0, len(data), CHUNK_SIZE_BYTES):
+                if watchdog is not None:
+                    watchdog.reset()  # gRPC pide el trozo siguiente: la primaria está recibiendo
                 yield datanode_pb2.WriteBlockRequest(data=data[offset : offset + CHUNK_SIZE_BYTES])
 
+        # Una primaria congelada acepta la conexión y no lee: sin progreso en transfer_inactivity_s se cancela,
+        # en lugar de esperar el plazo completo, y el bloque se reserva en otros nodos (E6, etapa 10)
+        future = get_datanode_stub(self._channels, primary).WriteBlock.future(requests(), timeout=self.settings.transfer_timeout_s)
+        watchdog = _InactivityWatchdog(future.cancel, self.settings.transfer_inactivity_s)
         try:
-            get_datanode_stub(self._channels, primary).WriteBlock(requests(), timeout=self.settings.transfer_timeout_s)
+            future.result()
+        except grpc.FutureCancelledError:
+            raise DfshaError(grpc.StatusCode.UNAVAILABLE, f"La primaria {primary} no avanzó en {self.settings.transfer_inactivity_s:.0f} s") from None
         except grpc.RpcError as rpc_error:
             raise DfshaError.from_rpc_error(rpc_error) from rpc_error
+        finally:
+            watchdog.stop()
 
     def _abort(self, file_handle: bytes, lease_id: str) -> None:
         request = metadata_pb2.AbortFileRequest(request_id=_request_id(), file_handle=file_handle, lease_id=lease_id)
@@ -324,14 +363,19 @@ class DfshaClient:
 
     # ===== Ayudas de get =======================================================================
 
-    def _download_block(self, location: common_pb2.BlockLocation, file_handle: bytes) -> bytes:
+    def _download_block(
+        self, location: common_pb2.BlockLocation, file_handle: bytes, failed_addrs: set[str] | None = None
+    ) -> bytes:
         """Lee un bloque de una réplica al azar y verifica el hash de los metadatos; si falla, prueba otra.
 
         Si el token de lectura caducó (una lectura de más de 10 min), pide uno nuevo sobre el mismo
-        descriptor y, por tanto, sobre la misma versión (§6.2).
+        descriptor y, por tanto, sobre la misma versión (§6.2). ``failed_addrs`` son las réplicas que ya
+        fallaron en este mismo get: se prueban las últimas (E6, etapa 10).
         """
+        failed_addrs = set() if failed_addrs is None else failed_addrs
         addrs = list(location.datanode_addrs)
         random.shuffle(addrs)
+        addrs.sort(key=lambda addr: addr in failed_addrs)  # estable: las que fallaron, al final
         last_error: DfshaError | None = None
         token_refreshed = False
         for addr in addrs:
@@ -349,6 +393,7 @@ class DfshaClient:
                     addrs.append(addr)  # se vuelve a intentar con el token nuevo
                     continue
                 logger.warning("La réplica de %s en %s falló: %s", location.block_id, addr, last_error.message)
+                failed_addrs.add(addr)
                 continue
             if hashlib.sha256(data).digest() != location.block_sha256:
                 # El hash que vale es el de los metadatos, no el del nodo (§4.5). El nodo solo la marca si la
@@ -365,13 +410,25 @@ class DfshaClient:
         ) from last_error
 
     def _read_replica(self, addr: str, location: common_pb2.BlockLocation) -> bytes:
-        """Lee una réplica entera; si falla, lanza la propia llamada de gRPC como excepción."""
+        """Lee una réplica entera; si falla, lanza la propia llamada de gRPC como excepción.
+
+        Si pasan ``transfer_inactivity_s`` sin ningún mensaje, se cancela la llamada: un nodo congelado acepta la
+        conexión y no responde, y sin esto se esperaba el plazo de transferencia completo (E6, etapa 10).
+        """
         responses = get_datanode_stub(self._channels, addr).ReadBlock(
             datanode_pb2.ReadBlockRequest(block_id=location.block_id, block_token=location.block_token),
             timeout=self.settings.transfer_timeout_s,
         )
-        next(responses)  # cabecera
-        return b"".join(response.data for response in responses)
+        watchdog = _InactivityWatchdog(responses.cancel, self.settings.transfer_inactivity_s)
+        try:
+            pieces = []
+            for response in responses:  # la primera es la cabecera
+                watchdog.reset()
+                if response.WhichOneof("content") == "data":
+                    pieces.append(response.data)
+            return b"".join(pieces)
+        finally:
+            watchdog.stop()
 
     def _report_corrupt(self, block_id: str, addr: str) -> None:
         request = metadata_pb2.ReportCorruptReplicaRequest(block_id=block_id, node_id=addr)

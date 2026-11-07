@@ -5,7 +5,11 @@ import hashlib
 import io
 import logging
 import os
+import socket
+import threading
+import time
 import tracemalloc
+import uuid
 from collections.abc import Callable, Iterator
 from pathlib import Path
 
@@ -283,6 +287,61 @@ def test_put_avoids_a_dead_node_the_leader_still_counts_as_alive(
         assert (tmp_path / "copia.bin").read_bytes() == data
     finally:
         local.stop()
+
+
+def test_read_skips_a_replica_that_accepts_but_never_answers(
+    cluster: LocalCluster, cluster_secrets: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # E6 en AWS (etapa 10): un nodo congelado acepta la conexión y no responde. El cliente esperaba los 120 s
+    # del plazo de transferencia antes de probar otra réplica; ahora lo corta la inactividad
+    blackhole = socket.socket()
+    blackhole.bind(("localhost", 0))
+    blackhole.listen()
+    accepted: list[socket.socket] = []
+    threading.Thread(target=lambda: [accepted.append(blackhole.accept()[0]) for _ in range(8)], daemon=True).start()
+    settings = ClientSettings(
+        metadata_addrs=list(cluster.metadata), secrets_directory=cluster_secrets / "client-1", username=cluster.username,
+        password=cluster.password, rpc_timeout_s=3, transfer_timeout_s=60, transfer_inactivity_s=2,
+    )  # fmt: skip
+    data = _write(tmp_path / "origen.bin", 3 * BLOCK_SIZE_BYTES)
+    monkeypatch.setattr("dfsha.client.client.random.shuffle", lambda items: None)  # el agujero negro, primero
+    with DfshaClient(settings) as client:
+        client.put(tmp_path / "origen.bin", "/x.bin")
+        real = client._download_block
+        dead = f"localhost:{blackhole.getsockname()[1]}"
+
+        def via_blackhole(location: common_pb2.BlockLocation, file_handle: bytes, failed: set[str] | None = None) -> bytes:
+            location.datanode_addrs.insert(0, dead)
+            return real(location, file_handle, failed)
+
+        monkeypatch.setattr(client, "_download_block", via_blackhole)
+        started = time.monotonic()
+        client.get("/x.bin", tmp_path / "copia.bin")
+        elapsed = time.monotonic() - started
+    blackhole.close()
+    assert (tmp_path / "copia.bin").read_bytes() == data
+    assert elapsed < 10, f"la lectura tardó {elapsed:.1f} s"
+
+
+def test_write_abandons_a_primary_that_never_reads(cluster: LocalCluster, cluster_secrets: Path) -> None:
+    # Lo mismo al escribir: una primaria que acepta y no lee se abandona en lugar de esperar el plazo completo,
+    # y el cliente reserva el bloque en otros nodos excluyéndola (ADR 0044)
+    blackhole = socket.socket()
+    blackhole.bind(("localhost", 0))
+    blackhole.listen()
+    settings = ClientSettings(
+        metadata_addrs=list(cluster.metadata), secrets_directory=cluster_secrets / "client-1", username=cluster.username,
+        password=cluster.password, rpc_timeout_s=3, transfer_timeout_s=60, transfer_inactivity_s=2,
+    )  # fmt: skip
+    with DfshaClient(settings) as client:
+        location = common_pb2.BlockLocation(block_id=str(uuid.uuid4()), datanode_addrs=[f"localhost:{blackhole.getsockname()[1]}"])
+        started = time.monotonic()
+        with pytest.raises(DfshaError) as caught:
+            client._write_block(location, os.urandom(4 * BLOCK_SIZE_BYTES), b"0" * 32)
+        elapsed = time.monotonic() - started
+    blackhole.close()
+    assert caught.value.code is grpc.StatusCode.UNAVAILABLE and caught.value.reason is None
+    assert elapsed < 10, f"la escritura tardó {elapsed:.1f} s"
 
 
 # ===== RF3: open, read, write, lock, unlock y close (§7) ======================================
