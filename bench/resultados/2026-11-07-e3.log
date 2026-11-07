@@ -1,0 +1,18 @@
+e3: versión 0.12.1, client-1 t3.small (unlimited), resultados en bench/resultados/2026-11-07-e3.csv
+[18:38:49] w2 rep 1: 16 bloques, mediana 194 ms
+[18:38:53] w2 rep 2: 16 bloques, mediana 191 ms
+[18:38:58] w2 rep 3: 16 bloques, mediana 193 ms
+[18:39:03] w2 rep 4: 16 bloques, mediana 206 ms
+[18:39:08] w2 rep 5: 16 bloques, mediana 197 ms
+[18:39:08] reinstalación con: DFSHA_GRACE_PERIOD_S=60 DFSHA_BLOCK_REPORT_INTERVAL_S=60 DFSHA_WRITE_QUORUM=3
+[18:40:04] Clúster instalado
+DFSHA_WRITE_QUORUM=3
+e3: versión 0.12.1, client-1 t3.small (unlimited), resultados en bench/resultados/2026-11-07-e3.csv
+[18:40:49] w3 rep 1: 16 bloques, mediana 211 ms
+[18:40:54] w3 rep 2: 16 bloques, mediana 206 ms
+[18:40:59] w3 rep 3: 16 bloques, mediana 216 ms
+[18:41:05] w3 rep 4: 16 bloques, mediana 239 ms
+[18:41:09] w3 rep 5: 16 bloques, mediana 197 ms
+[18:41:09] reinstalación con: DFSHA_GRACE_PERIOD_S=60 DFSHA_BLOCK_REPORT_INTERVAL_S=60
+[18:42:11] Clúster instalado
+WRITE_QUORUM por defecto (2)

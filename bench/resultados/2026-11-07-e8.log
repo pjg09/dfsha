@@ -1,0 +1,15 @@
+[18:54:29] cifrado y hash en la CPU de client-1 (t3.small)
+[18:54:39] regla temporal: 50099/tcp de dfsha-sg-client a dfsha-sg-datanode
+[18:54:53] transferencia gRPC tls, 256 MiB
+tls rep 1: envío 595 MB/s, recepción 551 MB/s
+tls rep 2: envío 573 MB/s, recepción 512 MB/s
+tls rep 3: envío 460 MB/s, recepción 417 MB/s
+tls rep 4: envío 453 MB/s, recepción 380 MB/s
+tls rep 5: envío 209 MB/s, recepción 416 MB/s
+[18:55:14] transferencia gRPC plain, 256 MiB
+plain rep 1: envío 603 MB/s, recepción 609 MB/s
+plain rep 2: envío 618 MB/s, recepción 615 MB/s
+plain rep 3: envío 588 MB/s, recepción 617 MB/s
+plain rep 4: envío 619 MB/s, recepción 617 MB/s
+plain rep 5: envío 620 MB/s, recepción 615 MB/s
+[18:55:26] regla temporal del puerto 50099 revocada

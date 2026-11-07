@@ -1,0 +1,62 @@
+e4: versión 0.12.1, client-1 t3.small (unlimited), resultados en bench/resultados/2026-11-07-e4.csv
+[18:44:19] 1-distintos rep 1 get: más lento 1.53 s, agregada 87.5 MB/s, conflictos 0
+[18:44:19] 1-distintos rep 1 put: más lento 2.18 s, agregada 61.5 MB/s, conflictos 0
+[18:44:23] 1-distintos rep 2 get: más lento 1.54 s, agregada 87.1 MB/s, conflictos 0
+[18:44:23] 1-distintos rep 2 put: más lento 2.19 s, agregada 61.3 MB/s, conflictos 0
+[18:44:27] 1-distintos rep 3 get: más lento 1.48 s, agregada 90.6 MB/s, conflictos 0
+[18:44:27] 1-distintos rep 3 put: más lento 2.15 s, agregada 62.6 MB/s, conflictos 0
+[18:44:31] 1-distintos rep 4 get: más lento 1.51 s, agregada 88.8 MB/s, conflictos 0
+[18:44:31] 1-distintos rep 4 put: más lento 2.20 s, agregada 61.1 MB/s, conflictos 0
+[18:44:35] 1-distintos rep 5 get: más lento 1.66 s, agregada 81.1 MB/s, conflictos 0
+[18:44:35] 1-distintos rep 5 put: más lento 2.24 s, agregada 59.9 MB/s, conflictos 0
+e4: versión 0.12.1, client-1 t3.small (unlimited), resultados en bench/resultados/2026-11-07-e4.csv
+[18:44:59] 2-distintos rep 1 get: más lento 2.28 s, agregada 117.8 MB/s, conflictos 0
+[18:44:59] 2-distintos rep 1 put: más lento 3.55 s, agregada 75.6 MB/s, conflictos 0
+[18:45:05] 2-distintos rep 2 get: más lento 2.16 s, agregada 124.5 MB/s, conflictos 0
+[18:45:05] 2-distintos rep 2 put: más lento 4.03 s, agregada 66.7 MB/s, conflictos 0
+[18:45:11] 2-distintos rep 3 get: más lento 2.13 s, agregada 125.9 MB/s, conflictos 0
+[18:45:11] 2-distintos rep 3 put: más lento 3.43 s, agregada 78.3 MB/s, conflictos 0
+[18:45:16] 2-distintos rep 4 get: más lento 2.19 s, agregada 122.7 MB/s, conflictos 0
+[18:45:16] 2-distintos rep 4 put: más lento 3.31 s, agregada 81.1 MB/s, conflictos 0
+[18:45:21] 2-distintos rep 5 get: más lento 1.89 s, agregada 141.8 MB/s, conflictos 0
+[18:45:21] 2-distintos rep 5 put: más lento 3.39 s, agregada 79.2 MB/s, conflictos 0
+e4: versión 0.12.1, client-1 t3.small (unlimited), resultados en bench/resultados/2026-11-07-e4.csv
+[18:45:42] 4-distintos rep 1 get: más lento 4.43 s, agregada 121.2 MB/s, conflictos 0
+[18:45:42] 4-distintos rep 1 put: más lento 4.21 s, agregada 127.6 MB/s, conflictos 0
+[18:45:50] 4-distintos rep 2 get: más lento 4.05 s, agregada 132.7 MB/s, conflictos 0
+[18:45:50] 4-distintos rep 2 put: más lento 4.04 s, agregada 132.8 MB/s, conflictos 0
+[18:45:59] 4-distintos rep 3 get: más lento 3.94 s, agregada 136.2 MB/s, conflictos 0
+[18:45:59] 4-distintos rep 3 put: más lento 4.15 s, agregada 129.3 MB/s, conflictos 0
+[18:46:07] 4-distintos rep 4 get: más lento 3.96 s, agregada 135.7 MB/s, conflictos 0
+[18:46:07] 4-distintos rep 4 put: más lento 4.51 s, agregada 119.1 MB/s, conflictos 0
+[18:46:15] 4-distintos rep 5 get: más lento 3.88 s, agregada 138.3 MB/s, conflictos 0
+[18:46:15] 4-distintos rep 5 put: más lento 4.42 s, agregada 121.5 MB/s, conflictos 0
+e4: versión 0.12.1, client-1 t3.small (unlimited), resultados en bench/resultados/2026-11-07-e4.csv
+[18:46:45] 8-distintos rep 1 get: más lento 8.11 s, agregada 132.4 MB/s, conflictos 0
+[18:46:45] 8-distintos rep 1 put: más lento 8.60 s, agregada 124.9 MB/s, conflictos 0
+[18:47:02] 8-distintos rep 2 get: más lento 8.03 s, agregada 133.8 MB/s, conflictos 0
+[18:47:02] 8-distintos rep 2 put: más lento 8.15 s, agregada 131.7 MB/s, conflictos 0
+[18:47:19] 8-distintos rep 3 get: más lento 8.13 s, agregada 132.1 MB/s, conflictos 0
+[18:47:19] 8-distintos rep 3 put: más lento 8.98 s, agregada 119.6 MB/s, conflictos 0
+[18:47:35] 8-distintos rep 4 get: más lento 8.07 s, agregada 133.1 MB/s, conflictos 0
+[18:47:35] 8-distintos rep 4 put: más lento 8.35 s, agregada 128.6 MB/s, conflictos 0
+[18:47:52] 8-distintos rep 5 get: más lento 8.40 s, agregada 127.9 MB/s, conflictos 0
+[18:47:52] 8-distintos rep 5 put: más lento 8.24 s, agregada 130.2 MB/s, conflictos 0
+e4: versión 0.12.1, client-1 t3.small (unlimited), resultados en bench/resultados/2026-11-07-e4.csv
+[18:48:07] 2-mismo-bloque rep 1 escritura-mismo-bloque: más lento 1.17 s, agregada - MB/s, conflictos 3
+[18:48:10] 2-mismo-bloque rep 2 escritura-mismo-bloque: más lento 1.12 s, agregada - MB/s, conflictos 4
+[18:48:14] 2-mismo-bloque rep 3 escritura-mismo-bloque: más lento 1.11 s, agregada - MB/s, conflictos 4
+[18:48:17] 2-mismo-bloque rep 4 escritura-mismo-bloque: más lento 1.03 s, agregada - MB/s, conflictos 3
+[18:48:21] 2-mismo-bloque rep 5 escritura-mismo-bloque: más lento 1.12 s, agregada - MB/s, conflictos 4
+e4: versión 0.12.1, client-1 t3.small (unlimited), resultados en bench/resultados/2026-11-07-e4.csv
+[18:48:38] 4-mismo-bloque rep 1 escritura-mismo-bloque: más lento 2.22 s, agregada - MB/s, conflictos 18
+[18:48:42] 4-mismo-bloque rep 2 escritura-mismo-bloque: más lento 2.26 s, agregada - MB/s, conflictos 21
+[18:48:47] 4-mismo-bloque rep 3 escritura-mismo-bloque: más lento 2.23 s, agregada - MB/s, conflictos 21
+[18:48:51] 4-mismo-bloque rep 4 escritura-mismo-bloque: más lento 2.21 s, agregada - MB/s, conflictos 21
+[18:48:56] 4-mismo-bloque rep 5 escritura-mismo-bloque: más lento 2.23 s, agregada - MB/s, conflictos 21
+e4: versión 0.12.1, client-1 t3.small (unlimited), resultados en bench/resultados/2026-11-07-e4.csv
+[18:49:16] 8-mismo-bloque rep 1 escritura-mismo-bloque: más lento 4.54 s, agregada - MB/s, conflictos 78
+[18:49:23] 8-mismo-bloque rep 2 escritura-mismo-bloque: más lento 4.66 s, agregada - MB/s, conflictos 105
+[18:49:30] 8-mismo-bloque rep 3 escritura-mismo-bloque: más lento 4.71 s, agregada - MB/s, conflictos 105
+[18:49:37] 8-mismo-bloque rep 4 escritura-mismo-bloque: más lento 4.82 s, agregada - MB/s, conflictos 105
+[18:49:44] 8-mismo-bloque rep 5 escritura-mismo-bloque: más lento 4.78 s, agregada - MB/s, conflictos 105

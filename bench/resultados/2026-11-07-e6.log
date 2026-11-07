@@ -1,0 +1,273 @@
+/bench/e6.bin: versión 1, 256.0 MiB en 2.2 s (121 MB/s)
+La réplica de 064a1a3d-8718-4daa-b778-635d7005ad6d en datanode-1:50052 falló: Stream removed (Socket closed (GOAWAY received; Error code: 0; Debug Text: Server shutdown))
+[19:17:47] parada 1: datanode-1 caído a las 2026-11-07T19:17:47.453Z
+La réplica de b0684774-df9c-49dd-8a15-51d18ccf6980 en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 7d030556-0a3c-4296-ab57-bdf019f259fa en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 5c2b9cab-ba69-488e-82b1-11b57920d31e en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 7d030556-0a3c-4296-ab57-bdf019f259fa en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 064a1a3d-8718-4daa-b778-635d7005ad6d en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 38491e41-e1c6-4d28-bf3d-b5fdbfe93282 en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 8cfadadd-a4ec-4ee3-b03d-0b5eca39ae61 en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 5579adba-25a9-4768-b0bd-8b9a6da8408a en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 6b028435-896f-48cb-8793-659a56bacbfb en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de b0684774-df9c-49dd-8a15-51d18ccf6980 en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 38491e41-e1c6-4d28-bf3d-b5fdbfe93282 en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 5579adba-25a9-4768-b0bd-8b9a6da8408a en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 064a1a3d-8718-4daa-b778-635d7005ad6d en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de b0684774-df9c-49dd-8a15-51d18ccf6980 en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 38491e41-e1c6-4d28-bf3d-b5fdbfe93282 en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 089f7137-3559-4418-884b-ce3220cbe8ab en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 5c2b9cab-ba69-488e-82b1-11b57920d31e en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 064a1a3d-8718-4daa-b778-635d7005ad6d en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 6b028435-896f-48cb-8793-659a56bacbfb en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 7d030556-0a3c-4296-ab57-bdf019f259fa en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 5579adba-25a9-4768-b0bd-8b9a6da8408a en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 064a1a3d-8718-4daa-b778-635d7005ad6d en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 6d01ed2e-8741-441f-a9cd-852802aa9594 en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 38491e41-e1c6-4d28-bf3d-b5fdbfe93282 en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 7d030556-0a3c-4296-ab57-bdf019f259fa en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 8cfadadd-a4ec-4ee3-b03d-0b5eca39ae61 en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 5c2b9cab-ba69-488e-82b1-11b57920d31e en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 064a1a3d-8718-4daa-b778-635d7005ad6d en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 6b028435-896f-48cb-8793-659a56bacbfb en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 05b005e9-ac2e-4d63-af81-ea60a7da5231 en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 5579adba-25a9-4768-b0bd-8b9a6da8408a en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 064a1a3d-8718-4daa-b778-635d7005ad6d en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 6d01ed2e-8741-441f-a9cd-852802aa9594 en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 38491e41-e1c6-4d28-bf3d-b5fdbfe93282 en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 089f7137-3559-4418-884b-ce3220cbe8ab en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 7d030556-0a3c-4296-ab57-bdf019f259fa en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 5579adba-25a9-4768-b0bd-8b9a6da8408a en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 064a1a3d-8718-4daa-b778-635d7005ad6d en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 6b028435-896f-48cb-8793-659a56bacbfb en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 38491e41-e1c6-4d28-bf3d-b5fdbfe93282 en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 089f7137-3559-4418-884b-ce3220cbe8ab en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 8cfadadd-a4ec-4ee3-b03d-0b5eca39ae61 en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 05b005e9-ac2e-4d63-af81-ea60a7da5231 en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 5579adba-25a9-4768-b0bd-8b9a6da8408a en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de b0684774-df9c-49dd-8a15-51d18ccf6980 en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 6d01ed2e-8741-441f-a9cd-852802aa9594 en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 089f7137-3559-4418-884b-ce3220cbe8ab en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 05b005e9-ac2e-4d63-af81-ea60a7da5231 en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 064a1a3d-8718-4daa-b778-635d7005ad6d en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de b0684774-df9c-49dd-8a15-51d18ccf6980 en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 6d01ed2e-8741-441f-a9cd-852802aa9594 en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 7d030556-0a3c-4296-ab57-bdf019f259fa en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 8cfadadd-a4ec-4ee3-b03d-0b5eca39ae61 en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 6d01ed2e-8741-441f-a9cd-852802aa9594 en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 5c2b9cab-ba69-488e-82b1-11b57920d31e en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 064a1a3d-8718-4daa-b778-635d7005ad6d en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 6d01ed2e-8741-441f-a9cd-852802aa9594 en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 38491e41-e1c6-4d28-bf3d-b5fdbfe93282 en datanode-1:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+[19:19:21] parada 1: detección 30.063000000 s, re-replicación 12.070000000 s
+[19:20:16] parada 2: datanode-2 caído a las 2026-11-07T19:20:16.165Z
+La réplica de cfa2e7bf-8f6f-4930-87d9-3e9b83cc2399 en datanode-2:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 4b55d7c4-e069-464f-aa22-e124027242e6 en datanode-2:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 364ef490-6422-46bd-ba31-56abfa13ca4e en datanode-2:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de cfa2e7bf-8f6f-4930-87d9-3e9b83cc2399 en datanode-2:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 364ef490-6422-46bd-ba31-56abfa13ca4e en datanode-2:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 3ffcf854-da0f-4b9a-82f2-6dbc538ea793 en datanode-2:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 4b55d7c4-e069-464f-aa22-e124027242e6 en datanode-2:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de f322badd-c2e5-4a93-9bde-fdb5985ab036 en datanode-2:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 364ef490-6422-46bd-ba31-56abfa13ca4e en datanode-2:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 364ef490-6422-46bd-ba31-56abfa13ca4e en datanode-2:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 4b55d7c4-e069-464f-aa22-e124027242e6 en datanode-2:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de f322badd-c2e5-4a93-9bde-fdb5985ab036 en datanode-2:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 364ef490-6422-46bd-ba31-56abfa13ca4e en datanode-2:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 3ffcf854-da0f-4b9a-82f2-6dbc538ea793 en datanode-2:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 364ef490-6422-46bd-ba31-56abfa13ca4e en datanode-2:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de f322badd-c2e5-4a93-9bde-fdb5985ab036 en datanode-2:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de cfa2e7bf-8f6f-4930-87d9-3e9b83cc2399 en datanode-2:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de f322badd-c2e5-4a93-9bde-fdb5985ab036 en datanode-2:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 4b55d7c4-e069-464f-aa22-e124027242e6 en datanode-2:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de f322badd-c2e5-4a93-9bde-fdb5985ab036 en datanode-2:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 3ffcf854-da0f-4b9a-82f2-6dbc538ea793 en datanode-2:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 4b55d7c4-e069-464f-aa22-e124027242e6 en datanode-2:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de f322badd-c2e5-4a93-9bde-fdb5985ab036 en datanode-2:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 3ffcf854-da0f-4b9a-82f2-6dbc538ea793 en datanode-2:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 364ef490-6422-46bd-ba31-56abfa13ca4e en datanode-2:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de cfa2e7bf-8f6f-4930-87d9-3e9b83cc2399 en datanode-2:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 4b55d7c4-e069-464f-aa22-e124027242e6 en datanode-2:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de cfa2e7bf-8f6f-4930-87d9-3e9b83cc2399 en datanode-2:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 3ffcf854-da0f-4b9a-82f2-6dbc538ea793 en datanode-2:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 4b55d7c4-e069-464f-aa22-e124027242e6 en datanode-2:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+[19:21:50] parada 2: detección 31.990000000 s, re-replicación 9.049000000 s
+[19:22:45] parada 3: datanode-3 caído a las 2026-11-07T19:22:45.185Z
+[19:24:18] parada 3: detección 30.585000000 s, re-replicación 9.052000000 s
+[19:25:12] parada 4: datanode-4 caído a las 2026-11-07T19:25:12.697Z
+La réplica de 7d030556-0a3c-4296-ab57-bdf019f259fa en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 5c2b9cab-ba69-488e-82b1-11b57920d31e en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 6d01ed2e-8741-441f-a9cd-852802aa9594 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de f322badd-c2e5-4a93-9bde-fdb5985ab036 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 38491e41-e1c6-4d28-bf3d-b5fdbfe93282 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 089f7137-3559-4418-884b-ce3220cbe8ab en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 4b55d7c4-e069-464f-aa22-e124027242e6 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 064a1a3d-8718-4daa-b778-635d7005ad6d en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 38491e41-e1c6-4d28-bf3d-b5fdbfe93282 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 8cfadadd-a4ec-4ee3-b03d-0b5eca39ae61 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de cfa2e7bf-8f6f-4930-87d9-3e9b83cc2399 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 5c2b9cab-ba69-488e-82b1-11b57920d31e en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 4b55d7c4-e069-464f-aa22-e124027242e6 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 364ef490-6422-46bd-ba31-56abfa13ca4e en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 6d01ed2e-8741-441f-a9cd-852802aa9594 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de f322badd-c2e5-4a93-9bde-fdb5985ab036 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 089f7137-3559-4418-884b-ce3220cbe8ab en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 8cfadadd-a4ec-4ee3-b03d-0b5eca39ae61 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 3ffcf854-da0f-4b9a-82f2-6dbc538ea793 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 6b028435-896f-48cb-8793-659a56bacbfb en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 05b005e9-ac2e-4d63-af81-ea60a7da5231 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 5579adba-25a9-4768-b0bd-8b9a6da8408a en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 3ffcf854-da0f-4b9a-82f2-6dbc538ea793 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 38491e41-e1c6-4d28-bf3d-b5fdbfe93282 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 05b005e9-ac2e-4d63-af81-ea60a7da5231 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 064a1a3d-8718-4daa-b778-635d7005ad6d en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 364ef490-6422-46bd-ba31-56abfa13ca4e en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 7d030556-0a3c-4296-ab57-bdf019f259fa en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 8cfadadd-a4ec-4ee3-b03d-0b5eca39ae61 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 5c2b9cab-ba69-488e-82b1-11b57920d31e en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 4b55d7c4-e069-464f-aa22-e124027242e6 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 6d01ed2e-8741-441f-a9cd-852802aa9594 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 3ffcf854-da0f-4b9a-82f2-6dbc538ea793 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 364ef490-6422-46bd-ba31-56abfa13ca4e en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de b0684774-df9c-49dd-8a15-51d18ccf6980 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 05b005e9-ac2e-4d63-af81-ea60a7da5231 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 5579adba-25a9-4768-b0bd-8b9a6da8408a en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 6b028435-896f-48cb-8793-659a56bacbfb en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 5579adba-25a9-4768-b0bd-8b9a6da8408a en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 3ffcf854-da0f-4b9a-82f2-6dbc538ea793 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 5c2b9cab-ba69-488e-82b1-11b57920d31e en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 4b55d7c4-e069-464f-aa22-e124027242e6 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 064a1a3d-8718-4daa-b778-635d7005ad6d en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 6b028435-896f-48cb-8793-659a56bacbfb en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 5579adba-25a9-4768-b0bd-8b9a6da8408a en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 3ffcf854-da0f-4b9a-82f2-6dbc538ea793 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 4b55d7c4-e069-464f-aa22-e124027242e6 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 6b028435-896f-48cb-8793-659a56bacbfb en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 38491e41-e1c6-4d28-bf3d-b5fdbfe93282 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 089f7137-3559-4418-884b-ce3220cbe8ab en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 8cfadadd-a4ec-4ee3-b03d-0b5eca39ae61 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 3ffcf854-da0f-4b9a-82f2-6dbc538ea793 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 4b55d7c4-e069-464f-aa22-e124027242e6 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 6b028435-896f-48cb-8793-659a56bacbfb en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 364ef490-6422-46bd-ba31-56abfa13ca4e en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de f322badd-c2e5-4a93-9bde-fdb5985ab036 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 05b005e9-ac2e-4d63-af81-ea60a7da5231 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 064a1a3d-8718-4daa-b778-635d7005ad6d en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 6b028435-896f-48cb-8793-659a56bacbfb en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 364ef490-6422-46bd-ba31-56abfa13ca4e en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 6d01ed2e-8741-441f-a9cd-852802aa9594 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de f322badd-c2e5-4a93-9bde-fdb5985ab036 en datanode-4:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+[19:26:52] parada 4: detección 30.699000000 s, re-replicación 15.082000000 s
+La réplica de cfa2e7bf-8f6f-4930-87d9-3e9b83cc2399 en datanode-5:50052 falló: Stream removed (Socket closed (GOAWAY received; Error code: 0; Debug Text: Server shutdown))
+La réplica de 5579adba-25a9-4768-b0bd-8b9a6da8408a en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+[19:27:47] parada 5: datanode-5 caído a las 2026-11-07T19:27:47.743Z
+La réplica de 3ffcf854-da0f-4b9a-82f2-6dbc538ea793 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 5c2b9cab-ba69-488e-82b1-11b57920d31e en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de b0684774-df9c-49dd-8a15-51d18ccf6980 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 6d01ed2e-8741-441f-a9cd-852802aa9594 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de f322badd-c2e5-4a93-9bde-fdb5985ab036 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 7d030556-0a3c-4296-ab57-bdf019f259fa en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 8cfadadd-a4ec-4ee3-b03d-0b5eca39ae61 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de cfa2e7bf-8f6f-4930-87d9-3e9b83cc2399 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 5579adba-25a9-4768-b0bd-8b9a6da8408a en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 3ffcf854-da0f-4b9a-82f2-6dbc538ea793 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 4b55d7c4-e069-464f-aa22-e124027242e6 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 364ef490-6422-46bd-ba31-56abfa13ca4e en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 6d01ed2e-8741-441f-a9cd-852802aa9594 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de f322badd-c2e5-4a93-9bde-fdb5985ab036 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 7d030556-0a3c-4296-ab57-bdf019f259fa en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 8cfadadd-a4ec-4ee3-b03d-0b5eca39ae61 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 3ffcf854-da0f-4b9a-82f2-6dbc538ea793 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 4b55d7c4-e069-464f-aa22-e124027242e6 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 6b028435-896f-48cb-8793-659a56bacbfb en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 6d01ed2e-8741-441f-a9cd-852802aa9594 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 05b005e9-ac2e-4d63-af81-ea60a7da5231 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de cfa2e7bf-8f6f-4930-87d9-3e9b83cc2399 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 3ffcf854-da0f-4b9a-82f2-6dbc538ea793 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 5c2b9cab-ba69-488e-82b1-11b57920d31e en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 6b028435-896f-48cb-8793-659a56bacbfb en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 364ef490-6422-46bd-ba31-56abfa13ca4e en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de b0684774-df9c-49dd-8a15-51d18ccf6980 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 6d01ed2e-8741-441f-a9cd-852802aa9594 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 089f7137-3559-4418-884b-ce3220cbe8ab en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 8cfadadd-a4ec-4ee3-b03d-0b5eca39ae61 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 4b55d7c4-e069-464f-aa22-e124027242e6 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 064a1a3d-8718-4daa-b778-635d7005ad6d en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de b0684774-df9c-49dd-8a15-51d18ccf6980 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de f322badd-c2e5-4a93-9bde-fdb5985ab036 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 8cfadadd-a4ec-4ee3-b03d-0b5eca39ae61 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 05b005e9-ac2e-4d63-af81-ea60a7da5231 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de cfa2e7bf-8f6f-4930-87d9-3e9b83cc2399 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 3ffcf854-da0f-4b9a-82f2-6dbc538ea793 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 5c2b9cab-ba69-488e-82b1-11b57920d31e en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 089f7137-3559-4418-884b-ce3220cbe8ab en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de cfa2e7bf-8f6f-4930-87d9-3e9b83cc2399 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 5579adba-25a9-4768-b0bd-8b9a6da8408a en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 3ffcf854-da0f-4b9a-82f2-6dbc538ea793 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 5c2b9cab-ba69-488e-82b1-11b57920d31e en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 38491e41-e1c6-4d28-bf3d-b5fdbfe93282 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 7d030556-0a3c-4296-ab57-bdf019f259fa en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 064a1a3d-8718-4daa-b778-635d7005ad6d en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 38491e41-e1c6-4d28-bf3d-b5fdbfe93282 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 089f7137-3559-4418-884b-ce3220cbe8ab en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 7d030556-0a3c-4296-ab57-bdf019f259fa en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de cfa2e7bf-8f6f-4930-87d9-3e9b83cc2399 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 064a1a3d-8718-4daa-b778-635d7005ad6d en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de b0684774-df9c-49dd-8a15-51d18ccf6980 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 364ef490-6422-46bd-ba31-56abfa13ca4e en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de f322badd-c2e5-4a93-9bde-fdb5985ab036 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 089f7137-3559-4418-884b-ce3220cbe8ab en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 5579adba-25a9-4768-b0bd-8b9a6da8408a en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 3ffcf854-da0f-4b9a-82f2-6dbc538ea793 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 6b028435-896f-48cb-8793-659a56bacbfb en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 364ef490-6422-46bd-ba31-56abfa13ca4e en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 089f7137-3559-4418-884b-ce3220cbe8ab en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 6b028435-896f-48cb-8793-659a56bacbfb en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 7d030556-0a3c-4296-ab57-bdf019f259fa en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 3ffcf854-da0f-4b9a-82f2-6dbc538ea793 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 4b55d7c4-e069-464f-aa22-e124027242e6 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 064a1a3d-8718-4daa-b778-635d7005ad6d en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 6b028435-896f-48cb-8793-659a56bacbfb en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de b0684774-df9c-49dd-8a15-51d18ccf6980 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 38491e41-e1c6-4d28-bf3d-b5fdbfe93282 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 8cfadadd-a4ec-4ee3-b03d-0b5eca39ae61 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 05b005e9-ac2e-4d63-af81-ea60a7da5231 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 3ffcf854-da0f-4b9a-82f2-6dbc538ea793 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 064a1a3d-8718-4daa-b778-635d7005ad6d en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 6d01ed2e-8741-441f-a9cd-852802aa9594 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 38491e41-e1c6-4d28-bf3d-b5fdbfe93282 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 8cfadadd-a4ec-4ee3-b03d-0b5eca39ae61 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 05b005e9-ac2e-4d63-af81-ea60a7da5231 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 4b55d7c4-e069-464f-aa22-e124027242e6 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 064a1a3d-8718-4daa-b778-635d7005ad6d en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 6b028435-896f-48cb-8793-659a56bacbfb en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de f322badd-c2e5-4a93-9bde-fdb5985ab036 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 5579adba-25a9-4768-b0bd-8b9a6da8408a en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+La réplica de 38491e41-e1c6-4d28-bf3d-b5fdbfe93282 en datanode-5:50052 falló: failed to connect to all addresses; last error: UNKNOWN: ipv4:<ip-privada>:50052: Failed to connect to remote host: Connection refused
+[19:29:20] parada 5: detección 29.325000000 s, re-replicación 15.079000000 s
+[19:30:14] congelado 1: datanode-1 caído a las 2026-11-07T19:30:14.826Z
+[19:31:48] congelado 1: detección 29.870000000 s, re-replicación 9.050000000 s
+[19:32:42] congelado 2: datanode-2 caído a las 2026-11-07T19:32:42.879Z
+La réplica de 38491e41-e1c6-4d28-bf3d-b5fdbfe93282 en datanode-2:50052 falló: Deadline Exceeded
+[19:34:47] congelado 2: detección 32.443000000 s, re-replicación 15.081000000 s
+[19:35:41] congelado 3: datanode-3 caído a las 2026-11-07T19:35:41.253Z
+La réplica de 089f7137-3559-4418-884b-ce3220cbe8ab en datanode-3:50052 falló: Deadline Exceeded
+La réplica de 05b005e9-ac2e-4d63-af81-ea60a7da5231 en datanode-3:50052 falló: Deadline Exceeded
+La réplica de 7d030556-0a3c-4296-ab57-bdf019f259fa en datanode-3:50052 falló: Deadline Exceeded
+La réplica de cfa2e7bf-8f6f-4930-87d9-3e9b83cc2399 en datanode-3:50052 falló: Deadline Exceeded
+La réplica de 3ffcf854-da0f-4b9a-82f2-6dbc538ea793 en datanode-3:50052 falló: Deadline Exceeded
+La réplica de 064a1a3d-8718-4daa-b778-635d7005ad6d en datanode-3:50052 falló: Deadline Exceeded
+La réplica de 364ef490-6422-46bd-ba31-56abfa13ca4e en datanode-3:50052 falló: Deadline Exceeded
+La réplica de b0684774-df9c-49dd-8a15-51d18ccf6980 en datanode-3:50052 falló: Deadline Exceeded
+La réplica de 6d01ed2e-8741-441f-a9cd-852802aa9594 en datanode-3:50052 falló: Deadline Exceeded
+[19:41:47] congelado 3: detección 31.816000000 s, re-replicación 15.085000000 s
+[19:42:41] congelado 4: datanode-4 caído a las 2026-11-07T19:42:41.878Z
+La réplica de 05b005e9-ac2e-4d63-af81-ea60a7da5231 en datanode-4:50052 falló: Stream removed (Deadline Exceeded)
+La réplica de 5c2b9cab-ba69-488e-82b1-11b57920d31e en datanode-4:50052 falló: Deadline Exceeded
+La réplica de 6b028435-896f-48cb-8793-659a56bacbfb en datanode-4:50052 falló: Deadline Exceeded
+La réplica de b0684774-df9c-49dd-8a15-51d18ccf6980 en datanode-4:50052 falló: Deadline Exceeded
+La réplica de 38491e41-e1c6-4d28-bf3d-b5fdbfe93282 en datanode-4:50052 falló: Deadline Exceeded
+[19:46:47] congelado 4: detección 30.027000000 s, re-replicación 12.067000000 s
+[19:47:42] congelado 5: datanode-5 caído a las 2026-11-07T19:47:42.530Z
+La réplica de 7d030556-0a3c-4296-ab57-bdf019f259fa en datanode-5:50052 falló: Deadline Exceeded
+[19:49:48] congelado 5: detección 30.609000000 s, re-replicación 12.065000000 s

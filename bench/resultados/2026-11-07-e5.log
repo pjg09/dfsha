@@ -1,0 +1,63 @@
+[18:56:25] reinstalación con: DFSHA_GRACE_PERIOD_S=60 DFSHA_BLOCK_REPORT_INTERVAL_S=60 DFSHA_BLOCK_SIZE_BYTES=4194304
+[18:57:50] Clúster instalado
+DFSHA_BLOCK_SIZE_BYTES=4194304
+e5: versión 0.13.0, client-1 t3.small (unlimited), resultados en bench/resultados/2026-11-07-e5.csv
+[18:58:40] bloque-4mib 256 MiB rep 1: put 2.22 s, get 2.21 s, hash ok
+[18:58:45] bloque-4mib 256 MiB rep 2: put 2.01 s, get 2.00 s, hash ok
+[18:58:49] bloque-4mib 256 MiB rep 3: put 2.02 s, get 1.97 s, hash ok
+[18:58:54] bloque-4mib 256 MiB rep 4: put 1.86 s, get 1.93 s, hash ok
+[18:58:58] bloque-4mib 256 MiB rep 5: put 1.87 s, get 1.91 s, hash ok
+[18:59:31] bloque-4mib 1024 MiB rep 1: put 7.33 s, get 8.20 s, hash ok
+[18:59:54] bloque-4mib 1024 MiB rep 2: put 7.55 s, get 8.22 s, hash ok
+[19:00:20] bloque-4mib 1024 MiB rep 3: put 9.83 s, get 8.28 s, hash ok
+[19:00:44] bloque-4mib 1024 MiB rep 4: put 8.19 s, get 8.93 s, hash ok
+[19:01:08] bloque-4mib 1024 MiB rep 5: put 7.61 s, get 8.18 s, hash ok
+e5: versión 0.13.0, client-1 t3.small (unlimited), resultados en bench/resultados/2026-11-07-e5.csv
+[19:01:22] bloque-4mib modificación parcial rep 1: 204 ms
+[19:01:22] bloque-4mib modificación parcial rep 2: 205 ms
+[19:01:22] bloque-4mib modificación parcial rep 3: 207 ms
+[19:01:22] bloque-4mib modificación parcial rep 4: 197 ms
+[19:01:22] bloque-4mib modificación parcial rep 5: 196 ms
+[19:01:22] reinstalación con: DFSHA_GRACE_PERIOD_S=60 DFSHA_BLOCK_REPORT_INTERVAL_S=60 DFSHA_BLOCK_SIZE_BYTES=16777216
+[19:02:31] Clúster instalado
+DFSHA_BLOCK_SIZE_BYTES=16777216
+e5: versión 0.13.0, client-1 t3.small (unlimited), resultados en bench/resultados/2026-11-07-e5.csv
+[19:03:21] bloque-16mib 256 MiB rep 1: put 2.02 s, get 2.34 s, hash ok
+[19:03:26] bloque-16mib 256 MiB rep 2: put 1.95 s, get 1.91 s, hash ok
+[19:03:30] bloque-16mib 256 MiB rep 3: put 1.91 s, get 1.95 s, hash ok
+[19:03:35] bloque-16mib 256 MiB rep 4: put 1.87 s, get 1.92 s, hash ok
+[19:03:40] bloque-16mib 256 MiB rep 5: put 1.93 s, get 1.88 s, hash ok
+[19:04:20] bloque-16mib 1024 MiB rep 1: put 8.55 s, get 8.13 s, hash ok
+[19:04:44] bloque-16mib 1024 MiB rep 2: put 8.37 s, get 8.15 s, hash ok
+[19:05:09] bloque-16mib 1024 MiB rep 3: put 8.37 s, get 8.40 s, hash ok
+[19:05:34] bloque-16mib 1024 MiB rep 4: put 8.40 s, get 8.15 s, hash ok
+[19:05:59] bloque-16mib 1024 MiB rep 5: put 8.40 s, get 8.08 s, hash ok
+e5: versión 0.13.0, client-1 t3.small (unlimited), resultados en bench/resultados/2026-11-07-e5.csv
+[19:06:15] bloque-16mib modificación parcial rep 1: 504 ms
+[19:06:15] bloque-16mib modificación parcial rep 2: 513 ms
+[19:06:16] bloque-16mib modificación parcial rep 3: 521 ms
+[19:06:16] bloque-16mib modificación parcial rep 4: 501 ms
+[19:06:17] bloque-16mib modificación parcial rep 5: 532 ms
+[19:06:17] reinstalación con: DFSHA_GRACE_PERIOD_S=60 DFSHA_BLOCK_REPORT_INTERVAL_S=60 DFSHA_BLOCK_SIZE_BYTES=67108864
+[19:07:34] Clúster instalado
+DFSHA_BLOCK_SIZE_BYTES=67108864
+e5: versión 0.13.0, client-1 t3.small (unlimited), resultados en bench/resultados/2026-11-07-e5.csv
+[19:08:32] bloque-64mib 256 MiB rep 1: put 2.56 s, get 3.01 s, hash ok
+[19:08:38] bloque-64mib 256 MiB rep 2: put 2.49 s, get 2.72 s, hash ok
+[19:08:44] bloque-64mib 256 MiB rep 3: put 2.57 s, get 2.67 s, hash ok
+[19:08:50] bloque-64mib 256 MiB rep 4: put 2.49 s, get 2.57 s, hash ok
+[19:08:56] bloque-64mib 256 MiB rep 5: put 2.56 s, get 2.58 s, hash ok
+[19:09:35] bloque-64mib 1024 MiB rep 1: put 8.45 s, get 9.05 s, hash ok
+[19:10:00] bloque-64mib 1024 MiB rep 2: put 8.62 s, get 9.36 s, hash ok
+[19:10:27] bloque-64mib 1024 MiB rep 3: put 9.61 s, get 9.48 s, hash ok
+[19:10:54] bloque-64mib 1024 MiB rep 4: put 9.58 s, get 8.92 s, hash ok
+[19:11:22] bloque-64mib 1024 MiB rep 5: put 9.60 s, get 10.04 s, hash ok
+e5: versión 0.13.0, client-1 t3.small (unlimited), resultados en bench/resultados/2026-11-07-e5.csv
+[19:11:38] bloque-64mib modificación parcial rep 1: 1806 ms
+[19:11:40] bloque-64mib modificación parcial rep 2: 1850 ms
+[19:11:42] bloque-64mib modificación parcial rep 3: 1831 ms
+[19:11:44] bloque-64mib modificación parcial rep 4: 1818 ms
+[19:11:46] bloque-64mib modificación parcial rep 5: 1829 ms
+[19:11:46] reinstalación con: DFSHA_GRACE_PERIOD_S=60 DFSHA_BLOCK_REPORT_INTERVAL_S=60
+[19:13:02] Clúster instalado
+BLOCK_SIZE_BYTES por defecto (16 MiB)
