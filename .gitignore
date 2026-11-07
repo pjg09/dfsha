@@ -57,6 +57,8 @@ compose.override.yaml
 
 # Las evidencias de las pruebas mínimas (§5.2 del enunciado) SÍ se versionan, logs incluidos
 !evidencias/**
+# Y los resultados de los experimentos, con sus registros (ADR 0036 y 0046)
+!bench/resultados/**
 
 # ── Editores y sistema operativo ────────────────────────────────────────────
 .vscode/
