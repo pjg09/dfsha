@@ -181,12 +181,15 @@ def concurrent(writer: "csv._writer", condition: str, clients: int, mode: str, s
         for operation in sorted({result[0] for result in results}):
             times = [seconds for name, seconds, _ in results if name == operation]
             conflicts = sum(count for name, _, count in results if name == operation)
+            # En el mismo bloque cada cliente escribe 4 KiB: cuentan la latencia hasta confirmar y los conflictos
+            def rate(seconds: float, files: int = 1) -> str:
+                return "" if mode == "same" else f"{files * size_mib * MIB / seconds / 1e6:.1f}"
+
             for name, seconds, count in results:
                 if name == operation:
-                    writer.writerow([condition, rep, operation, size_mib, f"{seconds * 1000:.1f}", f"{size_mib * MIB / seconds / 1e6:.1f}", count])
-            aggregate = len(times) * size_mib * MIB / max(times) / 1e6
-            writer.writerow([condition, rep, f"{operation}-agregada", size_mib, f"{max(times) * 1000:.1f}", f"{aggregate:.1f}", conflicts])
-            log(f"{condition} rep {rep} {operation}: más lento {max(times):.2f} s, agregada {aggregate:.0f} MB/s, conflictos {conflicts}")
+                    writer.writerow([condition, rep, operation, size_mib, f"{seconds * 1000:.1f}", rate(seconds), count])
+            writer.writerow([condition, rep, f"{operation}-agregada", size_mib, f"{max(times) * 1000:.1f}", rate(max(times), len(times)), conflicts])
+            log(f"{condition} rep {rep} {operation}: más lento {max(times):.2f} s, agregada {rate(max(times), len(times)) or '-'} MB/s, conflictos {conflicts}")
         if mode == "same":
             pool[0].delete_file(f"/bench/{condition}-mismo.bin")
     os.remove(local)
