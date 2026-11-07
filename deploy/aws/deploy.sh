@@ -245,6 +245,11 @@ if [[ -n $volume ]]; then
   uuid=$(blkid -s UUID -o value "$device")
   grep -q "$uuid" /etc/fstab || echo "UUID=$uuid /srv/dfsha/data ext4 defaults,nofail 0 2" >> /etc/fstab
   mountpoint -q /srv/dfsha/data || mount /srv/dfsha/data
+  # Arranque en frío (§9.6): sin el volumen montado, Docker no arranca. Así etcd y el nodo de datos nunca
+  # arrancan sobre un directorio vacío del disco raíz
+  mkdir -p /etc/systemd/system/docker.service.d
+  printf '[Unit]\nRequiresMountsFor=/srv/dfsha/data\n' > /etc/systemd/system/docker.service.d/dfsha-volumen.conf
+  systemctl daemon-reload
 fi
 if [[ $role == metadata ]]; then
   mkdir -p /srv/dfsha/data/etcd && chmod 0700 /srv/dfsha/data/etcd
