@@ -44,6 +44,11 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
 - **2026-11-07 · Despliegue desde cero con una orden** (etapa 7, `ddb9bc6`). Con la cuenta vacía,
   `deploy.sh all` levanta los 9 hosts en 6 min 50 s sin intervención, y el clúster pasa la prueba de carga y
   recuperación. `down` necesitó dos pasadas para borrar los grupos de seguridad, que se citan entre sí.
+- **2026-11-07 · Varios clientes en el mismo host tampoco escalan** (etapa 10, E4, v0.12.1). Con 4 y 8 clientes
+  a la vez en `client-1` (t3.small), la tasa agregada se queda en 128–136 MB/s, el mismo techo que un solo
+  cliente: el límite es la máquina cliente. Para mostrar RNF1 harían falta clientes en varias máquinas; con el
+  tope de 9 instancias del Learner Lab no hay ninguna libre. Sobre el mismo bloque, los conflictos crecen más
+  deprisa que los clientes (498 con 8 clientes en 5 repeticiones) porque el cliente reintenta enseguida.
 - **2026-11-07 · Un solo cliente no escala con los nodos de datos** (etapa 10, E2, v0.12.1). Con 3, 4 y 5 nodos,
   un `put` de 1 GiB va a 127–128 MB/s y un `get` a 136–137 MB/s: el límite lo pone el cliente, no los nodos.
   La escalabilidad de RNF1 hay que mostrarla con la tasa agregada de varios clientes (E4). No se midió qué
