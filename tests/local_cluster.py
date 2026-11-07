@@ -35,6 +35,7 @@ class LocalCluster:
     secrets: Path
     suspect_after_s: float = 9
     grace_period_s: int = 600
+    lease_ttl_s: int = 30
     block_report_interval_s: float = 300
     metadata: dict[str, MetadataServer] = field(default_factory=dict)
     datanodes: list[DataNodeServer] = field(default_factory=list)
@@ -47,7 +48,8 @@ class LocalCluster:
     def start_metadata(self) -> str:
         def start(addr: str) -> tuple[str, MetadataServer]:
             config = MetadataConfig(
-                settings=MetadataSettings(addr=addr, block_size_bytes=BLOCK_SIZE_BYTES, grace_period_s=self.grace_period_s),
+                settings=MetadataSettings(addr=addr, block_size_bytes=BLOCK_SIZE_BYTES, grace_period_s=self.grace_period_s,
+                    lease_ttl_s=self.lease_ttl_s),
                 etcd_addrs=[self.etcd_addr], key_prefix=self.prefix,
                 leader_ttl_s=2, leader_refresh_interval_s=0.2, leader_step_down_after_s=1.4,
                 suspect_after_s=self.suspect_after_s, dead_after_s=30, server_threads=8, log_level="INFO",

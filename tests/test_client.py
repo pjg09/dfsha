@@ -3,7 +3,7 @@
 import hashlib
 import logging
 import os
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from pathlib import Path
 
 import grpc
@@ -14,7 +14,9 @@ from local_cluster import BLOCK_SIZE_BYTES, LocalCluster
 from dfsha.client.cli import main, resolve_path
 from dfsha.client.client import ClientSettings, DfshaClient
 from dfsha.client.connection import RetryPolicy
+from dfsha.client.file_handle import FileHandle
 from dfsha.common.errors import DfshaError, Reason
+from dfsha.v1 import common_pb2, metadata_pb2
 
 
 @pytest.fixture
@@ -187,3 +189,146 @@ def test_cli_useradd_needs_an_admin(
     assert main(["useradd", "nueva"]) == 0
     assert "Usuario nueva creado" in capsys.readouterr().out
 
+
+
+# ===== RF3: open, read, write, lock, unlock y close (§7) ======================================
+
+B = BLOCK_SIZE_BYTES
+
+
+def _check(client: DfshaClient, path: str, expected: bytearray) -> None:
+    with client.open(path) as handle:
+        assert handle.size == len(expected)
+        assert handle.read(0, len(expected) + 10) == bytes(expected)
+
+
+def test_rf3_write_modes_match_a_local_model(client: DfshaClient) -> None:
+    model = bytearray()
+
+    def write(path: str, mode: common_pb2.WriteMode | None, data: bytes, offset: int = 0) -> None:
+        open_mode = metadata_pb2.OPEN_MODE_CREATE if mode == common_pb2.WRITE_MODE_CREATE else metadata_pb2.OPEN_MODE_WRITE
+        with client.open(path, open_mode) as handle:
+            handle.write(data, offset, mode)
+        if mode in (common_pb2.WRITE_MODE_CREATE, common_pb2.WRITE_MODE_REPLACE):
+            model[:] = b""
+        if mode == common_pb2.WRITE_MODE_APPEND:
+            offset = len(model)
+        if offset > len(model):
+            model.extend(bytes(offset - len(model)))
+        model[offset : offset + len(data)] = data
+        _check(client, path, model)
+
+    write("/rf3.bin", common_pb2.WRITE_MODE_CREATE, os.urandom(2 * B + 300))
+    write("/rf3.bin", common_pb2.WRITE_MODE_APPEND, os.urandom(B))  # completa el bloque 2 y crea el 3
+    write("/rf3.bin", common_pb2.WRITE_MODE_PARTIAL, os.urandom(1000), B - 500)  # cruza los bloques 0 y 1
+    write("/rf3.bin", common_pb2.WRITE_MODE_PARTIAL, b"cola", len(model) + B + 7)  # más allá del final: hueco con ceros
+    write("/rf3.bin", common_pb2.WRITE_MODE_REPLACE, b"contenido nuevo y corto")
+    write("/rf3.bin", common_pb2.WRITE_MODE_APPEND, b"")  # anexar nada no cambia el archivo
+    assert client.get_file_info("/rf3.bin").version == 6
+
+
+def test_rf3_reads_byte_ranges_and_own_writes(client: DfshaClient) -> None:
+    data = os.urandom(3 * B)
+    with client.open("/rango.bin", metadata_pb2.OPEN_MODE_CREATE) as handle:
+        handle.write(data)
+        assert handle.read(B - 3, 6) == data[B - 3 : B + 3]  # lo escrito se lee antes de cerrar
+    with client.open("/rango.bin") as reader:
+        assert reader.read(2 * B + 5, 10) == data[2 * B + 5 : 2 * B + 15]
+        assert reader.read(3 * B, 10) == b""
+        error = _expect(lambda: reader.write(b"x"))
+        assert error.code == grpc.StatusCode.FAILED_PRECONDITION
+
+
+def test_rf3_close_to_open_guarantees(client: DfshaClient) -> None:
+    old, new = os.urandom(B + 10), os.urandom(B + 20)
+    with client.open("/g.bin", metadata_pb2.OPEN_MODE_CREATE) as handle:
+        handle.write(old)
+    reader = client.open("/g.bin")
+    with client.open("/g.bin", metadata_pb2.OPEN_MODE_WRITE) as writer:
+        writer.write(new, 0, common_pb2.WRITE_MODE_REPLACE)
+        with client.open("/g.bin") as during:
+            assert during.read(0, len(new)) == old  # G4: lo no confirmado no se ve
+    assert reader.read(0, len(old) + 50) == old  # G3: quien ya lo tenía abierto sigue con su versión
+    reader.close()
+    with client.open("/g.bin") as after:
+        assert after.read(0, len(new) + 50) == new  # G2: un open() posterior ve la confirmada
+
+
+def test_rf3_concurrent_writers(client: DfshaClient) -> None:
+    data = bytearray(os.urandom(4 * B))
+    with client.open("/c.bin", metadata_pb2.OPEN_MODE_CREATE) as handle:
+        handle.write(bytes(data))
+    first = client.open("/c.bin", metadata_pb2.OPEN_MODE_WRITE)
+    second = client.open("/c.bin", metadata_pb2.OPEN_MODE_WRITE)
+    first.write(b"A" * 10, 5, common_pb2.WRITE_MODE_PARTIAL)  # bloque 0
+    error = _expect(lambda: second.write(b"B" * 10, 20, common_pb2.WRITE_MODE_PARTIAL))  # mismo bloque
+    assert (error.code, error.reason) == (grpc.StatusCode.ABORTED, Reason.LOCK_CONFLICT)
+    second.write(b"C" * 10, 3 * B, common_pb2.WRITE_MODE_PARTIAL)  # otro bloque: los dos escriben
+    assert first.close() == 2
+    assert second.close() == 3  # se aplica sobre la versión del primero (§8.2)
+    data[5:15], data[3 * B : 3 * B + 10] = b"A" * 10, b"C" * 10
+    _check(client, "/c.bin", data)
+
+
+def test_rf3_lock_groups_writes_and_rejects_writes_outside_it(client: DfshaClient) -> None:
+    with client.open("/l.bin", metadata_pb2.OPEN_MODE_CREATE) as handle:
+        handle.write(os.urandom(3 * B))
+    with client.open("/l.bin", metadata_pb2.OPEN_MODE_WRITE) as handle:
+        handle.lock(0, 2)
+        handle.write(b"x", 10, common_pb2.WRITE_MODE_PARTIAL)
+        handle.write(b"y", B + 10)
+        error = _expect(lambda: handle.write(b"z", 2 * B + 10))  # fuera del rango arrendado
+        assert error.code == grpc.StatusCode.FAILED_PRECONDITION
+        assert _expect(handle.unlock).code == grpc.StatusCode.FAILED_PRECONDITION  # hay escrituras sin confirmar
+    with client.open("/l.bin") as reader:
+        assert (reader.read(10, 1), reader.read(B + 10, 1)) == (b"x", b"y")
+
+
+def test_rf3_writer_that_dies_loses_its_lease(
+    etcd_addr: str, etcd_prefix: bytes, tmp_path: Path, cluster_secrets: Path
+) -> None:
+    # Escenario 1 de §11.1 con un TTL de 2 s en lugar de 30
+    local = LocalCluster(etcd_addr, etcd_prefix, tmp_path, cluster_secrets, lease_ttl_s=2)
+    try:
+        for _ in range(3):
+            local.start_metadata()
+        assert wait_until(lambda: sum(server.election.is_leader for server in local.metadata.values()) == 1)
+        local.create_test_user()
+        for index in range(1, 4):
+            local.start_datanode(index)
+        assert wait_until(lambda: all(d.metadata_client is not None and d.metadata_client.is_registered for d in local.datanodes))
+        settings = ClientSettings(
+            metadata_addrs=list(local.metadata), secrets_directory=cluster_secrets / "client-1", username=local.username,
+            password=local.password, rpc_timeout_s=3, transfer_timeout_s=10, retry=RetryPolicy(max_total_s=30),
+        )  # fmt: skip
+        with DfshaClient(settings) as client:
+            with client.open("/d.bin", metadata_pb2.OPEN_MODE_CREATE) as handle:
+                handle.write(os.urandom(100))
+            dead = client.open("/d.bin", metadata_pb2.OPEN_MODE_WRITE)
+            dead.write(b"muerto", 0, common_pb2.WRITE_MODE_PARTIAL)
+            assert dead._keeper is not None
+            dead._keeper.stop()  # el proceso deja de renovar, como si hubiera muerto
+            alive = client.open("/d.bin", metadata_pb2.OPEN_MODE_WRITE)
+            assert _expect(lambda: alive.write(b"vivo", 0, common_pb2.WRITE_MODE_PARTIAL)).reason == Reason.LOCK_CONFLICT
+            assert wait_until(lambda: _try_write(alive, b"vivo"), timeout_s=10)  # caduca solo, sin intervención
+            assert alive.close() == 2
+            assert _expect(dead.close).reason == Reason.LEASE_EXPIRED  # el que reaparece no pisa al otro
+            with client.open("/d.bin") as reader:
+                assert reader.read(0, 4) == b"vivo"
+    finally:
+        local.stop()
+
+
+def _try_write(handle: FileHandle, data: bytes) -> bool:
+    try:
+        handle.write(data, 0, common_pb2.WRITE_MODE_PARTIAL)
+        return True
+    except DfshaError as error:
+        assert error.reason == Reason.LOCK_CONFLICT
+        return False
+
+
+def _expect(operation: Callable[[], object]) -> DfshaError:
+    with pytest.raises(DfshaError) as caught:
+        operation()
+    return caught.value

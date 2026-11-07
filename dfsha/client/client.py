@@ -7,13 +7,14 @@ import random
 import threading
 import time
 import uuid
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from pathlib import Path
 
 import grpc
 
+from dfsha.client.file_handle import FileHandle
 from dfsha.client.connection import ChannelPool, MetadataConnection, RetryPolicy, get_datanode_stub
 from dfsha.common import config
 from dfsha.common.errors import DfshaError, Reason
@@ -138,6 +139,12 @@ class DfshaClient:
         request = metadata_pb2.MovePathRequest(request_id=_request_id(), source_path=source_path, target_path=target_path)
         self.metadata.call_rpc("MovePath", request)
 
+    # ===== RF3: acceso a archivos ==============================================================
+
+    def open(self, path: str, mode: metadata_pb2.OpenMode = metadata_pb2.OPEN_MODE_READ) -> FileHandle:
+        """Abre un archivo para leer, para escribir (si existe) o para crearlo al cerrar (§7)."""
+        return FileHandle(self, path, mode)
+
     # ===== RF2: carga y recuperación ===========================================================
 
     def put(self, local_path: Path, remote_path: str) -> int:
@@ -153,8 +160,14 @@ class DfshaClient:
         committed: list[metadata_pb2.CommittedBlock] = []
         try:
             with open(local_path, "rb") as source:
+                descriptor = source.fileno()
+
+                def read_block(index: int) -> bytes:
+                    offset = index * block_size
+                    return os.pread(descriptor, min(block_size, size_bytes - offset), offset)
+
                 committed = self._upload_blocks(
-                    opened.file_handle, opened.data_key, lease.lease_id, source.fileno(), block_size, block_count, size_bytes
+                    opened.file_handle, opened.data_key, lease.lease_id, list(range(block_count)), read_block
                 )
             commit_request = metadata_pb2.CommitFileRequest(
                 request_id=_request_id(),
@@ -229,18 +242,16 @@ class DfshaClient:
         file_handle: bytes,
         data_key: bytes,
         lease_id: str,
-        descriptor: int,
-        block_size: int,
-        block_count: int,
-        size_bytes: int,
+        indices: list[int],
+        read_block: Callable[[int], bytes],
     ) -> list[metadata_pb2.CommittedBlock]:
-        if not block_count:
+        """Reserva, cifra y envía los bloques de ``indices``; ``read_block`` da el contenido en claro de cada uno."""
+        if not indices:
             return []
-        locations = self._allocate(file_handle, lease_id, list(range(block_count)))
+        locations = self._allocate(file_handle, lease_id, indices)
 
         def upload(location: common_pb2.BlockLocation) -> metadata_pb2.CommittedBlock:
-            offset = location.block_index * block_size
-            plaintext = os.pread(descriptor, min(block_size, size_bytes - offset), offset)
+            plaintext = read_block(location.block_index)
             for attempt in range(MAX_BLOCK_ATTEMPTS):
                 # Cifrado de sobre (§10.5): el block_id es el dato asociado, así que se cifra de nuevo si cambia
                 stored = encrypt_block(data_key, location.block_id, plaintext)
