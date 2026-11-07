@@ -61,6 +61,12 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
   20 000 veces se carga con `put`, y ningún bloque de los cinco nodos de datos contiene la marca. Cada
   bloque guardado mide 28 bytes más que el bloque en claro (nonce y etiqueta de AES-GCM).
 
+- **2026-11-07 · Fin de la sesión del Learner Lab sin copia de seguridad** (etapa 9). La sesión caducó a las
+  08:46 UTC, mientras se construían las imágenes de la v0.11.0: la política `voc-cancel-cred` deniega todo
+  y no se llegó a instalar nada. No se hizo `deploy.sh backup` antes, en contra del ADR 0035; los metadatos
+  siguen en los volúmenes EBS de las instancias paradas. El siguiente arranque es un arranque en frío real
+  (§9.6) con la v0.10.0.
+
 ## Limitaciones descubiertas
 
 - **2026-11-06 · Memoria de los nodos de datos, por confirmar** (etapa 0). Una t3.micro sin swap deja unos
