@@ -35,3 +35,9 @@ ENTRYPOINT ["python", "-m", "dfsha.datanode"]
 
 FROM base AS metadata
 ENTRYPOINT ["python", "-m", "dfsha.metadata"]
+
+# El cliente queda en marcha para usarlo con: docker exec client-1 dfsha <orden>
+FROM base AS client
+WORKDIR /data
+CMD ["sleep", "infinity"]
+

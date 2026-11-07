@@ -25,6 +25,14 @@ x-metadata: &metadata
     target: metadata
   restart: always
 
+x-client: &client
+  image: dfsha-client:${DFSHA_IMAGE_TAG:-0.0.0}
+  build:
+    <<: *build
+    target: client
+  restart: always
+  networks: [dfsha-net]
+
 x-datanode: &datanode
   image: dfsha-datanode:${DFSHA_IMAGE_TAG:-0.0.0}
   build:
@@ -170,6 +178,14 @@ services:
       DFSHA_INITIALIZE_DATA_DIRECTORY: "true"  # solo en local; en AWS la marca la pone el script de despliegue
     volumes: [datanode-5-data:/data]
 
+  client-1:
+    <<: *client
+    hostname: client-1
+    container_name: client-1
+    environment:
+      DFSHA_METADATA_ADDRS: metadata-1:50051,metadata-2:50051,metadata-3:50051
+    volumes: [client-1-data:/data]
+
 networks:
   dfsha-net:
     name: dfsha-net
@@ -183,3 +199,4 @@ volumes:
   datanode-3-data:
   datanode-4-data:
   datanode-5-data:
+  client-1-data:
