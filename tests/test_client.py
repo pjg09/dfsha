@@ -1,6 +1,7 @@
 """Cliente (biblioteca y línea de órdenes) contra un clúster real en localhost sobre etcd real."""
 
 import hashlib
+import io
 import logging
 import os
 from collections.abc import Callable, Iterator
@@ -189,6 +190,47 @@ def test_cli_useradd_needs_an_admin(
     assert main(["useradd", "nueva"]) == 0
     assert "Usuario nueva creado" in capsys.readouterr().out
 
+
+
+def _cli_env(monkeypatch: pytest.MonkeyPatch, cluster: LocalCluster, cluster_secrets: Path) -> None:
+    monkeypatch.setenv("DFSHA_METADATA_ADDRS", ",".join(cluster.metadata))
+    monkeypatch.setenv("DFSHA_SECRETS_DIRECTORY", str(cluster_secrets / "client-1"))
+    monkeypatch.setenv("DFSHA_USERNAME", cluster.username)
+    monkeypatch.setenv("DFSHA_PASSWORD", cluster.password)
+
+
+def test_cli_rf3_commands(
+    cluster: LocalCluster, cluster_secrets: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    _cli_env(monkeypatch, cluster, cluster_secrets)
+    (tmp_path / "base.txt").write_bytes(b"0123456789")
+    assert main(["put", str(tmp_path / "base.txt"), "/t.txt"]) == 0
+    assert main(["write", "/t.txt", "2", "=AB"]) == 0  # modificación parcial con texto literal
+    assert main(["append", "/t.txt", "=xyz"]) == 0
+    assert main(["read", "/t.txt", "1", "20", str(tmp_path / "leido.txt")]) == 0
+    assert (tmp_path / "leido.txt").read_bytes() == b"1AB456789xyz"
+    assert "versión 3" in capsys.readouterr().out
+    assert main(["write", "/no-existe.txt", "0", "=x"]) == 1
+    assert "[PATH_NOT_FOUND]" in capsys.readouterr().err
+
+
+def test_cli_shell_with_an_open_file(
+    cluster: LocalCluster, cluster_secrets: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    _cli_env(monkeypatch, cluster, cluster_secrets)
+    session = "\n".join([
+        "open /s.txt c", "write 0 =hola", "append =' mundo'", "close",
+        "open /s.txt w", "lock 0 1", "write 0 =HOLA", f"read 0 20 {tmp_path / 'antes.txt'}", "close",
+        "open /s.txt w", "write 0 =perdido",  # se sale sin cerrar: se descarta
+    ])  # fmt: skip
+    monkeypatch.setattr("sys.stdin", io.StringIO(session + "\n"))
+    assert main(["shell"]) == 0
+    captured = capsys.readouterr()
+    assert "/s.txt: versión 1" in captured.out and "/s.txt: versión 2" in captured.out, captured.err
+    assert "se descartan sus escrituras" in captured.err
+    assert (tmp_path / "antes.txt").read_bytes() == b"HOLA mundo"  # lo propio se lee antes de cerrar
+    assert main(["read", "/s.txt", "0", "20", str(tmp_path / "despues.txt")]) == 0
+    assert (tmp_path / "despues.txt").read_bytes() == b"HOLA mundo"
 
 
 # ===== RF3: open, read, write, lock, unlock y close (§7) ======================================

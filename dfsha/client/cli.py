@@ -16,11 +16,12 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from dfsha.client.client import DfshaClient, load_settings
+from dfsha.client.file_handle import FileHandle
 from dfsha.common import config
 from dfsha.common.config import ConfigError
 from dfsha.common.errors import DfshaError
 from dfsha.common.log import configure_logging
-from dfsha.v1 import metadata_pb2
+from dfsha.v1 import common_pb2, metadata_pb2
 
 
 def resolve_path(current_directory: str, path: str) -> str:
@@ -62,7 +63,15 @@ class Shell:
             "get": (2, 2, self.get),
             "stat": (1, 1, self.stat),
             "useradd": (1, 2, self.useradd),
+            "read": (2, 4, self.read),
+            "write": (2, 3, self.write),
+            "append": (1, 2, self.append),
+            "open": (1, 2, self.open),
+            "lock": (0, 2, self.lock),
+            "unlock": (0, 0, self.unlock),
+            "close": (0, 0, self.close),
         }
+        self.open_file: FileHandle | None = None  # solo en el modo interactivo
 
     def run(self, words: list[str]) -> None:
         command, *arguments = words
@@ -128,12 +137,120 @@ class Shell:
         print(f"bloques: {info.block_count} de {_format_size(info.block_size_bytes)}\nmodificado: {_format_time(info)}")
 
 
+    # ----- RF3 (§7): con un archivo abierto en el shell, read, write y append actúan sobre él -----
+
+    def read(self, *arguments: str) -> None:
+        """read <ruta> <offset> <longitud> [destino]; con un archivo abierto, read <offset> <longitud> [destino]."""
+        if self.open_file is None:
+            if len(arguments) < 3:
+                raise ValueError("read <ruta> <offset> <longitud> [destino]")
+            path, offset, length, *target = arguments
+            with self.client.open(self._remote(path)) as handle:
+                data = handle.read(_parse_int(offset), _parse_int(length))
+        else:
+            if not 2 <= len(arguments) <= 3:
+                raise ValueError("Con un archivo abierto: read <offset> <longitud> [destino]")
+            offset, length, *target = arguments
+            data = self.open_file.read(_parse_int(offset), _parse_int(length))
+        if target:
+            Path(target[0]).write_bytes(data)
+            print(f"{target[0]}: {_format_size(len(data))}")
+        else:
+            sys.stdout.buffer.write(data)
+            sys.stdout.flush()
+
+    def write(self, *arguments: str) -> None:
+        """write <ruta> <offset> <datos> (modificación parcial); con un archivo abierto, write <offset> <datos> [modo]."""
+        if self.open_file is None:
+            if len(arguments) != 3:
+                raise ValueError("write <ruta> <offset> <datos>")
+            path, offset, source = arguments
+            self._write_and_close(path, _parse_int(offset), _read_data(source), common_pb2.WRITE_MODE_PARTIAL)
+        else:
+            offset, source, *mode = arguments
+            self.open_file.write(_read_data(source), _parse_int(offset), _parse_write_mode(mode[0]) if mode else None)
+
+    def append(self, *arguments: str) -> None:
+        """append <ruta> <datos>; con un archivo abierto, append <datos>."""
+        if self.open_file is None:
+            if len(arguments) != 2:
+                raise ValueError("append <ruta> <datos>")
+            self._write_and_close(arguments[0], 0, _read_data(arguments[1]), common_pb2.WRITE_MODE_APPEND)
+        else:
+            if len(arguments) != 1:
+                raise ValueError("Con un archivo abierto: append <datos>")
+            self.open_file.write(_read_data(arguments[0]), mode=common_pb2.WRITE_MODE_APPEND)
+
+    def open(self, path: str, mode: str = "r") -> None:
+        if self.open_file is not None:
+            raise ValueError(f"Ya está abierto {self.open_file.path}; ciérralo con close")
+        if mode not in _OPEN_MODES:
+            raise ValueError("open <ruta> [r|w|c]: r para leer, w para escribir uno que existe, c para crearlo")
+        self.open_file = self.client.open(self._remote(path), _OPEN_MODES[mode])
+        print(f"{self.open_file.path}: abierto, versión {self.open_file.version}, {_format_size(self.open_file.size)}")
+
+    def lock(self, first_block: str = "0", block_count: str = "0") -> None:
+        """lock [primer-bloque] [número-de-bloques]; 0 bloques llega hasta el final del archivo."""
+        self._require_open_file().lock(_parse_int(first_block), _parse_int(block_count))
+
+    def unlock(self) -> None:
+        self._require_open_file().unlock()
+
+    def close(self) -> None:
+        handle = self._require_open_file()
+        self.open_file = None
+        print(f"{handle.path}: versión {handle.close()}")
+
+    def discard_open_file(self) -> None:
+        """Al salir del shell, las escrituras que no se cerraron se descartan."""
+        if self.open_file is not None:
+            print(f"{self.open_file.path} seguía abierto: se descartan sus escrituras sin confirmar", file=sys.stderr)
+            self.open_file.abort()
+            self.open_file = None
+
+    def _require_open_file(self) -> FileHandle:
+        if self.open_file is None:
+            raise ValueError("No hay ningún archivo abierto; usa open <ruta> [r|w|c]")
+        return self.open_file
+
+    def _write_and_close(self, path: str, offset: int, data: bytes, mode: common_pb2.WriteMode) -> None:
+        with self.client.open(self._remote(path), metadata_pb2.OPEN_MODE_WRITE) as handle:
+            handle.write(data, offset, mode)
+        print(f"{handle.path}: versión {handle.version}, {_format_size(handle.size)}")
+
     def useradd(self, username: str, role: str = "") -> None:
         if role not in ("", "admin"):
             raise ValueError("useradd <nombre> [admin]")
         password = os.environ.get("DFSHA_NEW_PASSWORD") or _ask_new_password(username)
         user_id = self.client.create_user(username, password, is_admin=role == "admin")
         print(f"Usuario {username} creado ({user_id}){' como administrador' if role else ''}")
+
+
+_OPEN_MODES = {"r": metadata_pb2.OPEN_MODE_READ, "w": metadata_pb2.OPEN_MODE_WRITE, "c": metadata_pb2.OPEN_MODE_CREATE}
+_WRITE_MODES = {
+    "crear": common_pb2.WRITE_MODE_CREATE,
+    "reemplazar": common_pb2.WRITE_MODE_REPLACE,
+    "anexar": common_pb2.WRITE_MODE_APPEND,
+    "parcial": common_pb2.WRITE_MODE_PARTIAL,
+}
+
+
+def _parse_int(text: str) -> int:
+    try:
+        return int(text)
+    except ValueError:
+        raise ValueError(f"Se esperaba un número: {text!r}") from None
+
+
+def _parse_write_mode(text: str) -> common_pb2.WriteMode:
+    if text not in _WRITE_MODES:
+        raise ValueError(f"Modo de escritura no válido: {text}. Modos: {', '.join(_WRITE_MODES)}")
+    return _WRITE_MODES[text]
+
+
+def _read_data(source: str) -> bytes:
+    """Los datos de write y append: ``=texto`` es el texto literal; si no, un archivo local."""
+    return source[1:].encode() if source.startswith("=") else Path(source).read_bytes()
 
 
 def _ask_new_password(username: str) -> str:
@@ -152,7 +269,14 @@ def _report(error: Exception) -> None:
 
 
 def _interactive(shell: Shell) -> None:
-    print("DFSha. Órdenes: ls, cd, pwd, mkdir, rmdir, rm, mv, put, get, stat, useradd, exit")
+    print("DFSha. Órdenes: ls, cd, pwd, mkdir, rmdir, rm, mv, put, get, stat, read, write, append, open, lock, unlock, close, useradd, exit")
+    try:
+        _read_commands(shell)
+    finally:
+        shell.discard_open_file()
+
+
+def _read_commands(shell: Shell) -> None:
     while True:
         try:
             line = input(f"dfsha:{shell.current_directory}> ")
@@ -176,7 +300,7 @@ def main(argv: list[str] | None = None) -> int:
         description="Cliente de DFSha. Se configura con DFSHA_METADATA_ADDRS, DFSHA_USERNAME y DFSHA_PASSWORD "
         "(si falta, la pide) y DFSHA_SECRETS_DIRECTORY con el certificado del host.",
     )
-    parser.add_argument("words", nargs="+", metavar="orden", help="ls, mkdir, rmdir, rm, mv, put, get, stat, useradd o shell")
+    parser.add_argument("words", nargs="+", metavar="orden", help="ls, mkdir, rmdir, rm, mv, put, get, stat, read, write, append, useradd o shell")
     parser.add_argument("-v", "--verbose", action="store_true", help="muestra los reintentos y los avisos")
     arguments = parser.parse_args(argv)
     configure_logging("INFO" if arguments.verbose else "ERROR", "client")

@@ -26,9 +26,11 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 TO_END = 0  # block_count de un rango que llega hasta el final del archivo, aunque crezca
+# El primero de cada lista es el modo por defecto. En un archivo que se crea, anexar y modificar solo sitúan
+# los datos: todo es parte de la creación y se confirma en modo creación.
 _WRITE_MODES_BY_OPEN_MODE = {
-    metadata_pb2.OPEN_MODE_CREATE: (common_pb2.WRITE_MODE_CREATE,),
-    metadata_pb2.OPEN_MODE_WRITE: (common_pb2.WRITE_MODE_REPLACE, common_pb2.WRITE_MODE_APPEND, common_pb2.WRITE_MODE_PARTIAL),
+    metadata_pb2.OPEN_MODE_CREATE: (common_pb2.WRITE_MODE_CREATE, common_pb2.WRITE_MODE_APPEND, common_pb2.WRITE_MODE_PARTIAL),
+    metadata_pb2.OPEN_MODE_WRITE: (common_pb2.WRITE_MODE_PARTIAL, common_pb2.WRITE_MODE_APPEND, common_pb2.WRITE_MODE_REPLACE),
     metadata_pb2.OPEN_MODE_READ: (),
 }
 
@@ -79,11 +81,13 @@ class FileHandle:
         """Escribe ``data`` según el modo (Tabla 22): creación, reemplazo, anexado o modificación parcial.
 
         En anexado se ignora ``offset``: los datos van al final. Un ``offset`` más allá del final rellena
-        el hueco con ceros. Cada apertura admite un solo modo de escritura.
+        el hueco con ceros. Sin modo, modificación parcial (o creación, si el archivo se abrió para crearlo).
+        Cada apertura admite un solo modo de escritura, salvo al crear.
         """
         self._require_open()
-        write_mode = self._choose_write_mode(mode)
-        if write_mode == common_pb2.WRITE_MODE_APPEND:
+        requested = self._choose_write_mode(mode)
+        write_mode = common_pb2.WRITE_MODE_CREATE if self.mode == metadata_pb2.OPEN_MODE_CREATE else requested
+        if requested == common_pb2.WRITE_MODE_APPEND:
             offset = self.size
         if offset < 0:
             raise DfshaError(grpc.StatusCode.INVALID_ARGUMENT, "offset no puede ser negativo")
@@ -190,7 +194,7 @@ class FileHandle:
             mode = self._write_mode or allowed[0]
         if mode not in allowed:
             raise DfshaError(grpc.StatusCode.INVALID_ARGUMENT, "Ese modo de escritura no vale con el modo en que se abrió el archivo")
-        if self._write_mode is not None and mode != self._write_mode:
+        if self.mode == metadata_pb2.OPEN_MODE_WRITE and self._write_mode is not None and mode != self._write_mode:
             raise DfshaError(grpc.StatusCode.FAILED_PRECONDITION, "Cada apertura admite un solo modo de escritura; cierra antes de cambiarlo")
         return mode
 
