@@ -15,7 +15,9 @@ instance_type=$(aws ec2 describe-instances --instance-ids "$client_id" --query '
 credits=$(aws ec2 describe-instance-credit-specifications --instance-ids "$client_id" --query 'InstanceCreditSpecifications[0].CpuCredits' --output text)
 version=$($run ssh client-1 "sudo docker ps --format '{{.Image}}'" | sed 's/^.*://')
 now=$(date -u +%FT%TZ)
-[[ -f $out ]] || echo "fecha_utc,experimento,version,cliente,creditos_cpu,condicion,repeticion,operacion,tamano_mib,latencia_ms,tasa_mb_s,hash_ok" > "$out"
+last_column=hash_ok
+[[ $1 == concurrent ]] && last_column=conflictos  # en E4, la última columna cuenta conflictos
+[[ -f $out ]] || echo "fecha_utc,experimento,version,cliente,creditos_cpu,condicion,repeticion,operacion,tamano_mib,latencia_ms,tasa_mb_s,$last_column" > "$out"
 echo "$experiment: versión $version, client-1 $instance_type ($credits), resultados en $out" >&2
 $run ssh client-1 "sudo docker exec -i -e DFSHA_USERNAME=pedro client-1 sh -c \
   'read -r DFSHA_PASSWORD; export DFSHA_PASSWORD; script=\$(cat); exec python -c \"\$script\" $(printf '%q ' "$@")'" \

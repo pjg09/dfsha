@@ -20,12 +20,18 @@ rows = list(csv.DictReader(open(sys.argv[1], encoding="utf-8")))
 groups: dict[tuple[str, str, str], list[dict[str, str]]] = defaultdict(list)
 for row in rows:
     groups[(row["condicion"], row["operacion"], row["tamano_mib"])].append(row)
-print("| Condición | Operación | Tamaño (MiB) | n | Latencia mediana (ms) | Latencia p95 (ms) | Tasa mediana (MB/s) | Hash |")
+last = "Conflictos" if rows and "conflictos" in rows[0] else "Hash"
+print(f"| Condición | Operación | Tamaño (MiB) | n | Latencia mediana (ms) | Latencia p95 (ms) | Tasa mediana (MB/s) | {last} |")
 print("|---|---|---|---|---|---|---|---|")
 for (condition, operation, size), group in sorted(groups.items(), key=lambda item: (item[0][0], item[0][1], int(item[0][2]))):
     latencies = [float(row["latencia_ms"]) for row in group]
     rates = [float(row["tasa_mb_s"]) for row in group]
-    hashes = "ok" if all(row["hash_ok"] == "True" for row in group) else "FALLO"
+    if last == "Conflictos":
+        hashes = str(sum(int(row["conflictos"] or 0) for row in group))
+    elif all(row["hash_ok"] == "" for row in group):
+        hashes = "-"  # no se comprueba ningún hash
+    else:
+        hashes = "ok" if all(row["hash_ok"] == "True" for row in group) else "FALLO"
     print(
         f"| {condition} | {operation} | {size} | {len(group)} | {statistics.median(latencies):.0f} | "
         f"{percentile(latencies, 0.95):.0f} | {statistics.median(rates):.1f} | {hashes} |"
