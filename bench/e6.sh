@@ -27,7 +27,7 @@ $run ssh client-1 "sudo docker exec client-1 sh -c 'head -c 268435456 /dev/urand
 $run dfsha pedro rm /bench/e6.bin >/dev/null 2>&1 || true
 $run dfsha pedro put /data/e6.bin /bench/e6.bin >&2
 $run ssh client-1 "sudo rm -f /srv/dfsha/client/e6.bin"
-for variant in parada congelado; do
+for variant in ${VARIANTS:-parada congelado}; do
   for rep in $(seq 1 "$REPS"); do
     node=datanode-$rep
     since=$(date -u +%Y-%m-%dT%H:%M:%SZ)
