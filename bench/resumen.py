@@ -25,7 +25,8 @@ print(f"| Condición | Operación | Tamaño (MiB) | n | Latencia mediana (ms) | 
 print("|---|---|---|---|---|---|---|---|")
 for (condition, operation, size), group in sorted(groups.items(), key=lambda item: (item[0][0], item[0][1], int(item[0][2]))):
     latencies = [float(row["latencia_ms"]) for row in group]
-    rates = [float(row["tasa_mb_s"]) for row in group]
+    # En la modificación parcial importa la latencia: 4 KiB entre el tiempo no es una tasa útil
+    rates = [] if operation.startswith("parcial") else [float(row["tasa_mb_s"]) for row in group if row["tasa_mb_s"]]
     if last == "Conflictos":
         hashes = str(sum(int(row["conflictos"] or 0) for row in group))
     elif all(row["hash_ok"] == "" for row in group):
@@ -34,5 +35,5 @@ for (condition, operation, size), group in sorted(groups.items(), key=lambda ite
         hashes = "ok" if all(row["hash_ok"] == "True" for row in group) else "FALLO"
     print(
         f"| {condition} | {operation} | {size} | {len(group)} | {statistics.median(latencies):.0f} | "
-        f"{percentile(latencies, 0.95):.0f} | {statistics.median(rates):.1f} | {hashes} |"
+        f"{percentile(latencies, 0.95):.0f} | {f'{statistics.median(rates):.1f}' if rates else '-'} | {hashes} |"
     )
