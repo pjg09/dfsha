@@ -27,8 +27,8 @@ Qué hay que entregar: enunciado §5.3. Cómo se califica: enunciado §6.
 | 2 | Elección de Raft | Alta disponibilidad | Terminada |
 | 3 | Nodo de datos y entorno local | Distribución y comunicaciones | Terminada |
 | 4 | Servidor de metadatos | Distribución; alta disponibilidad | Terminada |
-| 5 | Cliente: RF1 y RF2 de extremo a extremo | Implementación RF1–RF3 | En curso |
-| 6 | Seguridad | Seguridad | Pendiente |
+| 5 | Cliente: RF1 y RF2 de extremo a extremo | Implementación RF1–RF3 | Terminada |
+| 6 | Seguridad | Seguridad | En curso |
 | 7 | Despliegue en AWS | Distribución y comunicaciones | Pendiente |
 | 8 | RF3 en el cliente y concurrencia | Implementación RF1–RF3; consistencia | Pendiente |
 | 9 | Tolerancia a fallos | Alta disponibilidad, replicación y consistencia | Pendiente |

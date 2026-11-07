@@ -28,6 +28,11 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
   de Amazon como fuente principal sin configurar nada. El script de despliegue solo tiene que comprobarlo
   con `chronyc tracking`.
 
+- **2026-11-07 · `put` y `get` de 1 GiB en local** (etapa 5, versión 0.7.1.dev). En Docker en la máquina
+  de desarrollo, con 5 nodos de datos y bloques de 16 MiB: `put` en 4,3 s (248 MB/s) y `get` en 1,8 s
+  (608 MB/s), mismo SHA-256. Sin cifrado ni TLS todavía (etapa 6). No son valores de rendimiento del
+  sistema: no hay red real; E1 y E2 se miden en AWS.
+
 ## Limitaciones descubiertas
 
 - **2026-11-06 · Memoria de los nodos de datos, por confirmar** (etapa 0). Una t3.micro sin swap deja unos
@@ -56,6 +61,15 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
   `malloc` de glibc que crea cada hilo. Con `MALLOC_ARENA_MAX=2` en la imagen base baja a 167 MiB, sin
   perder tasa de transferencia (unos 200 MB/s en local). Una primera medición con `docker stats` daba más,
   porque incluye la caché de páginas de los bloques escritos; se midió con `VmHWM` del proceso.
+- **2026-11-07 · Reparto desigual de réplicas en local** (etapa 5). En el `put` de 1 GiB, los 5 nodos
+  recibieron 22, 22, 57, 51 y 40 réplicas. En local comparten el mismo disco: los que enviaron su latido
+  después de crear el archivo de 1 GiB informaron 1 GiB menos libre, y la ubicación por espacio libre
+  (§4.3) les dio menos bloques. En AWS cada nodo tiene su volumen; hay que comprobar el reparto allí
+  (etapa 7).
+- **2026-11-07 · Una prueba que pasaba sin probar lo que decía** (etapa 5). La prueba de un `put` con un
+  nodo de datos caído pasaba, pero en los logs el nodo caído solo era secundaria: el quórum W = 2 bastaba y
+  el cliente nunca repetía un bloque. Se separó en dos pruebas, y la de repetir bloques tira 2 de 4 nodos
+  y comprueba en el log que el cliente reserva de nuevo.
 - **2026-11-07 · Recuperación lenta de los nodos de datos tras caer el líder** (etapa 4). En el entorno local,
   al tirar el servidor de metadatos líder junto con su miembro de etcd, el nuevo líder se elegía en unos 8 s,
   pero los nodos de datos tardaban unos 14 s en volver a contar como vivos: cada intento contra el líder
