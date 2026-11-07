@@ -147,6 +147,21 @@ carga y recuperación. **Primeras evidencias:** «Carga y recuperación» y «Se
 - Pruebas de concurrencia: dos escritores sobre el mismo bloque y sobre bloques distintos del mismo
   archivo, y un escritor que muere con el arrendamiento (escenario 1, §11.1).
 - Los arrendamientos y la comprobación de versión del servidor ya existen desde la etapa 4 (ADR 0041).
+- **Cómo se hace** (decidido al empezar la etapa 8; el servidor ya mezcla `APPEND` y `PARTIAL` sobre la
+  versión vigente, pero no hay recolección de basura en ningún lado):
+  1. **Recolección de basura** (§9.3): el nodo de datos envía su informe de bloques cada 5 min y ejecuta
+     `DELETE`; el líder compara cada informe con los bloques vivos (versiones no caducadas y escrituras en
+     curso con arrendamiento vigente) y envía `DELETE` en la respuesta al latido. Un bloque huérfano nunca
+     vuelve a estar vivo, así que borrarlo es seguro. El líder borra además, cada cierto tiempo, las versiones
+     cuyo periodo de gracia terminó y los arrendamientos caducados con sus escrituras en curso.
+  2. **Biblioteca del cliente**: `open`, `read` (bloques enteros, con caché mientras el archivo está abierto),
+     `write` con los cuatro modos (los bloques del borde se leen, se modifican y se cifran con un `block_id`
+     nuevo), `lock`, `unlock` y `close` (confirma). `write` sin `lock` arrienda el rango que toca; una
+     escritura posterior fuera de ese rango falla y pide `lock` con el rango completo, porque `CommitFile`
+     admite un solo arrendamiento. Un hilo renueva el arrendamiento cada 10 s.
+  3. **CLI**: `read`, `write` y `append` de una sola orden, y en `dfsha shell` `open`, `read`, `write`, `lock`,
+     `unlock` y `close` sobre un archivo abierto.
+  4. **Pruebas** locales de los modos, de G2–G4 y de la Tabla 24; después las evidencias en AWS.
 
 **Terminada cuando:** pasan en AWS «Acceso RF3» y «Concurrencia» (escenario 1, §11.1), con sus
 evidencias registradas.
