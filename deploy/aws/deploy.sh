@@ -315,7 +315,7 @@ backup_bucket() { echo "dfsha-copias-$(aws sts get-caller-identity --query Accou
 cmd_backup() {  # instantánea de etcd en S3 (ADR 0035): se hace al final de cada sesión de trabajo
   local bucket ip snapshot
   bucket=$(backup_bucket)
-  if ! aws s3api head-bucket --bucket "$bucket" 2>/dev/null; then
+  if ! aws s3api head-bucket --bucket "$bucket" >/dev/null 2>&1; then
     aws s3api create-bucket --bucket "$bucket" >/dev/null
     aws s3api put-public-access-block --bucket "$bucket" --public-access-block-configuration \
       BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
