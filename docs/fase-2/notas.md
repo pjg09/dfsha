@@ -137,6 +137,14 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
 - **2026-11-07 · La recolección de basura recorre todos los metadatos** (etapa 8, §9.3). Con cada informe de
   bloques, el líder lee todas las versiones, arrendamientos y escrituras en curso. Con 5 nodos cada 5 min y
   pocos archivos es barato; con muchos archivos habría que llevar un índice de bloques vivos.
+- **2026-11-07 · Al repetir un bloque, el líder devolvía el nodo que acababa de caer** (etapa 9, ADR 0044). En
+  el escenario 3 en AWS, `datanode-4` cayó durante una carga de 1 GiB. El líder lo sigue contando como vivo
+  hasta 9 s y, por ser el de más espacio libre, lo dio como primaria en las cuatro reservas del bloque 58: el
+  cliente agotó sus intentos y la carga falló. En la primera ejecución no pasó por casualidad. La §11.3 dice
+  que al repetir el bloque se reciben «otros tres» nodos; el ADR 0044 añade a `AllocateBlocks` los nodos que
+  ya fallaron. Un primer intento de corrección excluía siempre la primaria y rompió otra prueba: con las
+  secundarias caídas, la primaria está sana y responde `QUORUM_NOT_REACHED`, así que ahora indica ella qué
+  secundarias fallaron.
 - **2026-11-07 · Un `get` con un nodo de datos caído agotaba la memoria del cliente** (etapa 9, `v0.11.1`). En
   la primera ejecución de «Replicación y fallos», el kernel de `client-1` mató el `get` de 1 GiB por falta de
   memoria (573 MB de memoria anónima en una t3.micro de 908 MB), sin mensaje de error. Con todos los nodos el
