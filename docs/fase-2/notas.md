@@ -44,6 +44,17 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
 - **2026-11-07 · Despliegue desde cero con una orden** (etapa 7, `ddb9bc6`). Con la cuenta vacía,
   `deploy.sh all` levanta los 9 hosts en 6 min 50 s sin intervención, y el clúster pasa la prueba de carga y
   recuperación. `down` necesitó dos pasadas para borrar los grupos de seguridad, que se citan entre sí.
+- **2026-11-08 · El README seguido desde cero tenía dos fallos** (etapa 11, `evidencias/2026-11-08-readme-desde-cero/`):
+  - el ejemplo del cliente cargaba `/data/archivo.bin` sin ningún paso que lo creara, en local y en AWS;
+  - el texto de `unlock` no decía que se rechaza con escrituras sin confirmar.
+
+  Además, `deploy.sh status` listaba también las instancias terminadas. Todo está corregido. El resto, desde
+  `uv sync` hasta `deploy.sh all` (6 min 19 s) y una carga de 1 GiB, funciona tal como está escrito.
+- **2026-11-08 · Las copias de S3 dependen de la clave de envoltura con que se hicieron** (ADR 0035). Al recrear
+  el clúster desde cero se generaron secretos nuevos, así que las copias anteriores a las 06:16 UTC solo se pueden
+  restaurar con los secretos antiguos, que se guardaron fuera del repositorio en la máquina de administración. Si
+  se pierden los secretos, sus copias no sirven: la clave de envoltura está a propósito fuera del volumen y de la
+  copia (ADR 0035). El informe debe contarlo junto a la limitación de la copia manual.
 - **2026-11-08 · La escalabilidad con varios clientes queda como limitación** (etapa 10, E2 y E4). Decisión de
   Pedro: no se mide con un segundo cliente desde otra instancia (por ejemplo, un servidor de metadatos), y el
   informe lo cuenta como limitación con los datos de E2 y E4. Hay que formularlo así: **el límite medido es la

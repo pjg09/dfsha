@@ -205,7 +205,9 @@ escenarios 3 y 4 (§11.3, §11.4), con sus evidencias registradas.
 - En `docs/fase-2/`: arquitectura, tabla de cambios frente a la fase I (ADR 0006), APIs, algoritmos,
   despliegue, pruebas, resultados y limitaciones (§5.3). Fuentes: ADR 0036.
 - Figuras actualizadas y PDF, sin límite de extensión (A9).
-- Revisar el `README.md` siguiendo sus instrucciones desde cero: clonar, desplegar y probar.
+- Revisar el `README.md` siguiendo sus instrucciones desde cero: clonar, desplegar y probar. **Hecho el
+  2026-11-08** (`evidencias/2026-11-08-readme-desde-cero/`): dos fallos del README y uno de `deploy.sh status`,
+  corregidos. Si el README cambia antes de la entrega, hay que repetir la parte afectada.
 
 **Terminada cuando:** el PDF está generado y revisado.
 
@@ -213,8 +215,9 @@ escenarios 3 y 4 (§11.3, §11.4), con sus evidencias registradas.
 - Guion de 10–15 min: arquitectura, ejecución distribuida, fallos y resultados medidos (§5.3).
 - Revisión del guion y del vídeo grabado. La grabación en AWS se hace en una sola sesión del lab,
   ensayada antes. La entrega del vídeo la gestiona Pedro.
-- **Antes de grabar:** borrar en AWS los 6 528 directorios vacíos que dejó la sonda de E7 en `/bench`
-  (`e7-*`), para que `ls` salga limpio en el vídeo. Lo hace Claude cuando Pedro avise de que empieza la etapa 12.
+- **Directorios vacíos de E7: ya no existen, no hay que borrar nada.** El clúster se recreó desde cero el
+  2026-11-08 al seguir el README (`evidencias/2026-11-08-readme-desde-cero/`), y con él desaparecieron `/bench` y
+  sus 6 528 directorios `e7-*`. En el clúster nuevo solo están `/archivo.bin` y `/grande.bin`.
 
 **Terminada cuando:** el vídeo está revisado y dura entre 10 y 15 min.
 
