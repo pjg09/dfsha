@@ -139,3 +139,12 @@ primera cita.
 - **Tipo:** Documentación
 - **Usada en:** `deploy/aws/deploy.sh up` (parámetro de SSM con la AMI de Ubuntu 26.04)
 - **Verificación:** No se leyó la página. El parámetro `/aws/service/canonical/ubuntu/server/26.04/stable/current/amd64/hvm/ebs-gp3/ami-id` devolvió una AMI con la que las 9 instancias arrancaron con Ubuntu 26.04 y chrony sincronizado (lo comprueba `install`).
+
+## Experimentos y pruebas finales (etapa 10)
+
+### [grpc-keepalive]
+
+- **Referencia:** gRPC Authors, «Keepalive User Guide for gRPC Core» y «Keepalive», gRPC. [En línea]. Disponible en: https://github.com/grpc/grpc/blob/master/doc/keepalive.md y https://grpc.io/docs/guides/keepalive/ (consultado: 8 nov. 2026).
+- **Tipo:** Documentación
+- **Usada en:** ADR 0047, para descartar el keepalive de gRPC frente al vigilante de inactividad.
+- **Verificación:** Se leyeron las dos páginas. Confirman que el keepalive manda pings HTTP/2 y cierra la conexión si no llega la respuesta, y que es solo de conexión: no hablan de un servidor cuyo transporte responde pero cuyo manejador no avanza. Los valores por defecto citados salen de ahí: 5 min de intervalo mínimo entre pings aceptado por el servidor, y `GOAWAY too_many_pings` si se supera. No se probó el keepalive en DFSha.

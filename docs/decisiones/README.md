@@ -60,6 +60,7 @@ Reglas:
 | [0044](0044-nodos-excluidos-al-repetir-un-bloque.md) | Nodos excluidos al repetir un bloque | Aceptada | 2026-11-07 |
 | [0045](0045-cliente-en-t3-small.md) | El cliente pasa a una t3.small para los experimentos | Aceptada | 2026-11-07 |
 | [0046](0046-e8-por-componentes.md) | Métricas y experimentos, con E8 medido por componentes | Aceptada | 2026-11-07 |
+| [0047](0047-vigilante-de-inactividad-en-el-cliente.md) | Vigilante de inactividad en las transferencias del cliente | Aceptada | 2026-11-08 |
 
 ## Plantilla
 

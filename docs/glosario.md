@@ -105,6 +105,7 @@ en el glosario no significa que ya se haya decidido.
 | escritura en curso | `pending` (estado) | Escritura iniciada que todavía no es visible | — |
 | área temporal | `staging` | Lugar del nodo de datos donde se escribe un bloque antes de verificarlo y renombrarlo (ADR 0013). En el cliente, el archivo local donde `write()` prepara los bloques hasta `close()` | temporal, `tmp` |
 | nodo excluido | `excluded_datanode_addrs` | Nodo de datos que ya falló con un bloque y que el cliente pide no volver a recibir al repetirlo (ADR 0044) | nodo vetado, lista negra |
+| vigilante de inactividad | `_InactivityWatchdog`, `transfer_inactivity_s` | En el cliente, el que cancela una transferencia de bloque que lleva `TRANSFER_INACTIVITY_S` sin ningún mensaje, para pasar a otra réplica u otros nodos (ADR 0047) | `watchdog`, temporizador de inactividad |
 | confirmar | `commit` | Hacer visible y definitiva una escritura de forma atómica | publicar, `publish`, `finalize` |
 | escritura confirmada | `committed` (estado) | Escritura visible para los lectores según el modelo declarado | — |
 | abortar | `abort` | Descartar una escritura en curso | cancelar, `rollback` |
