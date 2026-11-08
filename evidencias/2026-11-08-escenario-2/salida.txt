@@ -1,0 +1,56 @@
+
+## Versión desplegada y preparación (04:42:59)
+    dfsha-client:0.13.1
+81acbf4fc14c351af0291c44ff9088cf25559a0cd29d98ff5a4e5e8c23d370a6  /data/escenario-2.bin
+
+## datanode-5 se desconecta justo antes de la escritura: el líder aún lo cuenta como vivo (9 s sin latido)
+[04:43:08] datanode-5 parado
+[2026-11-08T04:43:12.105Z] cliente: El bloque 5 falló en datanode-5:50052 (failed to connect to all addresses; last error: UNKNOWN: ipv4:172.31.23.156:50052: Failed to connect to remote host: Connection refused); se reserva de nuevo
+/escenario-2.bin: versión 1, 128.0 MiB en 1.3 s (105 MB/s)
+
+## Las primarias reenviaron a datanode-5 y no pudo guardar: siguieron con W = 2
+[2026-11-08T04:43:12.323Z] datanode-1: La secundaria datanode-5:50052 no guardó el bloque bd985a0b-046e-4860-8fc7-5cabde8113ea: <_MultiThreadedRendezv
+[2026-11-08T04:43:11.998Z] datanode-2: La secundaria datanode-5:50052 no guardó el bloque a025530c-f026-4241-8473-fe10b6465235: <_MultiThreadedRendezv
+[2026-11-08T04:43:12.002Z] datanode-2: La secundaria datanode-5:50052 no guardó el bloque f225d766-66fc-4e11-8903-16d288f316c2: <_MultiThreadedRendezv
+[2026-11-08T04:43:11.957Z] datanode-3: La secundaria datanode-5:50052 no guardó el bloque b20ff10d-33ef-4be6-8754-70511e2ba47a: <_MultiThreadedRendezv
+
+## Ubicaciones de la versión nueva (04:43:28): solo las réplicas que avisaron, nunca datanode-5
+/escenario-2.bin versión 1:
+  bloque 0: 2 réplicas en datanode-2, datanode-3
+  bloque 1: 3 réplicas en datanode-2, datanode-3, datanode-4
+  bloque 2: 3 réplicas en datanode-1, datanode-2, datanode-3
+  bloque 3: 3 réplicas en datanode-2, datanode-3, datanode-4
+  bloque 4: 3 réplicas en datanode-1, datanode-2, datanode-3
+  bloque 5: 3 réplicas en datanode-2, datanode-3, datanode-4
+  bloque 6: 3 réplicas en datanode-2, datanode-3, datanode-4
+  bloque 7: 3 réplicas en datanode-1, datanode-2, datanode-3
+
+## Lectura de la versión nueva (G2)
+/data/escenario-2-copia.bin: 128.0 MiB en 1.2 s (109 MB/s)
+81acbf4fc14c351af0291c44ff9088cf25559a0cd29d98ff5a4e5e8c23d370a6  /data/escenario-2.bin
+81acbf4fc14c351af0291c44ff9088cf25559a0cd29d98ff5a4e5e8c23d370a6  /data/escenario-2-copia.bin
+
+## A los 30 s, datanode-5 se declara caído y los bloques con 2 réplicas se re-replican
+/escenario-2.bin versión 1:
+  bloque 0: 3 réplicas en datanode-1, datanode-2, datanode-3
+  bloque 1: 3 réplicas en datanode-2, datanode-3, datanode-4
+  bloque 2: 3 réplicas en datanode-1, datanode-2, datanode-3
+  bloque 3: 3 réplicas en datanode-2, datanode-3, datanode-4
+  bloque 4: 3 réplicas en datanode-1, datanode-2, datanode-3
+  bloque 5: 3 réplicas en datanode-2, datanode-3, datanode-4
+  bloque 6: 3 réplicas en datanode-2, datanode-3, datanode-4
+  bloque 7: 3 réplicas en datanode-1, datanode-2, datanode-3
+
+## datanode-5 vuelve (04:44:25): no tiene nada de la versión nueva
+[04:44:29] datanode-5 arrancado
+[2026-11-08T04:44:29.645Z] datanode-5: Dado de alta en el líder de metadatos metadata-1:50051
+[2026-11-08T04:44:29.689Z] datanode-5: Informe de bloques enviado: 103 bloques
+/escenario-2.bin versión 1:
+  bloque 0: 3 réplicas en datanode-1, datanode-2, datanode-3
+  bloque 1: 3 réplicas en datanode-2, datanode-3, datanode-4
+  bloque 2: 3 réplicas en datanode-1, datanode-2, datanode-3
+  bloque 3: 3 réplicas en datanode-2, datanode-3, datanode-4
+  bloque 4: 3 réplicas en datanode-1, datanode-2, datanode-3
+  bloque 5: 3 réplicas en datanode-2, datanode-3, datanode-4
+  bloque 6: 3 réplicas en datanode-2, datanode-3, datanode-4
+  bloque 7: 3 réplicas en datanode-1, datanode-2, datanode-3

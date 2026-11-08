@@ -12,13 +12,13 @@ Una fila sin evidencia es una evidencia que falta.
 
 | Prueba | Qué tiene que verse | Evidencia | Estado |
 |---|---|---|---|
-| Carga y recuperación | Archivo grande repartido en varios nodos de datos; el archivo recuperado tiene el mismo hash | [`2026-11-07-carga-y-recuperacion`](2026-11-07-carga-y-recuperacion/) | Hecha |
-| Acceso RF3 | `read()` y `write()` con la semántica declarada (fase I, §7) | [`2026-11-07-acceso-rf3`](2026-11-07-acceso-rf3/) | Hecha |
-| Concurrencia | Dos clientes sobre el mismo archivo y bloque; resultado según los arrendamientos (fase I, §11.1) | [`2026-11-07-concurrencia`](2026-11-07-concurrencia/) | Hecha |
-| Replicación y fallos | Caída de un nodo de datos; lectura y re-replicación según las garantías (fase I, §9 y §11.3) | [`2026-11-07-replicacion-y-fallos`](2026-11-07-replicacion-y-fallos/) | Hecha |
-| Consistencia | Réplica retrasada o desconectada durante una escritura (fase I, §11.2) | [`2026-11-07-escenario-2`](2026-11-07-escenario-2/) | Hecha |
-| Seguridad | Acceso autorizado y denegado; TLS en el canal y bloques cifrados en disco (fase I, §10) | [`2026-11-07-seguridad`](2026-11-07-seguridad/) | Hecha |
-| Rendimiento | Latencia y tasa de transferencia en al menos dos condiciones (experimentos) | E1 (3 tamaños) y E2 (3 números de nodos): [`e1`](../bench/resultados/2026-11-07-e1.md), [`e2`](../bench/resultados/2026-11-07-e2.md) | Hecha |
+| Carga y recuperación | Archivo grande repartido en varios nodos de datos; el archivo recuperado tiene el mismo hash | [`2026-11-07-carga-y-recuperacion`](2026-11-07-carga-y-recuperacion/); con la versión final: [`2026-11-08-carga-y-recuperacion`](2026-11-08-carga-y-recuperacion/) | Hecha |
+| Acceso RF3 | `read()` y `write()` con la semántica declarada (fase I, §7) | [`2026-11-07-acceso-rf3`](2026-11-07-acceso-rf3/); con la versión final: [`2026-11-08-acceso-rf3`](2026-11-08-acceso-rf3/) | Hecha |
+| Concurrencia | Dos clientes sobre el mismo archivo y bloque; resultado según los arrendamientos (fase I, §11.1) | [`2026-11-07-concurrencia`](2026-11-07-concurrencia/); con la versión final: [`2026-11-08-concurrencia`](2026-11-08-concurrencia/) | Hecha |
+| Replicación y fallos | Caída de un nodo de datos; lectura y re-replicación según las garantías (fase I, §9 y §11.3) | [`2026-11-07-replicacion-y-fallos`](2026-11-07-replicacion-y-fallos/); con la versión final: [`2026-11-08-replicacion-y-fallos`](2026-11-08-replicacion-y-fallos/) | Hecha |
+| Consistencia | Réplica retrasada o desconectada durante una escritura (fase I, §11.2) | [`2026-11-07-escenario-2`](2026-11-07-escenario-2/); con la versión final: [`2026-11-08-escenario-2`](2026-11-08-escenario-2/) | Hecha |
+| Seguridad | Acceso autorizado y denegado; TLS en el canal y bloques cifrados en disco (fase I, §10) | [`2026-11-07-seguridad`](2026-11-07-seguridad/); con la versión final: [`2026-11-08-seguridad`](2026-11-08-seguridad/) | Hecha |
+| Rendimiento | Latencia y tasa de transferencia en al menos dos condiciones (experimentos) | E1 (3 tamaños) y E2 (3 números de nodos): [`e1`](../bench/resultados/2026-11-07-e1.md), [`e2`](../bench/resultados/2026-11-07-e2.md); con la versión final, E1: [`2026-11-08-e1`](../bench/resultados/2026-11-08-e1.md) | Hecha |
 
 ### Experimentos (ADR 0046)
 

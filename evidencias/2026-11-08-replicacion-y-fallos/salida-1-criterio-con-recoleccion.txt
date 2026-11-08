@@ -1,0 +1,110 @@
+
+## Versión desplegada y estado inicial (04:45:04)
+    dfsha-client:0.13.1
+d           -        2026-11-07 17:52  bench/
+-    64.0 MiB  v6    2026-11-08 04:42  datos.bin
+-   128.0 MiB  v1    2026-11-08 04:43  escenario-2.bin
+-     1.0 GiB  v2    2026-11-08 04:35  grande.bin
+-     1.0 MiB  v1    2026-11-08 04:38  marca.txt
+-    16.0 MiB  v7    2026-11-08 04:40  rf3.bin
+-        20 B  v6    2026-11-08 04:40  texto.txt
+datanode-1=100 datanode-2=131 datanode-3=74 datanode-4=132 datanode-5=103 | bloques=180 con menos de 3 réplicas=0 con más de 3=0
+
+## Caída de datanode-3: docker stop --time 0
+[04:45:26] datanode-3 parado
+
+## Lecturas y escrituras durante la caída, antes de que se declare caído (04:45:26)
+/data/grande-durante.bin: 1.0 GiB en 8.3 s (129 MB/s)
+adfb3af2b528115ba459585c6267c54215e29fcab43298ae398dbbae58c41811  /data/grande.bin
+adfb3af2b528115ba459585c6267c54215e29fcab43298ae398dbbae58c41811  /data/grande-durante.bin
+/durante-la-caida.bin: versión 1, 64.0 MiB en 1.1 s (60 MB/s)
+
+## Re-replicación: réplicas en los cuatro nodos vivos, contadas cada 5 s desde la caída
+
+[Ejecución cortada a mano a las 05:06 UTC: el criterio del script no podía llegar a 0. Registro del contador hasta ese momento:]
+[04:45:26] +0 s: datanode-1=100 datanode-2=131 datanode-3=caído datanode-4=132 datanode-5=103 | bloques=180 con menos de 3 réplicas=74 con más de 3=0
+[04:45:42] +16 s: datanode-1=100 datanode-2=131 datanode-3=caído datanode-4=132 datanode-5=103 | bloques=180 con menos de 3 réplicas=74 con más de 3=0
+[04:45:56] +30 s: datanode-1=106 datanode-2=133 datanode-3=caído datanode-4=134 datanode-5=126 | bloques=184 con menos de 3 réplicas=53 con más de 3=0
+[04:46:12] +46 s: datanode-1=130 datanode-2=133 datanode-3=caído datanode-4=134 datanode-5=126 | bloques=184 con menos de 3 réplicas=29 con más de 3=0
+[04:46:28] +62 s: datanode-1=130 datanode-2=133 datanode-3=caído datanode-4=134 datanode-5=126 | bloques=184 con menos de 3 réplicas=29 con más de 3=0
+[04:46:44] +78 s: datanode-1=130 datanode-2=133 datanode-3=caído datanode-4=134 datanode-5=126 | bloques=184 con menos de 3 réplicas=29 con más de 3=0
+[04:46:58] +92 s: datanode-1=130 datanode-2=133 datanode-3=caído datanode-4=134 datanode-5=126 | bloques=184 con menos de 3 réplicas=29 con más de 3=0
+[04:47:13] +107 s: datanode-1=130 datanode-2=133 datanode-3=caído datanode-4=134 datanode-5=126 | bloques=184 con menos de 3 réplicas=29 con más de 3=0
+[04:47:27] +121 s: datanode-1=130 datanode-2=133 datanode-3=caído datanode-4=134 datanode-5=126 | bloques=184 con menos de 3 réplicas=29 con más de 3=0
+[04:47:42] +136 s: datanode-1=130 datanode-2=133 datanode-3=caído datanode-4=134 datanode-5=126 | bloques=184 con menos de 3 réplicas=29 con más de 3=0
+[04:47:57] +151 s: datanode-1=130 datanode-2=133 datanode-3=caído datanode-4=134 datanode-5=126 | bloques=184 con menos de 3 réplicas=29 con más de 3=0
+[04:48:12] +166 s: datanode-1=100 datanode-2=89 datanode-3=caído datanode-4=74 datanode-5=126 | bloques=184 con menos de 3 réplicas=64 con más de 3=0
+[04:48:26] +180 s: datanode-1=100 datanode-2=89 datanode-3=caído datanode-4=74 datanode-5=126 | bloques=184 con menos de 3 réplicas=64 con más de 3=0
+[04:48:41] +195 s: datanode-1=100 datanode-2=89 datanode-3=caído datanode-4=74 datanode-5=126 | bloques=184 con menos de 3 réplicas=64 con más de 3=0
+[04:48:57] +211 s: datanode-1=100 datanode-2=89 datanode-3=caído datanode-4=74 datanode-5=126 | bloques=184 con menos de 3 réplicas=64 con más de 3=0
+[04:49:12] +226 s: datanode-1=100 datanode-2=89 datanode-3=caído datanode-4=74 datanode-5=126 | bloques=184 con menos de 3 réplicas=64 con más de 3=0
+[04:49:26] +240 s: datanode-1=100 datanode-2=89 datanode-3=caído datanode-4=74 datanode-5=97 | bloques=184 con menos de 3 réplicas=64 con más de 3=0
+[04:49:40] +254 s: datanode-1=100 datanode-2=89 datanode-3=caído datanode-4=74 datanode-5=97 | bloques=184 con menos de 3 réplicas=64 con más de 3=0
+[04:49:54] +268 s: datanode-1=100 datanode-2=89 datanode-3=caído datanode-4=74 datanode-5=97 | bloques=184 con menos de 3 réplicas=64 con más de 3=0
+[04:50:11] +285 s: datanode-1=100 datanode-2=89 datanode-3=caído datanode-4=74 datanode-5=97 | bloques=184 con menos de 3 réplicas=64 con más de 3=0
+[04:50:25] +299 s: datanode-1=100 datanode-2=89 datanode-3=caído datanode-4=74 datanode-5=97 | bloques=184 con menos de 3 réplicas=64 con más de 3=0
+[04:50:39] +313 s: datanode-1=100 datanode-2=89 datanode-3=caído datanode-4=74 datanode-5=97 | bloques=184 con menos de 3 réplicas=64 con más de 3=0
+[04:50:54] +328 s: datanode-1=100 datanode-2=89 datanode-3=caído datanode-4=74 datanode-5=97 | bloques=184 con menos de 3 réplicas=64 con más de 3=0
+[04:51:08] +342 s: datanode-1=100 datanode-2=89 datanode-3=caído datanode-4=74 datanode-5=97 | bloques=184 con menos de 3 réplicas=64 con más de 3=0
+[04:51:24] +358 s: datanode-1=100 datanode-2=89 datanode-3=caído datanode-4=74 datanode-5=97 | bloques=184 con menos de 3 réplicas=64 con más de 3=0
+[04:51:38] +372 s: datanode-1=100 datanode-2=89 datanode-3=caído datanode-4=74 datanode-5=97 | bloques=184 con menos de 3 réplicas=64 con más de 3=0
+[04:51:52] +386 s: datanode-1=100 datanode-2=89 datanode-3=caído datanode-4=74 datanode-5=97 | bloques=184 con menos de 3 réplicas=64 con más de 3=0
+[04:52:08] +402 s: datanode-1=100 datanode-2=89 datanode-3=caído datanode-4=74 datanode-5=97 | bloques=184 con menos de 3 réplicas=64 con más de 3=0
+[04:52:22] +416 s: datanode-1=100 datanode-2=89 datanode-3=caído datanode-4=74 datanode-5=97 | bloques=184 con menos de 3 réplicas=64 con más de 3=0
+[04:52:37] +431 s: datanode-1=100 datanode-2=89 datanode-3=caído datanode-4=74 datanode-5=97 | bloques=184 con menos de 3 réplicas=64 con más de 3=0
+[04:52:51] +445 s: datanode-1=100 datanode-2=89 datanode-3=caído datanode-4=74 datanode-5=97 | bloques=184 con menos de 3 réplicas=64 con más de 3=0
+[04:53:06] +460 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=97 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[04:53:20] +474 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=97 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[04:53:35] +489 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=97 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[04:53:51] +505 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=97 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[04:54:05] +519 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=97 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[04:54:20] +534 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=97 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[04:54:34] +548 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[04:54:48] +562 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[04:55:03] +577 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[04:55:18] +592 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[04:55:32] +606 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[04:55:46] +620 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[04:56:00] +634 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[04:56:16] +650 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[04:56:31] +665 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[04:56:46] +680 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[04:57:00] +694 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[04:57:14] +708 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[04:57:31] +725 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[04:57:45] +739 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[04:57:59] +753 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[04:58:13] +767 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[04:58:27] +781 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[04:58:45] +799 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[04:58:59] +813 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[04:59:14] +828 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[04:59:28] +842 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[04:59:42] +856 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[04:59:57] +871 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[05:00:13] +887 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[05:00:28] +902 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[05:00:42] +916 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[05:00:56] +930 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[05:01:12] +946 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[05:01:26] +960 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[05:01:40] +974 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[05:01:55] +989 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[05:02:09] +1003 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[05:02:25] +1019 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[05:02:39] +1033 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[05:02:53] +1047 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[05:03:08] +1062 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[05:03:22] +1076 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[05:03:38] +1092 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[05:03:52] +1106 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[05:04:07] +1121 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[05:04:21] +1135 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[05:04:36] +1150 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[05:04:51] +1165 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[05:05:06] +1180 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[05:05:20] +1194 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[05:05:34] +1208 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[05:05:48] +1222 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[05:06:03] +1237 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0
+[05:06:17] +1251 s: datanode-1=81 datanode-2=76 datanode-3=caído datanode-4=62 datanode-5=81 | bloques=184 con menos de 3 réplicas=84 con más de 3=0

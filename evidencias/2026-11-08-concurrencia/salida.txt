@@ -1,0 +1,71 @@
+
+## Versión desplegada
+    dfsha-client:0.13.1
+
+## Preparación: /datos.bin con 4 bloques de 16 MiB
+/datos.bin: versión 1, 64.0 MiB en 0.8 s (84 MB/s)
+
+## A. P1 y P2 modifican el bloque 3 a la vez (pasos 1 a 4)
+  [04:40:51] P1 envía: open /datos.bin w
+  [04:40:51] P1 envía: write 50331648 =P1-cambia-el-bloque-3
+  [04:41:03] P1 envía: close
+  [P1] /datos.bin: abierto, versión 1, 64.0 MiB
+  [P1] /datos.bin: versión 2
+  [04:40:55] P2 envía: open /datos.bin w
+  [04:40:55] P2 envía: write 50331648 =P2-cambia-el-bloque-3
+  [04:41:07] P2 envía: write 50331648 =P2-cambia-el-bloque-3
+  [04:41:07] P2 envía: close
+  [04:41:07] P2 envía: open /datos.bin w
+  [04:41:07] P2 envía: read 50331648 21
+  [04:41:07] P2 envía: write 50331669 =+P2
+  [04:41:07] P2 envía: close
+  [P2] /datos.bin: abierto, versión 1, 64.0 MiB
+  [P2] Error: Otro escritor tiene arrendado ese rango [LOCK_CONFLICT]
+  [P2] Error: Otro escritor cambió esos bloques después de abrir el archivo; vuelve a abrirlo [VERSION_CONFLICT]
+  [P2] /datos.bin: abierto, versión 2, 64.0 MiB
+  [P2] P1-cambia-el-bloque-3/datos.bin: versión 3
+Bloque 3 al final:
+P1-cambia-el-bloque-3+P2
+
+## B. P1 y P2 modifican bloques distintos a la vez: los dos confirman
+  [04:41:11] P1 envía: open /datos.bin w
+  [04:41:11] P1 envía: write 0 =P1-bloque-0
+  [04:41:19] P1 envía: close
+  [P1] /datos.bin: abierto, versión 3, 64.0 MiB
+  [P1] /datos.bin: versión 5
+  [04:41:14] P2 envía: open /datos.bin w
+  [04:41:14] P2 envía: write 50331648 =P2-bloque-3
+  [04:41:14] P2 envía: close
+  [P2] /datos.bin: abierto, versión 3, 64.0 MiB
+  [P2] /datos.bin: versión 4
+Bloque 0:
+P1-bloque-0
+Bloque 3:
+P2-bloque-3
+ruta: /datos.bin
+versión: 5
+tamaño: 67108864 bytes (64.0 MiB)
+bloques: 4 de 16.0 MiB
+modificado: 2026-11-08 04:41
+
+## C. P1 muere con el arrendamiento: kill -9 y P2 escribe cuando caduca (30 s como máximo)
+[04:41:36] kill -9 al proceso de P1
+  [04:41:36] P2: Error: Otro escritor tiene arrendado ese rango [LOCK_CONFLICT]
+  [04:41:42] P2: Error: Otro escritor tiene arrendado ese rango [LOCK_CONFLICT]
+  [04:41:48] P2: Error: Otro escritor tiene arrendado ese rango [LOCK_CONFLICT]
+  [04:41:54] P2: Error: Otro escritor tiene arrendado ese rango [LOCK_CONFLICT]
+  [04:41:59] P2: /datos.bin: versión 6, 64.0 MiB
+P2 escribe 27 s después de la muerte de P1, tras 4 intentos rechazados
+  [04:41:28] P1 envía: open /datos.bin w
+  [04:41:28] P1 envía: write 50331648 =P1-va-a-morir
+  [P1] /datos.bin: abierto, versión 5, 64.0 MiB
+  [04:42:13] P1 envía: close
+Bloque 3:
+P2-tras-la-muerte
+
+## D. P1 reaparece después de que su arrendamiento caducara (reaparece.py, en client-1)
+P1 tiene el arrendamiento y deja de renovarlo; espera 35 s (TTL de 30 s)
+No se pudo abortar la escritura: El arrendamiento caducó
+P1 confirma tras 35 s: rechazado, ABORTED [LEASE_EXPIRED]: El arrendamiento caducó
+Bloque 3 (no cambia):
+P2-tras-la-muerte

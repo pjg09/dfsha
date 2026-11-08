@@ -1,0 +1,63 @@
+
+## Versión desplegada
+    dfsha-metadata:0.13.1
+    dfsha-datanode:0.13.1
+    dfsha-client:0.13.1
+
+## Réplicas en cada nodo de datos antes de la carga
+datanode-1: 45
+datanode-2: 60
+datanode-3: 57
+datanode-4: 57
+datanode-5: 24
+
+## Archivo de 1 GiB con contenido aleatorio en client-1
+-rw-r--r-- 1 dfsha dfsha 1073741824 Nov  8 04:35 /data/grande.bin
+adfb3af2b528115ba459585c6267c54215e29fcab43298ae398dbbae58c41811  /data/grande.bin
+
+## put /data/grande.bin /grande.bin
+/grande.bin: versión 2, 1.0 GiB en 7.9 s (137 MB/s)
+tiempo: 11.0 s (98 MB/s)
+
+## stat /grande.bin y ls /
+ruta: /grande.bin
+versión: 2
+tamaño: 1073741824 bytes (1.0 GiB)
+bloques: 64 de 16.0 MiB
+modificado: 2026-11-08 04:35
+d           -        2026-11-07 17:52  bench/
+-     1.0 GiB  v2    2026-11-08 04:35  grande.bin
+-        20 B  v3    2026-11-07 07:21  texto.txt
+
+## Réplicas en cada nodo de datos después de la carga (64 bloques x 3 réplicas = 192)
+datanode-1: 88 réplicas, 1459620276 bytes
+datanode-2: 86 réplicas, 1442842984 bytes
+datanode-3: 87 réplicas, 1442843032 bytes
+datanode-4: 87 réplicas, 1442843032 bytes
+datanode-5: 87 réplicas, 1459620228 bytes
+total: 435 réplicas
+
+## Tamaño de una réplica en disco (16 MiB + 28 bytes de nonce y etiqueta de AES-GCM)
+     87 16777244
+      1 48
+
+## get /grande.bin /data/recuperado.bin
+/data/recuperado.bin: 1.0 GiB en 8.7 s (124 MB/s)
+tiempo: 12.1 s (89 MB/s)
+
+## Comparación de hashes
+adfb3af2b528115ba459585c6267c54215e29fcab43298ae398dbbae58c41811  /data/grande.bin
+adfb3af2b528115ba459585c6267c54215e29fcab43298ae398dbbae58c41811  /data/recuperado.bin
+cmp: idénticos
+
+## Pico de memoria (VmHWM) del proceso de cada nodo de datos desde que arrancó
+datanode-1: VmHWM:	 112856 kB
+    memoria disponible del host: 476 MiB
+datanode-2: VmHWM:	 113264 kB
+    memoria disponible del host: 480 MiB
+datanode-3: VmHWM:	 100024 kB
+    memoria disponible del host: 504 MiB
+datanode-4: VmHWM:	 104628 kB
+    memoria disponible del host: 487 MiB
+datanode-5: VmHWM:	 124304 kB
+    memoria disponible del host: 465 MiB

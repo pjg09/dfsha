@@ -1,0 +1,100 @@
+
+## Grupos de seguridad (Tabla 10): puertos del clúster solo entre grupos del proyecto; SSH solo desde la máquina de administración
+dfsha-sg-metadata:
+    22/tcp desde 191.88.147.235/32
+    2379-2380/tcp desde dfsha-sg-metadata
+    50051/tcp desde dfsha-sg-client, dfsha-sg-datanode
+dfsha-sg-datanode:
+    22/tcp desde 191.88.147.235/32
+    50052/tcp desde dfsha-sg-client, dfsha-sg-datanode
+dfsha-sg-client:
+    22/tcp desde 191.88.147.235/32
+
+## Volúmenes EBS del proyecto: todos cifrados
+dfsha-datanode-1-data	10	gp3	True
+dfsha-datanode-2-data	10	gp3	True
+dfsha-datanode-3-data	10	gp3	True
+dfsha-datanode-4-data	10	gp3	True
+dfsha-datanode-5-data	10	gp3	True
+dfsha-metadata-1-data	4	gp3	True
+dfsha-metadata-2-data	4	gp3	True
+dfsha-metadata-3-data	4	gp3	True
+Discos raíz de las instancias:
+      9 True
+
+## Secretos de cada host (solo nombres y permisos): los nodos de datos y el cliente no tienen la clave de envoltura
+metadata-1:
+    -r-------- 10001 access-token.key
+    -r-------- 10001 admin-password
+    -r-------- 10001 block-token.key
+    -r-------- 10001 ca.pem
+    -r-------- 10001 cert.pem
+    -r-------- 10001 key.pem
+    -r-------- 10001 wrapping.key
+datanode-1:
+    -r-------- 10001 block-token.key
+    -r-------- 10001 ca.pem
+    -r-------- 10001 cert.pem
+    -r-------- 10001 key.pem
+client-1:
+    -r-------- 10001 ca.pem
+    -r-------- 10001 cert.pem
+    -r-------- 10001 key.pem
+
+## TLS con el certificado de client-1 hacia metadata-1:50051
+subject=CN=metadata-1
+issuer=CN=DFSha CA interna
+New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384
+Protocol: TLSv1.3
+ALPN protocol: h2
+Verify return code: 0 (ok)
+
+## TLS sin certificado de cliente hacia metadata-1:50051: el servidor cierra la conexión
+4097C8F725750000:error:0A000126:SSL routines::unexpected eof while reading:../ssl/record/rec_layer_s3.c:698:
+
+## Llamadas que tienen que rechazarse (sondas.py, desde client-1)
+réplica usada: cb3126d2-ff6c-44ca-ac62-6f9f8112c819
+ListDirectory en texto plano, sin TLS: rechazada, UNAVAILABLE: failed to connect to all addresses; last error: UNAVAILABLE: ipv4:172.31.18.115:50051: Socket closed
+ListDirectory con TLS pero sin certificado de cliente: rechazada, UNAVAILABLE: failed to connect to all addresses; last error: UNAVAILABLE: ipv4:172.31.18.115:50051: Socket closed
+ListDirectory con certificado y sin token de acceso: rechazada, UNAUTHENTICATED: Falta el token de acceso
+ListDirectory con un token de acceso inventado: rechazada, UNAUTHENTICATED: Token de acceso no válido
+RegisterDataNode como datanode-1 con el certificado de client-1: rechazada, PERMISSION_DENIED: Solo el nodo de datos datanode-1 puede hacer esta llamada
+ReadBlock de una réplica existente sin token de bloque: rechazada, PERMISSION_DENIED [BLOCK_TOKEN_INVALID]: Token de bloque no válido: firma no válida
+ReadBlock con un token de bloque de firma inventada: rechazada, PERMISSION_DENIED [BLOCK_TOKEN_INVALID]: Token de bloque no válido: firma no válida
+
+## Acceso autorizado: pedro ve su archivo
+d           -        2026-11-07 17:52  bench/
+-     1.0 GiB  v2    2026-11-08 04:35  grande.bin
+-        20 B  v3    2026-11-07 07:21  texto.txt
+
+## Aislamiento entre usuarios: admin no ve el archivo de pedro
+(fin del listado de admin)
+Error: No existe /grande.bin [PATH_NOT_FOUND]
+código de salida: 1
+
+## Solo un administrador crea usuarios
+Error: Solo un administrador puede crear usuarios [PERMISSION_DENIED]
+código de salida: 1
+
+## Contraseña incorrecta y bloqueo tras 5 fallos seguidos (bloqueo.py, desde client-1, un solo proceso)
+t =   0.1 s  intento 1 con contraseña incorrecta: rechazado, UNAUTHENTICATED: Usuario o contraseña incorrectos
+t =   0.2 s  intento 2 con contraseña incorrecta: rechazado, UNAUTHENTICATED: Usuario o contraseña incorrectos
+t =   0.4 s  intento 3 con contraseña incorrecta: rechazado, UNAUTHENTICATED: Usuario o contraseña incorrectos
+t =   0.5 s  intento 4 con contraseña incorrecta: rechazado, UNAUTHENTICATED: Usuario o contraseña incorrectos
+t =   0.6 s  intento 5 con contraseña incorrecta: rechazado, UNAUTHENTICATED: Usuario o contraseña incorrectos
+t =   0.6 s  intento 6 con contraseña incorrecta: rechazado, UNAUTHENTICATED: Demasiados intentos fallidos; espera unos segundos
+t =   0.6 s  contraseña correcta durante el bloqueo: rechazado, UNAUTHENTICATED: Demasiados intentos fallidos; espera unos segundos
+t =  31.1 s  contraseña correcta pasados 31 s: aceptado
+
+## Bloques cifrados en disco: una marca de texto que se carga no aparece en ninguna réplica
+-rw-r--r-- 1 dfsha dfsha 1050000 Nov  8 04:38 /data/marca.txt
+veces que aparece la marca en el archivo original: 50000
+/marca.txt: versión 1, 1.0 MiB en 0.2 s (5 MB/s)
+datanode-1: 88 réplicas; réplicas que contienen la marca: 0
+datanode-2: 87 réplicas; réplicas que contienen la marca: 0
+datanode-3: 88 réplicas; réplicas que contienen la marca: 0
+datanode-4: 88 réplicas; réplicas que contienen la marca: 0
+datanode-5: 87 réplicas; réplicas que contienen la marca: 0
+/data/marca-recuperada.txt: 1.0 MiB en 0.3 s (4 MB/s)
+fbf5e2a6d0ec60b359eb092970a240ae1ebd0e31838a5c9823c8bcf1b92b0cc2  /data/marca.txt
+fbf5e2a6d0ec60b359eb092970a240ae1ebd0e31838a5c9823c8bcf1b92b0cc2  /data/marca-recuperada.txt
