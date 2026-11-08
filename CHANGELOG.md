@@ -2,6 +2,12 @@
 
 Generado automáticamente por semantic-release a partir de los commits. No editar a mano.
 
+## [0.13.2](https://github.com/pjg09/dfsha/compare/v0.13.1...v0.13.2) (2026-11-08)
+
+### Correcciones
+
+* **metadata:** copia solo entre nodos con latido reciente ([ccb0c64](https://github.com/pjg09/dfsha/commit/ccb0c64fa31c4bd8f42b6de6b058f1ca62497542))
+
 ## [0.13.1](https://github.com/pjg09/dfsha/compare/v0.13.0...v0.13.1) (2026-11-07)
 
 ### Correcciones
