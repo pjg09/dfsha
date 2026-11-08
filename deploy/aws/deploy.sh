@@ -310,7 +310,9 @@ cmd_install() {
 }
 
 cmd_status() {
+  # Sin las terminadas: AWS las sigue listando cerca de una hora después de un down
   aws ec2 describe-instances --filters Name=tag:project,Values=dfsha \
+    Name=instance-state-name,Values=pending,running,stopping,stopped \
     --query 'Reservations[].Instances[].[Tags[?Key==`Name`]|[0].Value,InstanceType,State.Name]' --output text | sort
   for host in "${ALL_HOSTS[@]}"; do
     local ip; ip=$(instance_field "$host" PublicIpAddress 2>/dev/null) || continue
