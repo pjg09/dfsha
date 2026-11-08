@@ -65,7 +65,9 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
   este espera los 60 s de `REPLICATION_TIMEOUT_S` y la vuelve a ordenar hacia `datanode-1` a las 04:44:13. El
   bloque pasa 61 s con 2 réplicas en lugar de 1 s. No incumple ninguna garantía (W = 2 se cumplió), pero es el
   mismo patrón que el ADR 0044 en la re-replicación. Corregido con el ADR 0048: origen y destino solo entre nodos
-  con un latido de 4,5 s o menos, y 15 s de plazo por copia en vez de 60.
+  con un latido de 4,5 s o menos, y 15 s de plazo por copia en vez de 60. Comprobado en AWS con la `v0.13.2`: con el
+  nodo de más espacio libre recién parado, los 5 bloques con 2 réplicas vuelven a 3 en 3 s, y ninguna copia va
+  hacia el nodo parado (`evidencias/2026-11-08-escenario-2/`).
 - **2026-11-08 · La copia de seguridad de S3 depende de que la sesión termine en orden** (ADR 0035). La copia la
   hace `deploy.sh backup` a mano, con las credenciales de la sesión, para que ningún componente tenga
   credenciales de AWS (C27); no hay nada programado. El 2026-11-07, la sesión del laboratorio caducó dos veces
