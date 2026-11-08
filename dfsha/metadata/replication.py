@@ -24,7 +24,11 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 MAX_REPLICATIONS_PER_SOURCE = 4  # copias simultáneas que sirve cada nodo origen
-REPLICATION_TIMEOUT_S = 60.0  # una copia sin aviso de bloque recibido en ese tiempo se vuelve a ordenar
+# Una copia sin aviso de bloque recibido en ese tiempo se vuelve a ordenar. En AWS, una copia tarda 1,9 s como
+# mucho desde la orden, incluida la espera al latido siguiente (escenario 2 de 2026-11-08); antes eran 60 s (ADR 0048)
+REPLICATION_TIMEOUT_S = 15.0
+# Origen y destino de una copia: solo nodos con un latido en ese tiempo, 1,5 veces el intervalo de 3 s (ADR 0048)
+COPY_NODE_MAX_SILENCE_S = 4.5
 
 
 @dataclass
@@ -79,6 +83,8 @@ class ReplicationManager:
             replicas.setdefault(block_id, []).append(_Replica(node_id, ReplicaRecord.FromString(kv.value)))
 
         alive = {node_id: (addr, free) for node_id, addr, free in registry.get_alive_nodes()}
+        # Un nodo que acaba de caer sigue vivo hasta 9 s: una copia hacia él o desde él no llega (ADR 0048)
+        fresh = {node_id: (addr, free) for node_id, addr, free in registry.get_alive_nodes(COPY_NODE_MAX_SILENCE_S)}
         factor = service.settings.replication_factor
         load: dict[str, int] = {}  # copias ordenadas a cada origen en esta pasada
         record_deletes = []
@@ -112,7 +118,7 @@ class ReplicationManager:
             self._lost.discard(block.block_id)
             missing = factor - len(sane) - len(in_flight)
             if missing > 0:
-                self._order_copies(block.block_id, sane, holders | set(in_flight), alive, load, missing)
+                self._order_copies(block.block_id, sane, holders | set(in_flight), fresh, load, missing)
             elif not in_flight:
                 record_deletes.extend(self._order_deletes(block.block_id, sane, replicas.get(block.block_id, []), alive, factor))
         for start in range(0, len(record_deletes), 100):

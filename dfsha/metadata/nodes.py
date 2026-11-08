@@ -78,13 +78,19 @@ class NodeRegistry:
                 if self._get_state(node) is NodeState.DEAD
             }
 
-    def get_alive_nodes(self) -> list[tuple[str, str, int]]:
-        """(node_id, dirección, espacio libre) de los nodos vivos."""
+    def get_alive_nodes(self, max_silence_s: float | None = None) -> list[tuple[str, str, int]]:
+        """(node_id, dirección, espacio libre) de los nodos vivos.
+
+        Con ``max_silence_s``, solo los que enviaron un latido en ese tiempo: un nodo que acaba de caer sigue
+        vivo hasta el umbral de sospechoso, y no conviene darle trabajo (ADR 0048).
+        """
         with self._lock:
+            now = self._clock()
             return [
                 (node.record.node_id, node.record.addr, node.free_bytes)
                 for node in self._nodes.values()
                 if self._get_state(node) is NodeState.ALIVE
+                and (max_silence_s is None or (node.last_heartbeat is not None and now - node.last_heartbeat <= max_silence_s))
             ]
 
     def find_node_id(self, node_id_or_addr: str) -> str | None:
