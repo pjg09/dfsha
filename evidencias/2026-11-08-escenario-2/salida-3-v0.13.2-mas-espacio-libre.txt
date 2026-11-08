@@ -1,0 +1,59 @@
+
+## Versión desplegada y preparación (05:41:51)
+    dfsha-client:0.13.2
+217d61d28c112f090de3aac77594b585ddabd83ce2094a19f1cdd2449f0ef31c  /data/escenario-2.bin
+
+## datanode-3 se desconecta justo antes de la escritura: el líder aún lo cuenta como vivo (9 s sin latido)
+[05:41:59] datanode-3 parado
+[2026-11-08T05:42:02.696Z] cliente: El bloque 0 falló en datanode-3:50052 (failed to connect to all addresses; last error: UNKNOWN: ipv4:172.31.30.75:50052: Failed to connect to remote host: Connection refused); se reserva de nuevo
+[2026-11-08T05:42:02.708Z] cliente: El bloque 3 falló en datanode-3:50052 (failed to connect to all addresses; last error: UNKNOWN: ipv4:172.31.30.75:50052: Failed to connect to remote host: Connection refused); se reserva de nuevo
+[2026-11-08T05:42:03.519Z] cliente: El bloque 6 falló en datanode-3:50052 (failed to connect to all addresses; last error: UNKNOWN: ipv4:172.31.30.75:50052: Failed to connect to remote host: Connection refused); se reserva de nuevo
+/escenario-2.bin: versión 3, 128.0 MiB en 1.9 s (70 MB/s)
+
+## Las primarias reenviaron a datanode-3 y no pudo guardar: siguieron con W = 2
+[2026-11-08T05:42:02.936Z] datanode-1: La secundaria datanode-3:50052 no guardó el bloque 0e25effd-31a6-4fd4-ab94-43bb0ffbc5ed: <_MultiThreadedRendezv
+[2026-11-08T05:42:03.457Z] datanode-1: La secundaria datanode-3:50052 no guardó el bloque f575b75c-509e-4727-a2fe-1232071c39e8: <_MultiThreadedRendezv
+[2026-11-08T05:42:03.085Z] datanode-4: La secundaria datanode-3:50052 no guardó el bloque 27ad878a-4f81-43b6-8ad5-5ed82e32d0a1: <_MultiThreadedRendezv
+[2026-11-08T05:42:03.523Z] datanode-4: La secundaria datanode-3:50052 no guardó el bloque 75bb5c17-4023-4c04-9271-6c5cb579b97f: <_MultiThreadedRendezv
+[2026-11-08T05:42:03.695Z] datanode-4: La secundaria datanode-3:50052 no guardó el bloque 44dc3a9f-2959-4a83-b3f9-0219f5662b24: <_MultiThreadedRendezv
+
+## Ubicaciones de la versión nueva (05:42:13): solo las réplicas que avisaron, nunca datanode-3
+/escenario-2.bin versión 3:
+  bloque 0: 3 réplicas en datanode-1, datanode-2, datanode-4
+  bloque 1: 3 réplicas en datanode-1, datanode-4, datanode-5
+  bloque 2: 3 réplicas en datanode-1, datanode-4, datanode-5
+  bloque 3: 3 réplicas en datanode-1, datanode-2, datanode-4
+  bloque 4: 3 réplicas en datanode-1, datanode-4, datanode-5
+  bloque 5: 3 réplicas en datanode-1, datanode-4, datanode-5
+  bloque 6: 3 réplicas en datanode-1, datanode-2, datanode-4
+  bloque 7: 3 réplicas en datanode-1, datanode-4, datanode-5
+
+## Lectura de la versión nueva (G2)
+/data/escenario-2-copia.bin: 128.0 MiB en 1.2 s (116 MB/s)
+217d61d28c112f090de3aac77594b585ddabd83ce2094a19f1cdd2449f0ef31c  /data/escenario-2.bin
+217d61d28c112f090de3aac77594b585ddabd83ce2094a19f1cdd2449f0ef31c  /data/escenario-2-copia.bin
+
+## A los 30 s, datanode-3 se declara caído y los bloques con 2 réplicas se re-replican
+/escenario-2.bin versión 3:
+  bloque 0: 3 réplicas en datanode-1, datanode-2, datanode-4
+  bloque 1: 3 réplicas en datanode-1, datanode-4, datanode-5
+  bloque 2: 3 réplicas en datanode-1, datanode-4, datanode-5
+  bloque 3: 3 réplicas en datanode-1, datanode-2, datanode-4
+  bloque 4: 3 réplicas en datanode-1, datanode-4, datanode-5
+  bloque 5: 3 réplicas en datanode-1, datanode-4, datanode-5
+  bloque 6: 3 réplicas en datanode-1, datanode-2, datanode-4
+  bloque 7: 3 réplicas en datanode-1, datanode-4, datanode-5
+
+## datanode-3 vuelve (05:43:12): no tiene nada de la versión nueva
+[05:43:14] datanode-3 arrancado
+[2026-11-08T05:43:15.093Z] datanode-3: Dado de alta en el líder de metadatos metadata-2:50051
+[2026-11-08T05:43:15.114Z] datanode-3: Informe de bloques enviado: 31 bloques
+/escenario-2.bin versión 3:
+  bloque 0: 3 réplicas en datanode-1, datanode-2, datanode-4
+  bloque 1: 3 réplicas en datanode-1, datanode-4, datanode-5
+  bloque 2: 3 réplicas en datanode-1, datanode-4, datanode-5
+  bloque 3: 3 réplicas en datanode-1, datanode-2, datanode-4
+  bloque 4: 3 réplicas en datanode-1, datanode-4, datanode-5
+  bloque 5: 3 réplicas en datanode-1, datanode-4, datanode-5
+  bloque 6: 3 réplicas en datanode-1, datanode-2, datanode-4
+  bloque 7: 3 réplicas en datanode-1, datanode-4, datanode-5

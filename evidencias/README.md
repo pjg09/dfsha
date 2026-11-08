@@ -20,6 +20,8 @@ Una fila sin evidencia es una evidencia que falta.
 | Seguridad | Acceso autorizado y denegado; TLS en el canal y bloques cifrados en disco (fase I, §10) | [`2026-11-07-seguridad`](2026-11-07-seguridad/); con la versión final: [`2026-11-08-seguridad`](2026-11-08-seguridad/) | Hecha |
 | Rendimiento | Latencia y tasa de transferencia en al menos dos condiciones (experimentos) | E1 (3 tamaños) y E2 (3 números de nodos): [`e1`](../bench/resultados/2026-11-07-e1.md), [`e2`](../bench/resultados/2026-11-07-e2.md); con la versión final, E1: [`2026-11-08-e1`](../bench/resultados/2026-11-08-e1.md) | Hecha |
 
+La versión final es la `v0.13.2`. Cinco pruebas con la versión final se hicieron con la `v0.13.1`: la `v0.13.2` (ADR 0048) solo cambia la re-replicación del líder, y las dos pruebas que pasan por ella, «Replicación y fallos» y «Consistencia», se repitieron con la `v0.13.2`, en sus mismos directorios.
+
 ### Experimentos (ADR 0046)
 
 | Exp. | Variable | Evidencia | Estado |

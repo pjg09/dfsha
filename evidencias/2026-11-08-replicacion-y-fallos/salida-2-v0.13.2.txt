@@ -1,0 +1,46 @@
+
+## Versión desplegada y estado inicial (05:38:19)
+    dfsha-client:0.13.2
+d           -        2026-11-07 17:52  bench/
+-    64.0 MiB  v6    2026-11-08 04:42  datos.bin
+-    64.0 MiB  v2    2026-11-08 05:08  durante-la-caida.bin
+-   128.0 MiB  v2    2026-11-08 05:36  escenario-2.bin
+-     1.0 GiB  v2    2026-11-08 04:35  grande.bin
+-     1.0 MiB  v1    2026-11-08 04:38  marca.txt
+-    16.0 MiB  v7    2026-11-08 04:40  rf3.bin
+-        20 B  v6    2026-11-08 04:40  texto.txt
+datanode-1=73 datanode-2=80 datanode-3=31 datanode-4=65 datanode-5=75 | bloques=108 con menos de 3 réplicas=0 con más de 3=0 borrados por la recolección=0
+
+## Caída de datanode-3: docker stop --time 0
+[05:38:42] datanode-3 parado
+
+## Lecturas y escrituras durante la caída, antes de que se declare caído (05:38:42)
+/data/grande-durante.bin: 1.0 GiB en 8.3 s (130 MB/s)
+adfb3af2b528115ba459585c6267c54215e29fcab43298ae398dbbae58c41811  /data/grande.bin
+adfb3af2b528115ba459585c6267c54215e29fcab43298ae398dbbae58c41811  /data/grande-durante.bin
+/durante-la-caida.bin: versión 3, 64.0 MiB en 0.9 s (78 MB/s)
+
+## Re-replicación: réplicas en los cuatro nodos vivos, contadas cada 5 s desde la caída
+[05:38:42] +0 s: datanode-1=73 datanode-2=80 datanode-3=caído datanode-4=65 datanode-5=75 | bloques=108 con menos de 3 réplicas=31 con más de 3=0 borrados por la recolección=0
+[05:38:57] +15 s: datanode-1=73 datanode-2=80 datanode-3=caído datanode-4=65 datanode-5=75 | bloques=108 con menos de 3 réplicas=31 con más de 3=0 borrados por la recolección=0
+[05:39:13] +31 s: datanode-1=81 datanode-2=84 datanode-3=caído datanode-4=69 datanode-5=90 | bloques=112 con menos de 3 réplicas=12 con más de 3=0 borrados por la recolección=0
+[05:39:29] +47 s: datanode-1=93 datanode-2=84 datanode-3=caído datanode-4=69 datanode-5=90 | bloques=112 con menos de 3 réplicas=0 con más de 3=0 borrados por la recolección=0
+Todos los bloques vuelven a tener 3 réplicas sin datanode-3 a los 47 s de la caída
+
+## Órdenes de re-replicación del líder
+2026-11-08T05:36:55.576Z metadata-2: Re-replicación del bloque 7f18e531-2e90-4419-93be-bbb17a46557a: de datanode-1 a datanode-3 (2 réplicas sanas)
+2026-11-08T05:36:55.576Z metadata-2: Re-replicación del bloque 8887a2e7-62ec-47a4-98f8-58a1927408a6: de datanode-2 a datanode-3 (2 réplicas sanas)
+  ...
+2026-11-08T05:39:20.227Z metadata-2: Re-replicación del bloque 647ee88d-8b9e-49bf-b9ef-c3df7cb15ff1: de datanode-2 a datanode-5 (2 réplicas sanas)
+  metadata-2: 106 órdenes
+
+## datanode-3 vuelve con sus bloques: sobran réplicas
+[05:39:58] datanode-3 arrancado
+[05:39:58] +0 s: datanode-1=93 datanode-2=84 datanode-3=31 datanode-4=69 datanode-5=83 | bloques=112 con menos de 3 réplicas=0 con más de 3=24 borrados por la recolección=0
+[05:40:15] +17 s: datanode-1=69 datanode-2=84 datanode-3=31 datanode-4=69 datanode-5=83 | bloques=112 con menos de 3 réplicas=0 con más de 3=0 borrados por la recolección=0
+metadata-2: 106 réplicas de más borradas
+
+## Lectura final (05:40:40)
+/data/grande-final.bin: 1.0 GiB en 8.3 s (130 MB/s)
+adfb3af2b528115ba459585c6267c54215e29fcab43298ae398dbbae58c41811  /data/grande.bin
+adfb3af2b528115ba459585c6267c54215e29fcab43298ae398dbbae58c41811  /data/grande-final.bin

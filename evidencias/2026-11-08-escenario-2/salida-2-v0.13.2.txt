@@ -1,0 +1,51 @@
+
+## Versión desplegada y preparación (05:36:17)
+    dfsha-client:0.13.2
+be88b72436e3d2e7e1a77b81d0ba212dc94e7e3cfe48d025b87e483491d04ae4  /data/escenario-2.bin
+
+## datanode-5 se desconecta justo antes de la escritura: el líder aún lo cuenta como vivo (9 s sin latido)
+[05:36:26] datanode-5 parado
+/escenario-2.bin: versión 2, 128.0 MiB en 1.4 s (95 MB/s)
+
+## Las primarias reenviaron a datanode-5 y no pudo guardar: siguieron con W = 2
+
+## Ubicaciones de la versión nueva (05:36:44): solo las réplicas que avisaron, nunca datanode-5
+/escenario-2.bin versión 2:
+  bloque 0: 3 réplicas en datanode-1, datanode-3, datanode-4
+  bloque 1: 3 réplicas en datanode-1, datanode-3, datanode-4
+  bloque 2: 3 réplicas en datanode-1, datanode-3, datanode-4
+  bloque 3: 3 réplicas en datanode-1, datanode-3, datanode-4
+  bloque 4: 3 réplicas en datanode-1, datanode-3, datanode-4
+  bloque 5: 3 réplicas en datanode-1, datanode-3, datanode-4
+  bloque 6: 3 réplicas en datanode-1, datanode-3, datanode-4
+  bloque 7: 3 réplicas en datanode-1, datanode-3, datanode-4
+
+## Lectura de la versión nueva (G2)
+/data/escenario-2-copia.bin: 128.0 MiB en 1.2 s (108 MB/s)
+be88b72436e3d2e7e1a77b81d0ba212dc94e7e3cfe48d025b87e483491d04ae4  /data/escenario-2.bin
+be88b72436e3d2e7e1a77b81d0ba212dc94e7e3cfe48d025b87e483491d04ae4  /data/escenario-2-copia.bin
+
+## A los 30 s, datanode-5 se declara caído y los bloques con 2 réplicas se re-replican
+/escenario-2.bin versión 2:
+  bloque 0: 3 réplicas en datanode-1, datanode-3, datanode-4
+  bloque 1: 3 réplicas en datanode-1, datanode-3, datanode-4
+  bloque 2: 3 réplicas en datanode-1, datanode-3, datanode-4
+  bloque 3: 3 réplicas en datanode-1, datanode-3, datanode-4
+  bloque 4: 3 réplicas en datanode-1, datanode-3, datanode-4
+  bloque 5: 3 réplicas en datanode-1, datanode-3, datanode-4
+  bloque 6: 3 réplicas en datanode-1, datanode-3, datanode-4
+  bloque 7: 3 réplicas en datanode-1, datanode-3, datanode-4
+
+## datanode-5 vuelve (05:37:42): no tiene nada de la versión nueva
+[05:37:45] datanode-5 arrancado
+[2026-11-08T05:37:45.692Z] datanode-5: Dado de alta en el líder de metadatos metadata-2:50051
+[2026-11-08T05:37:45.717Z] datanode-5: Informe de bloques enviado: 75 bloques
+/escenario-2.bin versión 2:
+  bloque 0: 3 réplicas en datanode-1, datanode-3, datanode-4
+  bloque 1: 3 réplicas en datanode-1, datanode-3, datanode-4
+  bloque 2: 3 réplicas en datanode-1, datanode-3, datanode-4
+  bloque 3: 3 réplicas en datanode-1, datanode-3, datanode-4
+  bloque 4: 3 réplicas en datanode-1, datanode-3, datanode-4
+  bloque 5: 3 réplicas en datanode-1, datanode-3, datanode-4
+  bloque 6: 3 réplicas en datanode-1, datanode-3, datanode-4
+  bloque 7: 3 réplicas en datanode-1, datanode-3, datanode-4

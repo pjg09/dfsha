@@ -22,6 +22,14 @@
 - Un bloque que ya no está en ningún nodo se muestra aparte («borrados por la recolección») y no cuenta como falto de réplicas. Con un solo nodo caído y R = 3, solo la recolección de basura puede borrar todas las réplicas de un bloque.
 - Un `trap` vuelve a arrancar el nodo caído si el script se corta.
 
+## Con la `v0.13.2` (ADR 0048)
+`salida-2-v0.13.2.txt` (05:38–05:41 UTC) repite la prueba con la `v0.13.2`, que cambia la re-replicación del líder. Coincide con lo esperado:
+- **Durante la caída:** la lectura de 1 GiB da el mismo SHA-256 y la escritura se confirma.
+- **Re-replicación:** a los 47 s de la caída, todos los bloques vuelven a tener 3 réplicas; con la `v0.13.1` también eran 47 s. Estas copias empiezan cuando el nodo se declara caído (30 s), y esa parte no cambia.
+- **Vuelta del nodo:** las réplicas de más se borran, y la lectura final da el mismo SHA-256.
+
+Los recuentos «106 órdenes» y «106 réplicas de más borradas» no son solo de esta prueba. El script busca en el registro del líder los últimos 5 min (`--since 5m`), y eso incluye las órdenes del escenario 2 que se acababa de ejecutar. La de la `v0.13.1` (25 y 25) no tenía otra prueba justo antes.
+
 ## Comandos
 ```bash
 evidencias/2026-11-08-replicacion-y-fallos/ejecutar.sh > evidencias/2026-11-08-replicacion-y-fallos/salida.txt 2>&1
@@ -31,3 +39,4 @@ evidencias/2026-11-08-replicacion-y-fallos/ejecutar.sh > evidencias/2026-11-08-r
 - `ejecutar.sh`: la prueba, con el criterio corregido.
 - `salida.txt`: salida completa de la ejecución válida.
 - `salida-1-criterio-con-recoleccion.txt`: la ejecución cortada, con el registro del contador.
+- `salida-2-v0.13.2.txt`: la ejecución con la `v0.13.2`.
