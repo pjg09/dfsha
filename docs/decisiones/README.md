@@ -61,6 +61,7 @@ Reglas:
 | [0045](0045-cliente-en-t3-small.md) | El cliente pasa a una t3.small para los experimentos | Aceptada | 2026-11-07 |
 | [0046](0046-e8-por-componentes.md) | Métricas y experimentos, con E8 medido por componentes | Aceptada | 2026-11-07 |
 | [0047](0047-vigilante-de-inactividad-en-el-cliente.md) | Vigilante de inactividad en las transferencias del cliente | Aceptada | 2026-11-08 |
+| [0048](0048-nodos-con-latido-reciente-en-la-re-replicacion.md) | Nodos con latido reciente en la re-replicación y plazo de 15 s por copia | Aceptada | 2026-11-08 |
 
 ## Plantilla
 
