@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>04-despliegue-implementado</title>
+<style>
+  body { margin: 0; padding: 18px; background: #fff; font-family: Arial, Helvetica, sans-serif; color: #222; width: 1060px; }
+  .box { border: 1.5px solid #888; background: #eee; text-align: center; padding: 8px 6px; font-size: 17px; line-height: 1.3; }
+  .box b { font-size: 18px; }
+  .group { border: 1.5px solid #999; background: #fafafa; padding: 26px 12px 12px; position: relative; }
+  .group > .title { position: absolute; top: 5px; left: 0; right: 0; text-align: center; font-size: 15px; color: #444; }
+  .row { display: flex; gap: 12px; justify-content: center; }
+  .inst { display: flex; flex-direction: column; align-items: center; gap: 0; width: 180px; }
+  .vol { width: 130px; margin-top: 0; border: 1.5px solid #888; border-radius: 50% / 14px; background: #e4e4e4; padding: 14px 4px 10px; font-size: 15px; text-align: center; line-height: 1.25; }
+  .stem { width: 2px; height: 10px; background: #888; }
+  .arrow { font-size: 15px; color: #333; text-align: center; padding: 4px 0; }
+  .arrow .line { font-size: 22px; line-height: 1; }
+  .data { font-weight: bold; }
+  .top { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 6px; }
+  .region { border: 1.5px solid #aaa; background: #fcfcfc; padding: 30px 12px 12px; position: relative; }
+  .s3row { display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .region > .title { position: absolute; top: 6px; left: 0; right: 0; text-align: center; font-size: 15px; color: #444; }
+  .vpc { flex: 1; border: 1.5px solid #aaa; background: #fff; padding: 30px 12px 12px; position: relative; }
+  .vpc > .title { position: absolute; top: 6px; left: 0; right: 0; text-align: center; font-size: 15px; color: #444; }
+  .side { width: 150px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .s3 { width: 330px; border: 1.5px solid #888; border-radius: 50% / 16px; background: #e4e4e4; padding: 20px 6px 14px; font-size: 15px; text-align: center; line-height: 1.3; }
+  .grid { display: grid; grid-template-columns: 1fr 125px; column-gap: 6px; }
+  .bus { border-left: 3px solid #555; margin-left: 14px; position: relative; }
+  .buslabel { position: absolute; top: 40%; left: 12px; font-size: 14px; width: 100px; color: #333; line-height: 1.3; }
+  .legend { margin-top: 10px; font-size: 14px; color: #444; }
+</style></head><body>
+<div class="top">
+  <div style="width:150px"></div>
+  <div class="box" style="width:360px"><b>👤 Administrador</b><br><code>deploy.sh</code> (AWS CLI) · <code>run.sh</code> (SSH)<br>SSH 22/tcp solo desde su IP</div>
+  <div style="width:150px"></div>
+</div>
+<div class="top" style="margin-bottom:4px">
+  <div class="arrow" style="flex:1">▼ <code>all</code>: envía las imágenes a ECR, crea grupos, instancias y volúmenes,<br>instala Docker, los secretos y <code>/etc/hosts</code></div>
+  <div class="arrow" style="width:230px">▼ <code>backup</code>: instantánea de etcd<br>tras cada cambio importante</div>
+</div>
+<div class="region"><div class="title">AWS Academy Learner Lab · región us-east-1</div>
+  <div class="s3row" style="justify-content:space-between"><div class="s3" style="width:390px"><b>ECR · dfsha-metadata, dfsha-datanode, dfsha-client</b><br>etiquetas inmutables (la versión) · las instancias<br>obtienen su imagen con <code>LabInstanceProfile</code></div><div class="s3"><b>S3 · dfsha-copias-‹sufijo›</b><br>privado y cifrado · copias de seguridad de los metadatos; ninguna instancia accede a él</div></div>
+  <div class="vpc"><div class="title">VPC · una zona de disponibilidad · nombres por <code>/etc/hosts</code> · relojes con chrony</div>
+    <div class="grid">
+      <div>
+        <div class="group"><div class="title">dfsha-sg-metadata · contenedores etcd v3.7.3 y dfsha-metadata · Raft entre los tres (2379–2380/tcp, TLS mutuo)</div>
+          <div class="row">
+            <div class="inst"><div class="box"><b>metadata-1</b><br>t3.small</div><div class="stem"></div><div class="vol" style="width:175px">EBS 4 GiB, cifrado<br>datos de etcd</div></div>
+            <div class="inst"><div class="box"><b>metadata-2</b><br>t3.small</div><div class="stem"></div><div class="vol" style="width:175px">EBS 4 GiB, cifrado<br>datos de etcd</div></div>
+            <div class="inst"><div class="box"><b>metadata-3</b><br>t3.small</div><div class="stem"></div><div class="vol" style="width:175px">EBS 4 GiB, cifrado<br>datos de etcd</div></div>
+          </div>
+        </div>
+        <div class="arrow"><span class="line">▲</span> 50051/tcp · TLS mutuo · plano de control (OpenFile, LockBlocks, CommitFile…)</div>
+        <div class="group"><div class="title">dfsha-sg-client · contenedor dfsha-client</div>
+          <div class="row"><div class="inst"><div class="box"><b>client-1</b><br>t3.small</div></div></div>
+        </div>
+        <div class="arrow data"><span class="line">▼</span> 50052/tcp · TLS mutuo · plano de datos (WriteBlock, ReadBlock)</div>
+        <div class="group"><div class="title">dfsha-sg-datanode · contenedor dfsha-datanode · TLS mutuo entre nodos de datos (50052/tcp)</div>
+          <div class="row">
+            <div class="inst" style="width:150px"><div class="box"><b>datanode-1</b><br>t3.micro</div><div class="stem"></div><div class="vol" style="width:110px">EBS 10 GiB<br>cifrado</div></div>
+            <div class="inst" style="width:150px"><div class="box"><b>datanode-2</b><br>t3.micro</div><div class="stem"></div><div class="vol" style="width:110px">EBS 10 GiB<br>cifrado</div></div>
+            <div class="inst" style="width:150px"><div class="box"><b>datanode-3</b><br>t3.micro</div><div class="stem"></div><div class="vol" style="width:110px">EBS 10 GiB<br>cifrado</div></div>
+            <div class="inst" style="width:150px"><div class="box"><b>datanode-4</b><br>t3.micro</div><div class="stem"></div><div class="vol" style="width:110px">EBS 10 GiB<br>cifrado</div></div>
+            <div class="inst" style="width:150px"><div class="box"><b>datanode-5</b><br>t3.micro</div><div class="stem"></div><div class="vol" style="width:110px">EBS 10 GiB<br>cifrado</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="bus"><div class="buslabel">▲ 50051/tcp<br>TLS mutuo<br>latidos, avisos e informes de los nodos de datos</div></div>
+    </div>
+  </div>
+</div>
+<div class="legend">Todos los volúmenes EBS, también los discos raíz de 8 GiB, son gp3 y van cifrados con la clave gestionada <code>aws/ebs</code>. Docker solo arranca con el volumen de datos montado. Los puertos del clúster solo se abren entre los grupos de seguridad del proyecto.</div>
+</body></html>

@@ -1,0 +1,25 @@
+%%{init: {"sequence": {"width": 215}}}%%
+sequenceDiagram
+  participant C as client-1
+  participant M as Líder de metadatos
+  participant P as datanode-4
+  participant N as datanode-2
+  participant O as datanode-1 y datanode-5
+  C->>M: AllocateBlocks(bloque 58)
+  M-->>C: block_id b1 · datanode-4 (primaria), datanode-1, datanode-3
+  C->>P: WriteBlock(b1) en flujo
+  alt datanode-4 caído
+    P--xC: conexión rechazada: fallo inmediato
+  else datanode-4 congelado
+    Note over C,P: acepta la conexión pero no lee:<br/>a los 10 s sin avanzar, el vigilante<br/>de inactividad cancela la llamada
+  end
+  Note over C,M: datanode-4 sigue vivo para el líder hasta 9 s sin latido
+  C->>M: AllocateBlocks(bloque 58, excluded = [datanode-4])
+  M-->>C: block_id b2 · datanode-2 (primaria), datanode-1, datanode-5
+  C->>N: WriteBlock(b2) en flujo
+  N->>O: reenvío a las secundarias
+  O-->>N: bloque guardado (basta una: W = 2)
+  N-->>C: stored_on = [datanode-2, datanode-1]
+  C->>M: CommitFile: la versión nueva lleva b2
+  Note over M,P: b1 no pertenece a ninguna versión:<br/>si llegó a guardarse, la<br/>recolección de basura lo borra
+  Note over C,N: Si falla una secundaria, la primaria responde QUORUM_NOT_REACHED<br/>con failed_addrs, y el cliente excluye esas secundarias

@@ -1,0 +1,35 @@
+flowchart TB
+  subgraph cli["client-1 · contenedor dfsha-client"]
+    direction LR
+    cmd["CLI dfsha<br/>ls · mkdir · put · get · read · write…"] --> lib["Biblioteca de cliente<br/>open · read · write · lock · close"]
+    lib --> cif["Cifrado de sobre<br/>AES-256-GCM · SHA-256"]
+    lib --> tra["Transferencias en paralelo<br/>vigilante de inactividad<br/>y nodos excluidos"]
+  end
+  subgraph meta["Servidores de metadatos · metadata-1 a metadata-3"]
+    direction TB
+    ms["MetadataService<br/>gRPC · 50051"]
+    aut["Usuarios y tokens<br/>scrypt · HMAC-SHA256"]
+    nsp["Espacio de nombres,<br/>versiones y arrendamientos"]
+    ubi["Ubicación, re-replicación<br/>y recolección de basura"]
+    det["Registro de nodos<br/>y modo seguro"]
+    lid["Elección de líder<br/>clave con TTL de 5 s · época"]
+    etcd[("etcd v3.7.3 · contenedor propio<br/>log replicado con Raft<br/>en su volumen EBS")]
+    ms --> aut & nsp & ubi & det
+    aut & nsp & ubi --> etcd
+    lid -- "transacciones · 2379" --> etcd
+  end
+  subgraph dns["Nodos de datos · datanode-1 a datanode-5"]
+    direction TB
+    ds["DataNodeService<br/>gRPC · 50052"]
+    lat["Latidos e informes<br/>de bloques"]
+    ord["Órdenes del líder<br/>REPLICATE · VERIFY · DELETE"]
+    ver["Verificador periódico<br/>4 MB/s"]
+    alm[("Almacén de bloques<br/>y área temporal<br/>volumen EBS")]
+    ds --> alm
+    ord & ver --> alm
+  end
+  lib -. "plano de control · TLS mutuo<br/>OpenFile · LockBlocks · CommitFile…" .-> ms
+  tra == "plano de datos · TLS mutuo<br/>WriteBlock · ReadBlock en flujo" ==> ds
+  lat -. "TLS mutuo · latidos y avisos<br/>(la respuesta trae órdenes y la época)" .-> ms
+  ds == "TLS mutuo · reenvío a secundarias<br/>y re-replicación" ==> otros["Otros nodos de datos"]
+  etcd -. "Raft · 2380 · TLS mutuo" .- otros2["Miembros de etcd<br/>de los otros dos servidores"]

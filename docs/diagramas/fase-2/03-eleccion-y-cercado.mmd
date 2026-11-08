@@ -1,0 +1,24 @@
+%%{init: {"sequence": {"width": 230}}}%%
+sequenceDiagram
+  participant M1 as metadata-1<br/>(líder, época 100)
+  participant E as etcd<br/>(3 miembros, Raft)
+  participant M2 as metadata-2<br/>(seguidor)
+  participant D as datanode-k
+  loop cada 1 s
+    M1->>E: renueva el arrendamiento de la clave leader (TTL 5 s)
+  end
+  Note over M1: comprueba su reloj y empieza<br/>una escritura · se congela
+  Note over E,M2: a los 5 s sin renovar caduca el arrendamiento<br/>y etcd borra la clave leader
+  M2->>E: Txn: crea leader si no existe
+  E-->>M2: creada en la revisión 250
+  Note over M2,D: época 250 · modo seguro:<br/>sin confirmar escrituras ni dar órdenes
+  D->>M2: ReportHeartbeat
+  M2-->>D: leader_epoch = 250
+  Note over M2,D: datanode-k recuerda<br/>la época mayor vista: 250
+  Note over M2,D: cada bloque vivo tiene una réplica en un nodo<br/>con latido: fin del modo seguro
+  Note over M1: vuelve: la escritura<br/>que empezó sigue su curso
+  M1->>E: Txn que compara la revisión<br/>de creación de leader con 100
+  E-->>M1: la comparación falla: no escribe nada
+  Note over M1: lleva más de 3,5 s sin<br/>renovar: deja de ser líder
+  M1-->>D: respuesta atrasada a un latido: orden con época 100
+  Note over M2,D: 100 < 250: datanode-k descarta la orden

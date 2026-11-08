@@ -7,6 +7,8 @@ comprobó cada una. Las de la fase I siguen en `referencias.md` con su número; 
 Las claves (`[jepsen-etcd]`) son provisionales: el número IEEE se asigna al redactar el informe, por orden de
 primera cita.
 
+**Números en el informe** (`docs/fase-2/informe.md`, asignados el 2026-11-08): `[etcd-3.7.3]` → [8], `[uv]` → [10], `[grpcio-status]` → [11], `[cryptography-aead-scrypt]` → [12], `[etcd-sdk-python]` → [13], `[pysyncobj-0.3.17]` → [14], `[jepsen-etcd]` → [15], `[grpc-python-tls]` → [16], `[grpc-keepalive]` → [17], `[hdfs-ha]` → [18], `[etcdutl-restore]` → [19], `[ecr-inmutables]` → [24], `[ubuntu-ami-ssm]` → [25], `[hatch-vcs]` → [27], `[glibc-malloc]` → [29]. No se citan `[aetcd]` ni `[etcd3]`. Las demás referencias del informe son de la fase I (`referencias.md`) o del propio repositorio.
+
 ## Consenso y metadatos (etapa 2)
 
 ### [jepsen-etcd]

@@ -32,6 +32,26 @@ Fuentes y exportaciones de las figuras de los documentos del proyecto. Las regla
 `mermaid-config.json` es la configuración común de todas las figuras Mermaid: tema neutro, apto para
 imprimir, y letra de 18 px.
 
+### Informe de la fase II
+
+En `fase-2/`, con la misma regla: `NN` es el número de la figura en [`fase-2/informe.md`](../fase-2/informe.md).
+
+| Fig. | Archivo | Herramienta | Sección del informe |
+|---|---|---|---|
+| 1 | `fase-2/01-arquitectura-implementada` | Mermaid | §2.1 |
+| 2 | `fase-2/02-repeticion-de-bloque` | Mermaid | §5.2 |
+| 3 | `fase-2/03-eleccion-y-cercado` | Mermaid | §5.4 |
+| 4 | `fase-2/04-despliegue-implementado` | HTML (a partir de `03-despliegue`) | §6.1 |
+| 5 | `fase-2/05-tasa-de-transferencia` | matplotlib (`fase-2/graficas.py`) | §8.3 |
+| 6 | `fase-2/06-tamano-de-bloque` | matplotlib | §8.5 |
+| 7 | `fase-2/07-lecturas-con-nodo-congelado` | matplotlib | §8.6 |
+| 8 | `fase-2/08-coste-de-la-seguridad` | matplotlib | §8.8 |
+| 9 | `fase-2/09-tiempos-de-recuperacion` | matplotlib | §8.9 |
+
+Las gráficas salen de los CSV de `bench/resultados/` con `fase-2/graficas.py`, que lleva en su cabecera
+cómo ejecutarlo (matplotlib 3.10.3 en un entorno aparte, sin tocar las dependencias del proyecto). La
+figura 4 se exporta con Chrome como las HTML de la fase I, con la ventana a `1100,935`.
+
 ## Criterios
 - **Cada figura cabe en una página** con la letra legible: alto/ancho ≤ 1,38 (página carta; 1,55 en A4).
   Si no cabe, primero se reorganiza y, si no basta, se parte en varias imágenes con un solo título,
