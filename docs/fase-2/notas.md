@@ -44,6 +44,13 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
 - **2026-11-07 · Despliegue desde cero con una orden** (etapa 7, `ddb9bc6`). Con la cuenta vacía,
   `deploy.sh all` levanta los 9 hosts en 6 min 50 s sin intervención, y el clúster pasa la prueba de carga y
   recuperación. `down` necesitó dos pasadas para borrar los grupos de seguridad, que se citan entre sí.
+- **2026-11-08 · La escalabilidad con varios clientes queda como limitación** (etapa 10, E2 y E4). Decisión de
+  Pedro: no se mide con un segundo cliente desde otra instancia (por ejemplo, un servidor de metadatos), y el
+  informe lo cuenta como limitación con los datos de E2 y E4. Hay que formularlo así: **el límite medido es la
+  máquina cliente** (unos 130 MB/s), y por debajo de él el clúster no es el cuello de botella. No queda medido
+  que la tasa agregada crezca con más clientes en máquinas distintas, que es lo que mostraría RNF1. El argumento
+  de diseño (control separado de los datos, bloques repartidos entre nodos) se presenta como argumento, no
+  como resultado. El motivo es el tope de 9 instancias del Learner Lab, todas ocupadas.
 - **2026-11-08 · Ningún parámetro de la §13.2 cambia tras E1–E9** (etapa 10). Revisión de la Tabla 37 con lo medido:
   - `block_size_bytes` (16 MiB): en E5, 4 y 16 MiB dan la misma tasa y 64 MiB un 12 % menos. 4 MiB haría más
     baratas las modificaciones parciales, a cambio de cuatro veces más bloques en los metadatos (ya anotado).
@@ -55,7 +62,12 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
     un núcleo.
   - Tamaño de mensaje (1 MiB, «E1») y TTL del arrendamiento (30 s, «E4»): ningún experimento los varió. E1 midió
     tamaños de archivo y E4 número de clientes, así que la tabla promete un ajuste que no se hizo; el informe debe
-    decirlo.
+    decirlo. Decisión de Pedro (2026-11-08): no se miden, y el informe explica con datos indirectos por qué no hace
+    falta variarlos:
+    - **Tamaño de mensaje:** en E8, un canal gRPC con mensajes de 1 MiB va a unos 615 MB/s sin TLS y a 450 con
+      TLS, de 3,5 a 5 veces el techo de unos 130 MB/s del cliente, así que el mensaje no limita.
+    - **TTL del arrendamiento:** en la prueba de concurrencia, P2 escribe 27 s después de morir P1, dentro de los
+      30 s. En E4, los conflictos crecen por el reintento inmediato del cliente, no por el TTL.
   - Nuevo: `TRANSFER_INACTIVITY_S` (10 s) en el cliente, de la `v0.13.1` (ADR 0047).
 - **2026-11-08 · Una re-replicación hacia un nodo recién caído tarda 60 s en reordenarse** (etapa 10,
   escenario 2 con la v0.13.1, `evidencias/2026-11-08-escenario-2/lider.txt`). `datanode-5` se paró a las

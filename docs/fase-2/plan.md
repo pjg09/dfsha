@@ -213,6 +213,8 @@ escenarios 3 y 4 (§11.3, §11.4), con sus evidencias registradas.
 - Guion de 10–15 min: arquitectura, ejecución distribuida, fallos y resultados medidos (§5.3).
 - Revisión del guion y del vídeo grabado. La grabación en AWS se hace en una sola sesión del lab,
   ensayada antes. La entrega del vídeo la gestiona Pedro.
+- **Antes de grabar:** borrar en AWS los 6 528 directorios vacíos que dejó la sonda de E7 en `/bench`
+  (`e7-*`), para que `ls` salga limpio en el vídeo. Lo hace Claude cuando Pedro avise de que empieza la etapa 12.
 
 **Terminada cuando:** el vídeo está revisado y dura entre 10 y 15 min.
 
