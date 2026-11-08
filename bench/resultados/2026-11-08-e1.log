@@ -1,0 +1,16 @@
+e1: versión 0.13.1, client-1 t3.small (unlimited), resultados en bench/resultados/2026-11-08-e1.csv
+[05:11:15] base 16 MiB rep 1: put 0.35 s, get 0.20 s, hash ok
+[05:11:15] base 16 MiB rep 2: put 0.32 s, get 0.19 s, hash ok
+[05:11:16] base 16 MiB rep 3: put 0.33 s, get 0.20 s, hash ok
+[05:11:16] base 16 MiB rep 4: put 0.33 s, get 0.19 s, hash ok
+[05:11:17] base 16 MiB rep 5: put 0.32 s, get 0.20 s, hash ok
+[05:11:23] base 256 MiB rep 1: put 2.02 s, get 2.26 s, hash ok
+[05:11:28] base 256 MiB rep 2: put 1.83 s, get 1.96 s, hash ok
+[05:11:33] base 256 MiB rep 3: put 1.96 s, get 2.13 s, hash ok
+[05:11:37] base 256 MiB rep 4: put 1.75 s, get 2.12 s, hash ok
+[05:11:42] base 256 MiB rep 5: put 1.87 s, get 1.94 s, hash ok
+[05:12:17] base 1024 MiB rep 1: put 7.11 s, get 9.10 s, hash ok
+[05:12:42] base 1024 MiB rep 2: put 8.38 s, get 8.29 s, hash ok
+[05:13:06] base 1024 MiB rep 3: put 8.38 s, get 8.03 s, hash ok
+[05:13:31] base 1024 MiB rep 4: put 8.38 s, get 8.07 s, hash ok
+[05:13:56] base 1024 MiB rep 5: put 8.39 s, get 8.11 s, hash ok
