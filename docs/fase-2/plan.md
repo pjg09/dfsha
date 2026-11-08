@@ -32,7 +32,7 @@ Qué hay que entregar: enunciado §5.3. Cómo se califica: enunciado §6.
 | 7 | Despliegue en AWS | Distribución y comunicaciones | Terminada |
 | 8 | RF3 en el cliente y concurrencia | Implementación RF1–RF3; consistencia | Terminada |
 | 9 | Tolerancia a fallos | Alta disponibilidad, replicación y consistencia | Terminada |
-| 10 | Experimentos y pruebas finales | Pruebas de rendimiento | En curso |
+| 10 | Experimentos y pruebas finales | Pruebas de rendimiento | Terminada |
 | 11 | Informe técnico final | Documentación | Pendiente |
 | 12 | Vídeo | Vídeo | Pendiente |
 | 13 | Entrega | — | Pendiente |

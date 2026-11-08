@@ -44,6 +44,28 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
 - **2026-11-07 · Despliegue desde cero con una orden** (etapa 7, `ddb9bc6`). Con la cuenta vacía,
   `deploy.sh all` levanta los 9 hosts en 6 min 50 s sin intervención, y el clúster pasa la prueba de carga y
   recuperación. `down` necesitó dos pasadas para borrar los grupos de seguridad, que se citan entre sí.
+- **2026-11-08 · Ningún parámetro de la §13.2 cambia tras E1–E9** (etapa 10). Revisión de la Tabla 37 con lo medido:
+  - `block_size_bytes` (16 MiB): en E5, 4 y 16 MiB dan la misma tasa y 64 MiB un 12 % menos. 4 MiB haría más
+    baratas las modificaciones parciales, a cambio de cuatro veces más bloques en los metadatos (ya anotado).
+  - `write_quorum` (2): en E3, W = 3 añade unos 15 ms por bloque (+8 %) y alarga la cola.
+  - Latido, sospechoso y caído (3, 9 y 30 s): en E6, detección en unos 30 s y re-replicación en unos 12 s, como
+    se diseñó.
+  - Tope del modo seguro (60 s): en E9, el modo seguro sale siempre por la condición en menos de 2,5 s.
+  - Ritmo de la verificación periódica (4 MB/s): en E8, SHA-256 va a 397 MB/s, así que 4 MB/s es en torno al 1 % de
+    un núcleo.
+  - Tamaño de mensaje (1 MiB, «E1») y TTL del arrendamiento (30 s, «E4»): ningún experimento los varió. E1 midió
+    tamaños de archivo y E4 número de clientes, así que la tabla promete un ajuste que no se hizo; el informe debe
+    decirlo.
+  - Nuevo: `TRANSFER_INACTIVITY_S` (10 s) en el cliente, de la `v0.13.1`; su ADR está pendiente.
+- **2026-11-08 · Una re-replicación hacia un nodo recién caído tarda 60 s en reordenarse** (etapa 10,
+  escenario 2 con la v0.13.1, `evidencias/2026-11-08-escenario-2/lider.txt`). `datanode-5` se paró a las
+  04:43:08. A las 04:43:13 el líder, que aún lo contaba como vivo (menos de 9 s sin latido), lo eligió como
+  destino de la copia del bloque 0, que se había quedado con 2 réplicas porque `datanode-5` no lo guardó al
+  escribirlo. La primaria `datanode-2` vio fallar la copia a las 04:43:14, pero no tiene forma de avisar al líder:
+  este espera los 60 s de `REPLICATION_TIMEOUT_S` y la vuelve a ordenar hacia `datanode-1` a las 04:44:13. El
+  bloque pasa 61 s con 2 réplicas en lugar de 1 s. No incumple ninguna garantía (W = 2 se cumplió), pero es el
+  mismo patrón que el ADR 0044 en la re-replicación. Arreglarlo (que el nodo de datos avise del fallo, o no
+  elegir como destino un nodo que acaba de fallar con ese bloque) es un cambio de diseño y llevaría su ADR.
 - **2026-11-07 · La caída del líder deja unos 7 s sin escrituras de metadatos** (etapa 10, E7, v0.13.0). Con
   el líder congelado (fallo de verdad), la mediana es de 7,1 s: unos 5 s de elección por el TTL de la clave
   del líder, a veces 8 s, y 1–2 s de modo seguro. Con `docker stop` el líder renuncia al recibir SIGTERM, y la
