@@ -1,0 +1,62 @@
+
+## Versión desplegada
+    dfsha-metadata:0.13.3.dev3-g11da6a5
+    dfsha-datanode:0.13.3.dev3-g11da6a5
+    dfsha-client:0.13.3.dev3-g11da6a5
+
+## Réplicas en cada nodo de datos antes de la carga
+datanode-1: 5
+datanode-2: 4
+datanode-3: 4
+datanode-4: 4
+datanode-5: 4
+
+## Archivo de 1 GiB con contenido aleatorio en client-1
+-rw-r--r-- 1 dfsha dfsha 1073741824 Nov  8 06:24 /data/grande.bin
+4f5f3ace5eec38f993ffd6fe550f6fd01726d543f9cbc8dcc02d040915447f27  /data/grande.bin
+
+## put /data/grande.bin /grande.bin
+/grande.bin: versión 1, 1.0 GiB en 6.8 s (158 MB/s)
+tiempo: 9.5 s (113 MB/s)
+
+## stat /grande.bin y ls /
+ruta: /grande.bin
+versión: 1
+tamaño: 1073741824 bytes (1.0 GiB)
+bloques: 64 de 16.0 MiB
+modificado: 2026-11-08 06:24
+-   100.0 MiB  v1    2026-11-08 06:23  archivo.bin
+-     1.0 GiB  v1    2026-11-08 06:24  grande.bin
+
+## Réplicas en cada nodo de datos después de la carga (64 bloques x 3 réplicas = 192)
+datanode-1: 43 réplicas, 708838580 bytes
+datanode-2: 42 réplicas, 704644248 bytes
+datanode-3: 43 réplicas, 708838580 bytes
+datanode-4: 43 réplicas, 708838580 bytes
+datanode-5: 42 réplicas, 704644248 bytes
+total: 213 réplicas
+
+## Tamaño de una réplica en disco (16 MiB + 28 bytes de nonce y etiqueta de AES-GCM)
+     42 16777244
+      1 4194332
+
+## get /grande.bin /data/recuperado.bin
+/data/recuperado.bin: 1.0 GiB en 8.7 s (123 MB/s)
+tiempo: 11.5 s (93 MB/s)
+
+## Comparación de hashes
+4f5f3ace5eec38f993ffd6fe550f6fd01726d543f9cbc8dcc02d040915447f27  /data/grande.bin
+4f5f3ace5eec38f993ffd6fe550f6fd01726d543f9cbc8dcc02d040915447f27  /data/recuperado.bin
+cmp: idénticos
+
+## Pico de memoria (VmHWM) del proceso de cada nodo de datos desde que arrancó
+datanode-1: VmHWM:	 118944 kB
+    memoria disponible del host: 440 MiB
+datanode-2: VmHWM:	 124988 kB
+    memoria disponible del host: 433 MiB
+datanode-3: VmHWM:	 113796 kB
+    memoria disponible del host: 444 MiB
+datanode-4: VmHWM:	 122372 kB
+    memoria disponible del host: 419 MiB
+datanode-5: VmHWM:	 106168 kB
+    memoria disponible del host: 444 MiB

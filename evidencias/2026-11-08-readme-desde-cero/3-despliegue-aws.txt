@@ -1,0 +1,114 @@
+# 3. Despliegue en AWS desde cero (2026-11-08T06:14:37Z)
+## Preparación: se borra el clúster anterior para partir de una cuenta sin instancias, volúmenes ni grupos del proyecto
+
+$ deploy/aws/deploy.sh down
+[06:15:27] Instancias terminadas
+[06:15:29] Volumen vol-0d1eb3c77c06bcbcc borrado
+[06:15:31] Volumen vol-040ebfea23c9dd561 borrado
+[06:15:32] Volumen vol-03da25297773b06c9 borrado
+[06:15:33] Volumen vol-04231d20d75c3444a borrado
+[06:15:34] Volumen vol-03455f232202aa014 borrado
+[06:15:35] Volumen vol-0467b5c06a417eecd borrado
+[06:15:37] Volumen vol-0486d03692ffb0f1a borrado
+[06:15:38] Volumen vol-0fc0300e6b0763398 borrado
+[06:15:40] dfsha-sg-metadata borrado
+[06:15:43] dfsha-sg-datanode borrado
+[06:15:45] dfsha-sg-client borrado
+[código de salida: 0]
+
+$ aws ec2 describe-instances --filters Name=tag:project,Values=dfsha Name=instance-state-name,Values=pending,running,stopping,stopped --query 'length(Reservations[].Instances[])'; aws ec2 describe-volumes --filters Name=tag:project,Values=dfsha --query 'length(Volumes)'; aws ec2 describe-security-groups --filters Name=group-name,Values='dfsha-sg-*' --query 'length(SecurityGroups)'
+0
+0
+0
+[código de salida: 0]
+
+## Pasos del README
+
+$ uv run python -m dfsha.common.pki deploy/aws/secrets metadata-1 metadata-2 metadata-3 datanode-1 datanode-2 datanode-3 datanode-4 datanode-5 client-1
+Secretos de 9 hosts en deploy/aws/secrets. No los versiones (CONTRIBUTING.md §8).
+[código de salida: 0]
+
+$ deploy/aws/deploy.sh all
+
+WARNING! Your credentials are stored unencrypted in '/home/pedro/.docker/config.json'.
+Configure a credential helper to remove this warning. See
+https://docs.docker.com/go/credential-store/
+
+[06:16:03] Construyendo dfsha-metadata:0.13.3.dev3-g11da6a5
+[06:16:06] dfsha-metadata:0.13.3.dev3-g11da6a5 enviada a ECR
+[06:16:08] Construyendo dfsha-datanode:0.13.3.dev3-g11da6a5
+[06:16:11] dfsha-datanode:0.13.3.dev3-g11da6a5 enviada a ECR
+[06:16:13] Construyendo dfsha-client:0.13.3.dev3-g11da6a5
+[06:16:16] dfsha-client:0.13.3.dev3-g11da6a5 enviada a ECR
+[06:16:20] Grupo de seguridad dfsha-sg-metadata creado
+[06:16:22] Grupo de seguridad dfsha-sg-datanode creado
+[06:16:25] Grupo de seguridad dfsha-sg-client creado
+[06:16:59] Instancia dfsha-metadata-1: i-0271fd038e8f61fb4
+[06:17:03] Instancia dfsha-metadata-2: i-097704350de7bb5b7
+[06:17:06] Instancia dfsha-metadata-3: i-0551c64edeaa58cdc
+[06:17:10] Instancia dfsha-datanode-1: i-0df2a9b57214e9968
+[06:17:13] Instancia dfsha-datanode-2: i-08149c9f94862b47d
+[06:17:16] Instancia dfsha-datanode-3: i-06c89408039c0a16b
+[06:17:20] Instancia dfsha-datanode-4: i-025031443362c8ec4
+[06:17:23] Instancia dfsha-datanode-5: i-0425c7308cb7612c3
+[06:17:26] Instancia dfsha-client-1: i-0ddb087de3554a579
+[06:18:05] Volumen dfsha-metadata-1-data: vol-02165cc5f146fc300
+[06:18:29] Volumen dfsha-metadata-2-data: vol-0fc87a813aad3edb6
+[06:18:52] Volumen dfsha-metadata-3-data: vol-027ba1a921b84dedc
+[06:19:15] Volumen dfsha-datanode-1-data: vol-0ab3338f526dee2c2
+[06:19:39] Volumen dfsha-datanode-2-data: vol-04864abcd52ad1f4c
+[06:20:02] Volumen dfsha-datanode-3-data: vol-0e3841f92e98ce467
+[06:20:26] Volumen dfsha-datanode-4-data: vol-09140c8d03df60aea
+[06:20:49] Volumen dfsha-datanode-5-data: vol-05f13b77cce08bcf7
+[06:20:54] Instancias en marcha
+[client-1]  Container client-1  Started
+[06:22:05] client-1 instalado
+[datanode-3]  Container datanode-3  Started
+[06:22:10] datanode-3 instalado
+[datanode-1]  Container datanode-1  Started
+[06:22:11] datanode-1 instalado
+[metadata-2]  Container metadata-2  Started
+[06:22:11] metadata-2 instalado
+[datanode-2]  Container datanode-2  Started
+[06:22:11] datanode-2 instalado
+[datanode-4]  Container datanode-4  Started
+[06:22:12] datanode-4 instalado
+[datanode-5]  Container datanode-5  Started
+[06:22:13] datanode-5 instalado
+[metadata-3]  Container metadata-3  Started
+[06:22:17] metadata-3 instalado
+[metadata-1]  Container metadata-1  Started
+[06:22:17] metadata-1 instalado
+[06:22:17] Clúster instalado
+[código de salida: 0]
+(all: 379 s)
+
+$ deploy/aws/deploy.sh status
+dfsha-client-1	t3.small	running
+dfsha-client-1	t3.small	terminated
+dfsha-datanode-1	t3.micro	running
+dfsha-datanode-1	t3.micro	terminated
+dfsha-datanode-2	t3.micro	running
+dfsha-datanode-2	t3.micro	terminated
+dfsha-datanode-3	t3.micro	running
+dfsha-datanode-3	t3.micro	terminated
+dfsha-datanode-4	t3.micro	running
+dfsha-datanode-4	t3.micro	terminated
+dfsha-datanode-5	t3.micro	running
+dfsha-datanode-5	t3.micro	terminated
+dfsha-metadata-1	t3.small	running
+dfsha-metadata-1	t3.small	terminated
+dfsha-metadata-2	t3.small	running
+dfsha-metadata-2	t3.small	terminated
+dfsha-metadata-3	t3.small	running
+dfsha-metadata-3	t3.small	terminated
+metadata-1: metadata-1 Up 5 seconds;etcd Up 5 seconds;
+metadata-2: metadata-2 Up 17 seconds;etcd Up 17 seconds;
+metadata-3: metadata-3 Up 14 seconds;etcd Up 14 seconds;
+datanode-1: datanode-1 Up 25 seconds;
+datanode-2: datanode-2 Up 29 seconds;
+datanode-3: datanode-3 Up 35 seconds;
+datanode-4: datanode-4 Up 37 seconds;
+datanode-5: datanode-5 Up 41 seconds;
+client-1: client-1 Up 52 seconds;
+[código de salida: 0]

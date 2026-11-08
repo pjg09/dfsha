@@ -41,6 +41,7 @@ La versión final es la `v0.13.2`. Cinco pruebas con la versión final se hicier
 | Comprobación | Qué tiene que verse | Evidencia | Estado |
 |---|---|---|---|
 | Despliegue desde cero | `deploy.sh all` levanta los 9 hosts sin intervención y el clúster pasa la prueba de carga y recuperación (§3.6) | [`2026-11-07-despliegue-desde-cero`](2026-11-07-despliegue-desde-cero/) | Hecha |
+| README desde cero | Cada orden del `README.md`, en un clon limpio y tal como está escrita, hace lo que dice: instalación, pruebas, entorno local, despliegue en AWS y cliente (§5.3) | [`2026-11-08-readme-desde-cero`](2026-11-08-readme-desde-cero/) | Hecha |
 
 ### Otras comprobaciones
 

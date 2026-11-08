@@ -1,0 +1,488 @@
+# 2. Entorno local y cliente (2026-11-08T06:13:02Z)
+
+$ uv run python -m dfsha.common.pki deploy/local/secrets metadata-1 metadata-2 metadata-3 datanode-1 datanode-2 datanode-3 datanode-4 datanode-5 client-1
+Secretos de 9 hosts en deploy/local/secrets. No los versiones (CONTRIBUTING.md §8).
+[código de salida: 0]
+
+$ export DFSHA_VERSION=$(scripts/get-version.sh) DFSHA_IMAGE_TAG=$(scripts/get-version.sh --image)
+DFSHA_VERSION=0.13.3.dev3+g11da6a5 DFSHA_IMAGE_TAG=0.13.3.dev3-g11da6a5
+
+$ docker compose -f deploy/local/compose.yaml up -d --build
+ Image dfsha-client:0.13.3.dev3-g11da6a5 Pulling 
+ Image dfsha-client:0.13.3.dev3-g11da6a5 Error pull access denied for dfsha-client, repository does not exist or may require 'docker login'
+ Image dfsha-metadata:0.13.3.dev3-g11da6a5 Building 
+ Image dfsha-datanode:0.13.3.dev3-g11da6a5 Building 
+ Image dfsha-client:0.13.3.dev3-g11da6a5 Building 
+ Image dfsha-datanode:0.13.3.dev3-g11da6a5 Building 
+ Image dfsha-metadata:0.13.3.dev3-g11da6a5 Building 
+ Image dfsha-datanode:0.13.3.dev3-g11da6a5 Building 
+ Image dfsha-datanode:0.13.3.dev3-g11da6a5 Building 
+ Image dfsha-metadata:0.13.3.dev3-g11da6a5 Building 
+ Image dfsha-datanode:0.13.3.dev3-g11da6a5 Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 6.53kB done
+#1 DONE 0.0s
+
+#2 [client-1 internal] load build definition from Dockerfile
+#2 transferring dockerfile: 1.76kB done
+#2 DONE 0.0s
+
+#3 [metadata-3 internal] load metadata for ghcr.io/astral-sh/uv:0.12.5@sha256:e85be844203885286c60ffad8a858d48afb6c5a5c237ca0e67f12e74b8f174b1
+#3 DONE 0.0s
+
+#4 [metadata-2 internal] load metadata for docker.io/library/python:3.12.16-slim-trixie@sha256:4840d514c583a4d3d8cad3940e68dee6f0f6f3635c12fcd0a3d74c21a5b93a54
+#4 DONE 0.0s
+
+#5 [datanode-5 internal] load .dockerignore
+#5 transferring context: 179B done
+#5 DONE 0.0s
+
+#6 [datanode-5 base 1/8] FROM docker.io/library/python:3.12.16-slim-trixie@sha256:4840d514c583a4d3d8cad3940e68dee6f0f6f3635c12fcd0a3d74c21a5b93a54
+#6 resolve docker.io/library/python:3.12.16-slim-trixie@sha256:4840d514c583a4d3d8cad3940e68dee6f0f6f3635c12fcd0a3d74c21a5b93a54 0.0s done
+#6 DONE 0.0s
+
+#7 [datanode-4 uv 1/1] FROM ghcr.io/astral-sh/uv:0.12.5@sha256:e85be844203885286c60ffad8a858d48afb6c5a5c237ca0e67f12e74b8f174b1
+#7 resolve ghcr.io/astral-sh/uv:0.12.5@sha256:e85be844203885286c60ffad8a858d48afb6c5a5c237ca0e67f12e74b8f174b1 0.0s done
+#7 DONE 0.0s
+
+#8 [datanode-5 internal] load build context
+#8 transferring context: 443.82kB done
+#8 DONE 0.0s
+
+#9 [client-1 base 4/8] COPY pyproject.toml uv.lock README.md .python-version ./
+#9 CACHED
+
+#10 [client-1 base 2/8] COPY --from=uv /uv /usr/local/bin/uv
+#10 CACHED
+
+#11 [client-1 base 5/8] RUN uv sync --locked --no-dev --no-install-project
+#11 CACHED
+
+#12 [client-1 base 3/8] WORKDIR /app
+#12 CACHED
+
+#13 [datanode-4 base 6/8] COPY dfsha ./dfsha
+#13 CACHED
+
+#14 [metadata-3 base 7/8] RUN SETUPTOOLS_SCM_PRETEND_VERSION=0.13.3.dev3+g11da6a5 uv sync --locked --no-dev --no-editable     && rm /usr/local/bin/uv
+#14 0.217 Resolved 19 packages in 0.91ms
+#14 0.218    Building dfsha @ file:///app
+#14 1.365       Built dfsha @ file:///app
+#14 1.369 Prepared 1 package in 1.15s
+#14 1.380 Installed 1 package in 10ms
+#14 1.474 Bytecode compiled 336 files in 94ms
+#14 1.474  + dfsha==0.13.3.dev3+g11da6a5 (from file:///app)
+#14 DONE 1.5s
+
+#15 [metadata-2 base 8/8] RUN useradd --system --uid 10001 --no-create-home dfsha     && mkdir /data && chown dfsha:dfsha /data
+#15 0.155 useradd warning: dfsha's uid 10001 is greater than SYS_UID_MAX 999
+#15 DONE 0.2s
+
+#16 [client-1 client 1/1] WORKDIR /data
+#16 DONE 0.0s
+
+#17 [client-1] exporting to image
+#17 exporting layers
+#17 exporting layers 0.3s done
+#17 exporting manifest sha256:12836806db62c97ad43d3110ff451036dae64480045c466f6eb4674b586b0ac9 0.0s done
+#17 exporting config sha256:522ec6abaccaad339000614b7c8e790e987524e44f0d875db65a1ccc0980b2fb 0.0s done
+#17 exporting attestation manifest sha256:e33425a4fd34dbec677cd3ecbfbed178ed46f848587d73aee617e5df796bfa41 0.0s done
+#17 exporting manifest list sha256:dd24120ff9e8eb9e46dd1452fab561ca77a0ba930c54cfa68ae59af29df13903
+#17 exporting manifest list sha256:dd24120ff9e8eb9e46dd1452fab561ca77a0ba930c54cfa68ae59af29df13903 0.0s done
+#17 naming to docker.io/library/dfsha-client:0.13.3.dev3-g11da6a5 done
+#17 unpacking to docker.io/library/dfsha-client:0.13.3.dev3-g11da6a5
+#17 unpacking to docker.io/library/dfsha-client:0.13.3.dev3-g11da6a5 0.3s done
+#17 DONE 0.7s
+
+#18 [datanode-3] exporting to image
+#18 exporting layers 0.3s done
+#18 exporting manifest sha256:09a03e11ba89d864c0c16e5190f1400b6957f4562a24210d24b8a37a6d3db357 0.0s done
+#18 exporting config sha256:015afc5ff2dfdcafbfc6f50c49c1bd9a25bd8312408ce465dc5d3401b5072031 0.0s done
+#18 exporting attestation manifest sha256:48f345b2e2c423fcd2282a613169d80e4f16375207612e8ae6e61278baa384d1 0.0s done
+#18 exporting manifest list sha256:2ec3b791060d29b40aee76cef4b8203bd2c7dd8632a8ffd96c6b05b3bbf4ebbd 0.0s done
+#18 naming to docker.io/library/dfsha-datanode:0.13.3.dev3-g11da6a5 done
+#18 unpacking to docker.io/library/dfsha-datanode:0.13.3.dev3-g11da6a5 0.2s done
+#18 DONE 0.7s
+
+#19 [datanode-2] exporting to image
+#19 exporting layers 0.3s done
+#19 exporting manifest sha256:acbbf23b197e849e5891b9687c07ef20431f9e7b89d339fb863da83c39d9c339 0.0s done
+#19 exporting config sha256:8aa635a2ef2f73b7647a7480eeac45c2ab8de3ea1948284311da50e777d804d0 0.0s done
+#19 exporting attestation manifest sha256:96d6e462fa9fa99dbdf18472edbb39193d7c2e1725623a69c8e129c1e1f44649 0.0s done
+#19 exporting manifest list sha256:f64686f40ae6e3ffc80cf59fd33fca8c228e341be6fd9d9739e7a56bca0f6f7c 0.0s done
+#19 naming to docker.io/library/dfsha-datanode:0.13.3.dev3-g11da6a5 done
+#19 unpacking to docker.io/library/dfsha-datanode:0.13.3.dev3-g11da6a5 0.2s done
+#19 DONE 0.7s
+
+#20 [metadata-3] exporting to image
+#20 exporting layers 0.3s done
+#20 exporting manifest sha256:b8c668e6d4ed83b4c984227bbf244a48a26b33d7bf57cff13e47951a9f4acd2d 0.0s done
+#20 exporting config sha256:6100a98db853e8d381779afec9330f2bc8772ba69608b15990d269f15a00b6e3 0.0s done
+#20 exporting attestation manifest sha256:a207ab46805a2ee69626af8b50ef8afd1012f16b1358340390cdbe0b21bfbd37 0.0s done
+#20 exporting manifest list sha256:87cc13bc063a7468c795aa41558857e8375c32b16615ba614e876043a2a36587 0.0s done
+#20 naming to docker.io/library/dfsha-metadata:0.13.3.dev3-g11da6a5 0.0s done
+#20 unpacking to docker.io/library/dfsha-metadata:0.13.3.dev3-g11da6a5 0.2s done
+#20 DONE 0.7s
+
+#21 [datanode-1] exporting to image
+#21 exporting layers 0.3s done
+#21 exporting manifest sha256:9aef3a7d5c997811731f4208f6f1bca3a2badd79265975f511b827e47838d6b8 0.0s done
+#21 exporting config sha256:5bfc083b6d072e4e93e627475e28580281c693359b6d80bd4ba140c73a49a4d5 0.0s done
+#21 exporting attestation manifest sha256:c9c820584c58b5718f6c3ee6a7338719e2e7dbf6936e7d89807bbaafd8bc49bb 0.0s done
+#21 exporting manifest list sha256:e0b3d6dfac898a6c723ed76f5dc306df972fca0a6393a576f2aa98b82c12ebd6 0.0s done
+#21 naming to docker.io/library/dfsha-datanode:0.13.3.dev3-g11da6a5 done
+#21 unpacking to docker.io/library/dfsha-datanode:0.13.3.dev3-g11da6a5 0.2s done
+#21 DONE 0.7s
+
+#22 [metadata-2] exporting to image
+#22 exporting layers 0.3s done
+#22 exporting manifest sha256:400899d48c1310365b4c1f4bdc28efc26758f5a04d03742e42746e4fe0830b4a 0.0s done
+#22 exporting config sha256:7707011246f2c2b1c97f14f771431dca07c52c62da388e0d917fc69ebae25175 0.0s done
+#22 exporting attestation manifest sha256:3a46ac3a1cdb3fa6f9c88eba1a730e115147fae705e131a0689f21a72b1a8909 0.0s done
+#22 exporting manifest list sha256:f07c203e5bd248021c4b8d916104279d8ebcc6db71ac7234467dd8af78918d62 0.0s done
+#22 naming to docker.io/library/dfsha-metadata:0.13.3.dev3-g11da6a5 done
+#22 unpacking to docker.io/library/dfsha-metadata:0.13.3.dev3-g11da6a5 0.2s done
+#22 DONE 0.7s
+
+#23 [datanode-5] exporting to image
+#23 exporting layers 0.3s done
+#23 exporting manifest sha256:3bd995c94b1a91d023445db24a672cc2d75af66803b3da3ce1d65d0e0a99a6a0 0.0s done
+#23 exporting config sha256:2c0e56aaef2d79ff98ae753d87a438e92195c2e9d84879048c350a779757692f 0.0s done
+#23 exporting attestation manifest sha256:0ed8965af959eabe37526eed3e563eba88ee90e884f653ee34f42dfcf8f9970a 0.0s done
+#23 exporting manifest list sha256:d666487f29bcc422601fe47136cbb1b770990b64666547484534a641e32dd0fb 0.0s done
+#23 naming to docker.io/library/dfsha-datanode:0.13.3.dev3-g11da6a5 done
+#23 unpacking to docker.io/library/dfsha-datanode:0.13.3.dev3-g11da6a5 0.2s done
+#23 DONE 0.7s
+
+#24 [datanode-4] exporting to image
+#24 exporting layers 0.3s done
+#24 exporting manifest sha256:2376b4214ff3df04cac6326d50ce8855b8ed9aeeb01367796eaae4b6550dda9e 0.0s done
+#24 exporting config sha256:d61ad9e30f293f9e04358e87d68b440749b5fe48d52fb87f6a02ec670203873c 0.0s done
+#24 exporting attestation manifest sha256:e806b3a0d44146d07a65aad3ff728a2dbc71879b5601d4cf7c1eb28754543300 0.0s done
+#24 exporting manifest list sha256:5a95e8c43de3b04395f43dca6d4eb3966cd3f69014b5f0048d40a492356ee928 0.0s done
+#24 naming to docker.io/library/dfsha-datanode:0.13.3.dev3-g11da6a5 done
+#24 unpacking to docker.io/library/dfsha-datanode:0.13.3.dev3-g11da6a5 0.2s done
+#24 DONE 0.7s
+
+#25 [metadata-1] exporting to image
+#25 exporting layers 0.3s done
+#25 exporting manifest sha256:067ea902670bc3b3e36332a6c61c5500ee20f948f2769a1799c60a09de13d15d 0.0s done
+#25 exporting config sha256:635cfddfcb63c1ae437b22a76e9dc2384dd051c6f61a128fb89d2ef26c6c1e00 0.0s done
+#25 exporting attestation manifest sha256:f285828c759dd8741c913bc38a37c72a2db764a3125b1f9f8dfbd0af148be7e0 0.0s done
+#25 exporting manifest list sha256:9778e48e6e396ea94976b0d643a385b79928d64bea3e55a702517a5be268ed79 0.0s done
+#25 naming to docker.io/library/dfsha-metadata:0.13.3.dev3-g11da6a5 done
+#25 unpacking to docker.io/library/dfsha-metadata:0.13.3.dev3-g11da6a5 0.2s done
+#25 DONE 0.7s
+
+#26 [datanode-3] resolving provenance for metadata file
+#26 DONE 0.0s
+
+#27 [datanode-1] resolving provenance for metadata file
+#27 DONE 0.0s
+
+#28 [datanode-2] resolving provenance for metadata file
+#28 DONE 0.0s
+
+#29 [metadata-3] resolving provenance for metadata file
+#29 DONE 0.0s
+
+#30 [metadata-2] resolving provenance for metadata file
+#30 DONE 0.0s
+
+#31 [client-1] resolving provenance for metadata file
+#31 DONE 0.0s
+
+#32 [datanode-5] resolving provenance for metadata file
+#32 DONE 0.0s
+
+#33 [metadata-1] resolving provenance for metadata file
+#33 DONE 0.0s
+
+#34 [datanode-4] resolving provenance for metadata file
+#34 DONE 0.0s
+ Image dfsha-client:0.13.3.dev3-g11da6a5 Built 
+ Image dfsha-datanode:0.13.3.dev3-g11da6a5 Built 
+ Image dfsha-metadata:0.13.3.dev3-g11da6a5 Built 
+ Image dfsha-metadata:0.13.3.dev3-g11da6a5 Built 
+ Image dfsha-datanode:0.13.3.dev3-g11da6a5 Built 
+ Image dfsha-datanode:0.13.3.dev3-g11da6a5 Built 
+ Image dfsha-metadata:0.13.3.dev3-g11da6a5 Built 
+ Image dfsha-datanode:0.13.3.dev3-g11da6a5 Built 
+ Image dfsha-datanode:0.13.3.dev3-g11da6a5 Built 
+ Volume dfsha_datanode-4-data Creating 
+ Volume dfsha_datanode-5-data Creating 
+ Volume dfsha_datanode-1-data Creating 
+ Volume dfsha_datanode-4-data Creating 
+ Volume dfsha_dfsha-secrets Creating 
+ Volume dfsha_dfsha-secrets Creating 
+ Volume dfsha_metadata-2-data Creating 
+ Volume dfsha_metadata-2-data Creating 
+ Volume dfsha_metadata-1-data Creating 
+ Volume dfsha_datanode-5-data Creating 
+ Volume dfsha_metadata-1-data Creating 
+ Volume dfsha_datanode-2-data Creating 
+ Volume dfsha_datanode-2-data Creating 
+ Network dfsha_default Creating 
+ Network dfsha-net Creating 
+ Volume dfsha_metadata-3-data Creating 
+ Network dfsha-net Creating 
+ Volume dfsha_datanode-1-data Creating 
+ Volume dfsha_metadata-3-data Creating 
+ Network dfsha_default Creating 
+ Volume dfsha_client-1-data Creating 
+ Volume dfsha_client-1-data Creating 
+ Volume dfsha_datanode-3-data Creating 
+ Volume dfsha_datanode-3-data Creating 
+ Volume dfsha_datanode-5-data Created 
+ Volume dfsha_datanode-5-data Created 
+ Volume dfsha_datanode-1-data Created 
+ Volume dfsha_datanode-1-data Created 
+ Volume dfsha_metadata-1-data Created 
+ Volume dfsha_metadata-1-data Created 
+ Volume dfsha_datanode-2-data Created 
+ Volume dfsha_datanode-2-data Created 
+ Volume dfsha_datanode-4-data Created 
+ Volume dfsha_datanode-4-data Created 
+ Volume dfsha_dfsha-secrets Created 
+ Volume dfsha_dfsha-secrets Created 
+ Volume dfsha_metadata-2-data Created 
+ Volume dfsha_metadata-2-data Created 
+ Volume dfsha_datanode-3-data Created 
+ Volume dfsha_datanode-3-data Created 
+ Volume dfsha_client-1-data Created 
+ Volume dfsha_client-1-data Created 
+ Volume dfsha_metadata-3-data Created 
+ Volume dfsha_metadata-3-data Created 
+ Network dfsha-net Created 
+ Network dfsha-net Created 
+ Network dfsha_default Created 
+ Network dfsha_default Created 
+ Container dfsha-secrets-init-1 Creating 
+ Container dfsha-secrets-init-1 Created 
+ Container datanode-1 Creating 
+ Container metadata-3-etcd Creating 
+ Container client-1 Creating 
+ Container datanode-5 Creating 
+ Container datanode-4 Creating 
+ Container metadata-1-etcd Creating 
+ Container datanode-2 Creating 
+ Container metadata-2-etcd Creating 
+ Container datanode-3 Creating 
+ Container datanode-1 Created 
+ Container datanode-2 Created 
+ Container datanode-5 Created 
+ Container datanode-4 Created 
+ Container datanode-3 Created 
+ Container client-1 Created 
+ Container metadata-1-etcd Created 
+ Container metadata-1 Creating 
+ Container metadata-2-etcd Created 
+ Container metadata-2 Creating 
+ Container metadata-3-etcd Created 
+ Container metadata-3 Creating 
+ Container metadata-2 Created 
+ Container metadata-1 Created 
+ Container metadata-3 Created 
+ Container dfsha-secrets-init-1 Starting 
+ Container dfsha-secrets-init-1 Started 
+ Container dfsha-secrets-init-1 Waiting 
+ Container dfsha-secrets-init-1 Waiting 
+ Container dfsha-secrets-init-1 Waiting 
+ Container dfsha-secrets-init-1 Waiting 
+ Container dfsha-secrets-init-1 Waiting 
+ Container dfsha-secrets-init-1 Waiting 
+ Container dfsha-secrets-init-1 Waiting 
+ Container dfsha-secrets-init-1 Waiting 
+ Container dfsha-secrets-init-1 Waiting 
+ Container dfsha-secrets-init-1 Exited 
+ Container metadata-3-etcd Starting 
+ Container dfsha-secrets-init-1 Exited 
+ Container dfsha-secrets-init-1 Exited 
+ Container metadata-1-etcd Starting 
+ Container dfsha-secrets-init-1 Exited 
+ Container datanode-5 Starting 
+ Container dfsha-secrets-init-1 Exited 
+ Container datanode-4 Starting 
+ Container datanode-3 Starting 
+ Container dfsha-secrets-init-1 Exited 
+ Container datanode-2 Starting 
+ Container dfsha-secrets-init-1 Exited 
+ Container datanode-1 Starting 
+ Container dfsha-secrets-init-1 Exited 
+ Container dfsha-secrets-init-1 Exited 
+ Container client-1 Starting 
+ Container metadata-2-etcd Starting 
+ Container metadata-3-etcd Started 
+ Container metadata-3 Starting 
+ Container metadata-1-etcd Started 
+ Container metadata-1 Starting 
+ Container datanode-5 Started 
+ Container datanode-4 Started 
+ Container datanode-3 Started 
+ Container datanode-2 Started 
+ Container datanode-1 Started 
+ Container client-1 Started 
+ Container metadata-2-etcd Started 
+ Container metadata-2 Starting 
+ Container metadata-3 Started 
+ Container metadata-1 Started 
+ Container metadata-2 Started 
+[código de salida: 0]
+
+$ timeout 8 docker compose -f deploy/local/compose.yaml logs -f | tail -5  # el README usa logs -f, que no termina; aquí se corta a los 8 s
+
+datanode-1       | 2026-11-08T06:13:10.924Z INFO datanode-1 dfsha.datanode.metadata_client: Dado de alta en el líder de metadatos metadata-3:50051
+datanode-1       | 2026-11-08T06:13:10.928Z INFO datanode-1 dfsha.datanode.metadata_client: Informe de bloques enviado: 0 bloques
+metadata-2-etcd  | {"level":"info","ts":"2026-11-08T06:13:12.891116Z","caller":"version/monitor.go:116","msg":"cluster version differs from storage version.","cluster-version":"3.7.0","storage-version":"3.5.0"}
+metadata-2-etcd  | {"level":"info","ts":"2026-11-08T06:13:12.891169Z","caller":"schema/migration.go:65","msg":"updated storage version","new-storage-version":"3.6.0"}
+metadata-2-etcd  | {"level":"info","ts":"2026-11-08T06:13:12.891180Z","caller":"schema/migration.go:65","msg":"updated storage version","new-storage-version":"3.7.0"}
+[código de salida: 0]
+
+$ docker exec -e DFSHA_USERNAME=admin -e DFSHA_PASSWORD="$(cat deploy/local/secrets/admin-password)" -e DFSHA_NEW_PASSWORD=una-contraseña client-1 dfsha useradd pedro
+Usuario pedro creado (b441b46bb0f94af1b42f00099c8b4704)
+[código de salida: 0]
+
+$ export DFSHA_CLIENT="-e DFSHA_USERNAME=pedro -e DFSHA_PASSWORD=una-contraseña"
+
+$ docker exec $DFSHA_CLIENT client-1 dfsha mkdir /docs
+[código de salida: 0]
+
+$ docker exec $DFSHA_CLIENT client-1 dfsha put /data/archivo.bin /docs/archivo.bin
+Error: [Errno 2] No such file or directory: '/data/archivo.bin'
+[código de salida: 1]
+
+$ docker exec $DFSHA_CLIENT client-1 dfsha ls /docs
+[código de salida: 0]
+
+$ docker exec $DFSHA_CLIENT client-1 dfsha get /docs/archivo.bin /data/copia.bin
+Error: No existe /docs/archivo.bin [PATH_NOT_FOUND]
+[código de salida: 1]
+
+# 2b. Con el archivo creado antes (corrección del README) y los ejemplos de RF3 (2026-11-08T06:13:34Z)
+
+$ docker exec client-1 sh -c 'head -c 104857600 /dev/urandom > /data/archivo.bin'   # archivo de prueba de 100 MiB
+[código de salida: 0]
+
+$ docker exec $DFSHA_CLIENT client-1 dfsha put /data/archivo.bin /docs/archivo.bin
+/docs/archivo.bin: versión 1, 100.0 MiB en 0.7 s (158 MB/s)
+[código de salida: 0]
+
+$ docker exec $DFSHA_CLIENT client-1 dfsha ls /docs
+-   100.0 MiB  v1    2026-11-08 06:13  archivo.bin
+[código de salida: 0]
+
+$ docker exec $DFSHA_CLIENT client-1 dfsha get /docs/archivo.bin /data/copia.bin
+/data/copia.bin: 100.0 MiB en 0.4 s (259 MB/s)
+[código de salida: 0]
+
+$ docker exec client-1 sha256sum /data/archivo.bin /data/copia.bin
+315220cddb1f69a1c609f17f4e11558e6ccd25f936f4deaa3bb32b2daba14059  /data/archivo.bin
+315220cddb1f69a1c609f17f4e11558e6ccd25f936f4deaa3bb32b2daba14059  /data/copia.bin
+[código de salida: 0]
+
+$ docker exec client-1 sh -c 'printf "hola mundo" > /data/a.txt'
+[código de salida: 0]
+
+$ docker exec $DFSHA_CLIENT client-1 dfsha put /data/a.txt /docs/a.txt
+/docs/a.txt: versión 1, 10 B en 0.1 s (0 MB/s)
+[código de salida: 0]
+
+$ docker exec $DFSHA_CLIENT client-1 dfsha write /docs/a.txt 5 =MUNDO
+/docs/a.txt: versión 2, 10 B
+[código de salida: 0]
+
+$ docker exec $DFSHA_CLIENT client-1 dfsha append /docs/a.txt "= desde el README"
+/docs/a.txt: versión 3, 26 B
+[código de salida: 0]
+
+$ docker exec $DFSHA_CLIENT client-1 dfsha read /docs/a.txt 0 100
+hola MUNDO desde el README[código de salida: 0]
+
+$ printf "cd /docs\npwd\nls\nopen a.txt w\nlock\nappend =!\nunlock\nclose\nread a.txt 0 100\nexit\n" | docker exec -i $DFSHA_CLIENT client-1 dfsha shell  # el README usa -it (interactivo); aquí las órdenes entran por la entrada estándar
+DFSha. Órdenes: ls, cd, pwd, mkdir, rmdir, rm, mv, put, get, stat, read, write, append, open, lock, unlock, close, useradd, exit
+dfsha:/> dfsha:/docs> /docs
+dfsha:/docs> -        26 B  v3    2026-11-08 06:13  a.txt
+-   100.0 MiB  v1    2026-11-08 06:13  archivo.bin
+dfsha:/docs> /docs/a.txt: abierto, versión 3, 26 B
+dfsha:/docs> dfsha:/docs> dfsha:/docs> Error: Hay escrituras sin confirmar; usa close() para confirmarlas [FAILED_PRECONDITION]
+dfsha:/docs> /docs/a.txt: versión 4
+dfsha:/docs> hola MUNDO desde el README!dfsha:/docs> [código de salida: 0]
+
+$ docker compose -f deploy/local/compose.yaml down -v
+ Container datanode-3 Stopping 
+ Container datanode-5 Stopping 
+ Container client-1 Stopping 
+ Container datanode-2 Stopping 
+ Container metadata-2 Stopping 
+ Container metadata-3 Stopping 
+ Container metadata-1 Stopping 
+ Container datanode-1 Stopping 
+ Container datanode-4 Stopping 
+ Container metadata-1 Stopped 
+ Container metadata-1 Removing 
+ Container metadata-2 Stopped 
+ Container metadata-2 Removing 
+ Container metadata-3 Stopped 
+ Container metadata-3 Removing 
+ Container metadata-1 Removed 
+ Container metadata-1-etcd Stopping 
+ Container metadata-3 Removed 
+ Container metadata-2 Removed 
+ Container metadata-2-etcd Stopping 
+ Container metadata-3-etcd Stopping 
+ Container datanode-4 Stopped 
+ Container datanode-4 Removing 
+ Container datanode-4 Removed 
+ Container datanode-2 Stopped 
+ Container datanode-2 Removing 
+ Container datanode-1 Stopped 
+ Container datanode-1 Removing 
+ Container datanode-2 Removed 
+ Container datanode-1 Removed 
+ Container datanode-5 Stopped 
+ Container datanode-5 Removing 
+ Container datanode-5 Removed 
+ Container datanode-3 Stopped 
+ Container datanode-3 Removing 
+ Container datanode-3 Removed 
+ Container metadata-1-etcd Stopped 
+ Container metadata-1-etcd Removing 
+ Container metadata-1-etcd Removed 
+ Container metadata-2-etcd Stopped 
+ Container metadata-2-etcd Removing 
+ Container metadata-2-etcd Removed 
+ Container metadata-3-etcd Stopped 
+ Container metadata-3-etcd Removing 
+ Container metadata-3-etcd Removed 
+ Container client-1 Stopped 
+ Container client-1 Removing 
+ Container client-1 Removed 
+ Container dfsha-secrets-init-1 Stopping 
+ Container dfsha-secrets-init-1 Stopped 
+ Container dfsha-secrets-init-1 Removing 
+ Container dfsha-secrets-init-1 Removed 
+ Volume dfsha_client-1-data Removing 
+ Volume dfsha_datanode-4-data Removing 
+ Volume dfsha_datanode-5-data Removing 
+ Volume dfsha_datanode-1-data Removing 
+ Volume dfsha_metadata-1-data Removing 
+ Volume dfsha_dfsha-secrets Removing 
+ Volume dfsha_datanode-3-data Removing 
+ Volume dfsha_datanode-2-data Removing 
+ Volume dfsha_metadata-3-data Removing 
+ Volume dfsha_metadata-2-data Removing 
+ Network dfsha_default Removing 
+ Network dfsha-net Removing 
+ Volume dfsha_client-1-data Removed 
+ Volume dfsha_datanode-4-data Removed 
+ Volume dfsha_datanode-5-data Removed 
+ Volume dfsha_dfsha-secrets Removed 
+ Volume dfsha_metadata-2-data Removed 
+ Volume dfsha_datanode-2-data Removed 
+ Volume dfsha_datanode-1-data Removed 
+ Volume dfsha_metadata-3-data Removed 
+ Volume dfsha_metadata-1-data Removed 
+ Volume dfsha_datanode-3-data Removed 
+ Network dfsha-net Removed 
+ Network dfsha_default Removed 
+[código de salida: 0]

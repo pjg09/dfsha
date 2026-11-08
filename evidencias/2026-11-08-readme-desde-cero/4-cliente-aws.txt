@@ -1,0 +1,35 @@
+# 4. Cliente en AWS (2026-11-08T06:23:15Z)
+## Tal como estaba el README
+
+$ echo "una-contraseña" > deploy/aws/secrets/pedro-password
+[código de salida: 0]
+
+$ NEW_PASSWORD_FILE=deploy/aws/secrets/pedro-password deploy/aws/run.sh dfsha admin useradd pedro
+Usuario pedro creado (d4d88e6dd304494f979d5009a77e06a7)
+[código de salida: 0]
+
+$ deploy/aws/run.sh dfsha pedro put /data/archivo.bin /archivo.bin
+Error: [Errno 2] No such file or directory: '/data/archivo.bin'
+[código de salida: 1]
+
+## Con la corrección del README: crear antes el archivo y comprobar el hash
+
+$ deploy/aws/run.sh ssh client-1 "sudo docker exec client-1 sh -c 'head -c 104857600 /dev/urandom > /data/archivo.bin'"
+[código de salida: 0]
+
+$ deploy/aws/run.sh dfsha pedro put /data/archivo.bin /archivo.bin
+/archivo.bin: versión 1, 100.0 MiB en 1.2 s (87 MB/s)
+[código de salida: 0]
+
+$ deploy/aws/run.sh dfsha pedro get /archivo.bin /data/copia.bin
+/data/copia.bin: 100.0 MiB en 0.9 s (116 MB/s)
+[código de salida: 0]
+
+$ deploy/aws/run.sh ssh client-1 "sudo docker exec client-1 sha256sum /data/archivo.bin /data/copia.bin"
+90e8e553f645c4530cdd99327f58ecfbe61444fc3629288a96b62a192936fe3f  /data/archivo.bin
+90e8e553f645c4530cdd99327f58ecfbe61444fc3629288a96b62a192936fe3f  /data/copia.bin
+[código de salida: 0]
+
+$ deploy/aws/run.sh dfsha pedro ls /
+-   100.0 MiB  v1    2026-11-08 06:23  archivo.bin
+[código de salida: 0]

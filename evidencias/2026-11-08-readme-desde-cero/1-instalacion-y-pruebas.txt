@@ -1,0 +1,75 @@
+# 1. Instalación y pruebas (2026-11-08T06:11:28Z), clon limpio de 11da6a5
+
+$ uv --version
+uv 0.12.5 (x86_64-unknown-linux-gnu)
+[código de salida: 0]
+
+$ uv sync --locked
+Using CPython 3.12.14
+Creating virtual environment at: .venv
+Resolved 19 packages in 0.75ms
+   Building dfsha @ file:///tmp/claude-1000/-home-pedro-dev-pedro-dfsha/4a146f06-f4de-4ff4-89f7-040a67f541b9/scratchpad/readme-desde-cero
+      Built dfsha @ file:///tmp/claude-1000/-home-pedro-dev-pedro-dfsha/4a146f06-f4de-4ff4-89f7-040a67f541b9/scratchpad/readme-desde-cero
+Prepared 1 package in 569ms
+warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+         If the cache and target directories are on different filesystems, hardlinking may not be supported.
+         If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+Installed 18 packages in 1.02s
+ + cffi==2.1.1
+ + cryptography==50.0.2
+ + dfsha==0.13.3.dev3+g11da6a5 (from file:///tmp/claude-1000/-home-pedro-dev-pedro-dfsha/4a146f06-f4de-4ff4-89f7-040a67f541b9/scratchpad/readme-desde-cero)
+ + googleapis-common-protos==1.76.0
+ + grpcio==1.85.1
+ + grpcio-status==1.85.1
+ + grpcio-tools==1.85.1
+ + iniconfig==2.3.1
+ + nodeenv==1.12.0
+ + packaging==26.3
+ + pluggy==1.7.0
+ + protobuf==7.36.2
+ + pycparser==3.12
+ + pygments==2.21.0
+ + pyright==1.1.414
+ + pytest==9.2.0
+ + setuptools==84.2.1
+ + typing-extensions==4.16.0
+[código de salida: 0]
+
+$ uv run pytest
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.2.0, pluggy-1.7.0
+rootdir: /tmp/claude-1000/-home-pedro-dev-pedro-dfsha/4a146f06-f4de-4ff4-89f7-040a67f541b9/scratchpad/readme-desde-cero
+configfile: pyproject.toml
+testpaths: tests
+collected 158 items
+
+tests/test_block_store.py ...............                                [  9%]
+tests/test_client.py .........................                           [ 25%]
+tests/test_cluster.py .....                                              [ 28%]
+tests/test_config.py .................                                   [ 39%]
+tests/test_datanode.py .................                                 [ 50%]
+tests/test_errors.py ......                                              [ 53%]
+tests/test_etcd_client.py ..........                                     [ 60%]
+tests/test_fault_tolerance.py ...                                        [ 62%]
+tests/test_leader.py .....                                               [ 65%]
+tests/test_log.py ..                                                     [ 66%]
+tests/test_metadata.py ..............................                    [ 85%]
+tests/test_metadata_client.py .                                          [ 86%]
+tests/test_nodes.py ...                                                  [ 87%]
+tests/test_proto.py .....                                                [ 91%]
+tests/test_replication.py ...                                            [ 93%]
+tests/test_security.py .......                                           [ 97%]
+tests/test_tls.py ....                                                   [100%]
+
+======================== 158 passed in 73.06s (0:01:13) ========================
+[código de salida: 0]
+
+$ uv run pyright
+0 errors, 0 warnings, 0 informations
+[código de salida: 0]
+
+$ uv run scripts/generate-proto.sh
+[código de salida: 0]
+
+$ git status --short  # tras regenerar: vacío si dfsha/v1/ estaba al día
+[código de salida: 0]
