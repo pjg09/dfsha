@@ -56,7 +56,7 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
   - Tamaño de mensaje (1 MiB, «E1») y TTL del arrendamiento (30 s, «E4»): ningún experimento los varió. E1 midió
     tamaños de archivo y E4 número de clientes, así que la tabla promete un ajuste que no se hizo; el informe debe
     decirlo.
-  - Nuevo: `TRANSFER_INACTIVITY_S` (10 s) en el cliente, de la `v0.13.1`; su ADR está pendiente.
+  - Nuevo: `TRANSFER_INACTIVITY_S` (10 s) en el cliente, de la `v0.13.1` (ADR 0047).
 - **2026-11-08 · Una re-replicación hacia un nodo recién caído tarda 60 s en reordenarse** (etapa 10,
   escenario 2 con la v0.13.1, `evidencias/2026-11-08-escenario-2/lider.txt`). `datanode-5` se paró a las
   04:43:08. A las 04:43:13 el líder, que aún lo contaba como vivo (menos de 9 s sin latido), lo eligió como
