@@ -1,0 +1,273 @@
+
+######## 2. El clúster en AWS (t = 0 s, 02:32:00 UTC)
+
+$ deploy/aws/deploy.sh status
+dfsha-client-1	t3.small	running
+dfsha-datanode-1	t3.micro	running
+dfsha-datanode-2	t3.micro	running
+dfsha-datanode-3	t3.micro	running
+dfsha-datanode-4	t3.micro	running
+dfsha-datanode-5	t3.micro	running
+dfsha-metadata-1	t3.small	running
+dfsha-metadata-2	t3.small	running
+dfsha-metadata-3	t3.small	running
+metadata-1: metadata-1 Up 5 minutes;etcd Up 5 minutes;
+metadata-2: metadata-2 Up 6 minutes;etcd Up 6 minutes;
+metadata-3: metadata-3 Up 6 minutes;etcd Up 6 minutes;
+datanode-1: datanode-1 Up 6 minutes;
+datanode-2: datanode-2 Up 6 minutes;
+datanode-3: datanode-3 Up 6 minutes;
+datanode-4: datanode-4 Up 6 minutes;
+datanode-5: datanode-5 Up 6 minutes;
+client-1: client-1 Up 6 minutes;
+
+$ en client-1 "sudo docker exec client-1 env | grep METADATA_ADDRS"
+DFSHA_METADATA_ADDRS=metadata-1:50051,metadata-2:50051,metadata-3:50051
+
+$ lider
+líder: metadata-1 · época 372 · elegido a las 02:26:07 UTC
+
+######## 3. Carga y recuperación de 1 GiB (t = 44 s, 02:32:44 UTC)
+
+$ en client-1 "sudo docker exec client-1 sh -c 'head -c 1073741824 /dev/urandom > /data/video.bin && ls -lh /data/video.bin'"
+-rw-r--r-- 1 dfsha dfsha 1.0G Nov  9 02:32 /data/video.bin
+
+$ replicas
+datanode-1: 43 réplicas
+datanode-2: 42 réplicas
+datanode-3: 43 réplicas
+datanode-4: 43 réplicas
+datanode-5: 42 réplicas
+
+$ dfsha put /data/video.bin /video.bin
+/video.bin: versión 1, 1.0 GiB en 7.6 s (141 MB/s)
+
+$ dfsha stat /video.bin
+ruta: /video.bin
+versión: 1
+tamaño: 1073741824 bytes (1.0 GiB)
+bloques: 64 de 16.0 MiB
+modificado: 2026-11-09 02:33
+
+$ replicas
+datanode-1: 81 réplicas
+datanode-2: 81 réplicas
+datanode-3: 81 réplicas
+datanode-4: 81 réplicas
+datanode-5: 81 réplicas
+
+$ dfsha get /video.bin /data/video-copia.bin
+/data/video-copia.bin: 1.0 GiB en 8.4 s (128 MB/s)
+
+$ en client-1 "sudo docker exec client-1 sha256sum /data/video.bin /data/video-copia.bin"
+fafd11215a3a5b43722a726e4080f01d522d8901b05a69490b528b8c4f22eac2  /data/video.bin
+fafd11215a3a5b43722a726e4080f01d522d8901b05a69490b528b8c4f22eac2  /data/video-copia.bin
+
+######## 4a. RF3 desde la línea de órdenes (t = 124 s, 02:34:04 UTC)
+
+$ en client-1 "sudo docker exec client-1 sh -c 'printf \"hola mundo\" > /data/nota.txt'"
+
+$ dfsha put /data/nota.txt /nota.txt
+/nota.txt: versión 1, 10 B en 0.2 s (0 MB/s)
+
+$ dfsha write /nota.txt 5 =MUNDO
+/nota.txt: versión 2, 10 B
+
+$ dfsha append /nota.txt "= desde AWS"
+/nota.txt: versión 3, 20 B
+
+$ dfsha read /nota.txt 0 100
+hola MUNDO desde AWS
+$ dfsha stat /nota.txt
+ruta: /nota.txt
+versión: 3
+tamaño: 20 bytes (20 B)
+bloques: 1 de 16.0 MiB
+modificado: 2026-11-09 02:34
+
+######## 4b. Concurrencia: dos clientes sobre el mismo bloque (t = 140 s, 02:34:20 UTC)
+
+$ en client-1 "sudo docker exec client-1 sh -c 'head -c 67108864 /dev/urandom > /data/datos.bin'"
+
+$ dfsha put /data/datos.bin /datos.bin
+/datos.bin: versión 1, 64.0 MiB en 0.7 s (92 MB/s)
+
+--- P1 (izquierda) y P2 (derecha), cada uno en su dfsha shell
+/tmp/claude-1000/-home-pedro-dev-pedro-dfsha/4a146f06-f4de-4ff4-89f7-040a67f541b9/scratchpad/ensayo.sh: línea 42: S: variable sin asignar
+/tmp/claude-1000/-home-pedro-dev-pedro-dfsha/4a146f06-f4de-4ff4-89f7-040a67f541b9/scratchpad/ensayo.sh: línea 44: S: variable sin asignar
+
+[El ensayo se cortó aquí por un fallo del script de ensayo (variable S sin definir), no de DFSha. Se repite desde la escena 4b.]
+
+######## 4b. Concurrencia: dos clientes sobre el mismo bloque (t = 0 s, 02:34:57 UTC)
+
+$ en client-1 "sudo docker exec client-1 sh -c 'head -c 67108864 /dev/urandom > /data/datos.bin'"
+
+$ dfsha put /data/datos.bin /datos.bin
+/datos.bin: versión 2, 64.0 MiB en 0.8 s (82 MB/s)
+
+--- P1 (izquierda) y P2 (derecha), cada uno en su dfsha shell
+[P1]
+Contraseña de pedro: 
+DFSha. Órdenes: ls, cd, pwd, mkdir, rmdir, rm, mv, put, get, stat, read, write, append, open, lock, unlock, close, useradd, exit
+dfsha:/> open /datos.bin w
+/datos.bin: abierto, versión 2, 64.0 MiB
+dfsha:/> write 50331648 =P1-cambia-el-bloque-3
+
+Error: Orden desconocida: sleep-12. Órdenes: ls, cd, pwd, mkdir, rmdir, rm, mv, put, get, stat, useradd, read, write, append, open, lock, unlock, close
+dfsha:/> close
+/datos.bin: versión 3
+dfsha:/> exit
+[P2]
+Contraseña de pedro: 
+DFSha. Órdenes: ls, cd, pwd, mkdir, rmdir, rm, mv, put, get, stat, read, write, append, open, lock, unlock, close, useradd, exit
+dfsha:/> open /datos.bin w
+/datos.bin: abierto, versión 3, 64.0 MiB
+dfsha:/> write 50331648 =P2-cambia-el-bloque-3
+
+Error: Orden desconocida: sleep-12. Órdenes: ls, cd, pwd, mkdir, rmdir, rm, mv, put, get, stat, useradd, read, write, append, open, lock, unlock, close
+dfsha:/> write 50331648 =P2-cambia-el-bloque-3
+dfsha:/> close
+/datos.bin: versión 4
+dfsha:/> open /datos.bin w
+/datos.bin: abierto, versión 4, 64.0 MiB
+dfsha:/> read 50331648 21
+P2-cambia-el-bloque-3dfsha:/> write 50331669 =+P2
+dfsha:/> close
+/datos.bin: versión 5
+dfsha:/> read 50331648 24
+Error: read <ruta> <offset> <longitud> [destino]
+dfsha:/> exit
+
+######## 5. Caída de un nodo de datos (t = 62 s, 02:35:59 UTC)
+
+$ replicas
+datanode-1: 91 réplicas
+datanode-2: 87 réplicas
+datanode-3: 91 réplicas
+datanode-4: 91 réplicas
+datanode-5: 87 réplicas
+
+$ en datanode-3 "sudo docker stop datanode-3"
+datanode-3
+
+$ dfsha get /video.bin /data/video-copia.bin
+Error: [Errno 28] No space left on device
+
+$ dfsha get /video.bin /data/video-copia.bin
+Error: [Errno 28] No space left on device
+
+$ dfsha get /video.bin /data/video-copia.bin
+Error: [Errno 28] No space left on device
+
+$ registro_lider 2m
+02:36:48 metadata-1: 91 bloques vivos tienen menos de 3 réplicas sanas: empieza la re-replicación
+02:36:48 metadata-1: Nodo de datos datanode-3 declarado caído (último latido hace 30.4 s)
+metadata-1: 91 órdenes de re-replicación y 0 borrados de réplicas de más
+
+$ replicas
+datanode-1: 112 réplicas
+datanode-2: 114 réplicas
+datanode-3: 91 réplicas
+datanode-4: 108 réplicas
+datanode-5: 113 réplicas
+
+$ en datanode-3 "sudo docker start datanode-3"
+datanode-3
+
+$ registro_lider 1m
+02:37:09 metadata-1: Todos los bloques vivos vuelven a tener 3 réplicas sanas
+02:37:42 metadata-1: Nodo de datos datanode-3 vuelve a enviar latidos
+metadata-1: 0 órdenes de re-replicación y 91 borrados de réplicas de más
+
+$ replicas
+datanode-1: 112 réplicas
+datanode-2: 83 réplicas
+datanode-3: 91 réplicas
+datanode-4: 108 réplicas
+datanode-5: 53 réplicas
+
+######## 6. Caída del líder de metadatos (t = 225 s, 02:38:42 UTC)
+
+$ lider
+líder: metadata-1 · época 372 · elegido a las 02:26:07 UTC
+
+$ en metadata-1 "sudo docker pause metadata-1 etcd"
+metadata-1
+etcd
+02:38:56 mkdir /d-1 ok en 3.65 s
+02:38:59 mkdir /d-2 ok en 2.97 s
+02:39:02 mkdir /d-3 ok en 13.1 s
+02:39:15 mkdir /d-4 ok en 12.9 s
+02:39:28 mkdir /d-5 ok en 12.9 s
+02:39:41 mkdir /d-6 ok en 12.9 s
+02:39:54 mkdir /d-7 ok en 13.1 s
+02:40:07 mkdir /d-8 ok en 13.1 s
+02:40:21 mkdir /d-9 ok en 13.0 s
+02:40:34 mkdir /d-10 ok en 13.1 s
+02:40:47 mkdir /d-11 ok en 13.0 s
+02:41:00 mkdir /d-12 ok en 12.9 s
+02:41:13 mkdir /d-13 ok en 13.2 s
+02:41:26 mkdir /d-14 ok en 13.0 s
+
+$ lider
+líder: metadata-2 · época 760 · elegido a las 02:39:12 UTC
+
+$ registro_lider 2m
+
+$ en metadata-1 "sudo docker unpause etcd metadata-1"
+etcd
+metadata-1
+
+$ dfsha ls /
+-   100.0 MiB  v1    2026-11-08 06:23  archivo.bin
+d           -        2026-11-09 02:38  d-1/
+d           -        2026-11-09 02:40  d-10/
+d           -        2026-11-09 02:41  d-11/
+d           -        2026-11-09 02:41  d-12/
+d           -        2026-11-09 02:41  d-13/
+d           -        2026-11-09 02:41  d-14/
+d           -        2026-11-09 02:39  d-2/
+d           -        2026-11-09 02:39  d-3/
+d           -        2026-11-09 02:39  d-4/
+d           -        2026-11-09 02:39  d-5/
+d           -        2026-11-09 02:39  d-6/
+d           -        2026-11-09 02:40  d-7/
+d           -        2026-11-09 02:40  d-8/
+d           -        2026-11-09 02:40  d-9/
+-    64.0 MiB  v5    2026-11-09 02:35  datos.bin
+-     1.0 GiB  v1    2026-11-08 06:24  grande.bin
+-        20 B  v3    2026-11-09 02:34  nota.txt
+-     1.0 GiB  v1    2026-11-09 02:33  video.bin
+
+######## 7. Seguridad (t = 446 s, 02:42:23 UTC)
+
+$ en client-1 "sudo docker exec client-1 sh -c 'yes MARCA-SECRETA-DFSHA | head -c 1048576 > /data/marca.txt; grep -c MARCA /data/marca.txt'"
+52429
+
+$ dfsha put /data/marca.txt /marca.txt
+/marca.txt: versión 1, 1.0 MiB en 0.2 s (4 MB/s)
+
+$ for n in 1 2 3 4 5; do printf 'datanode-%s: ' $n; en datanode-$n "sudo grep -rl MARCA-SECRETA /srv/dfsha/data/blocks | wc -l"; done
+datanode-1: 0
+datanode-2: 0
+datanode-3: 0
+datanode-4: 0
+datanode-5: 0
+
+$ en datanode-1 "sudo find /srv/dfsha/data/blocks -type f ! -name '*.meta' | head -1 | xargs sudo head -c 64 | xxd"
+00000000: df2a 19ab 762f 97dc c06b d6e5 2815 3648  .*..v/...k..(.6H
+00000010: 2e8b 8808 7584 fbdd 7a8b 7f05 2186 372c  ....u...z...!.7,
+00000020: f74c cc24 b81d 610e 1d9f b870 41b0 3ac2  .L.$..a....pA.:.
+00000030: 2dbf 17c0 de7a 4cf6 9a08 9065 8c7f 6cb9  -....zL....e..l.
+
+$ en client-1 "sleep 2 | sudo openssl s_client -connect metadata-1:50051 -CAfile /srv/dfsha/secrets/ca.pem 2>&1 | grep -iE 'error|Protocol' | head -3"
+Protocol: TLSv1.3
+40474D88577E0000:error:0A000126:SSL routines::unexpected eof while reading:../ssl/record/rec_layer_s3.c:698:
+
+$ en client-1 "sudo openssl s_client -connect metadata-1:50051 -CAfile /srv/dfsha/secrets/ca.pem -cert /srv/dfsha/secrets/cert.pem -key /srv/dfsha/secrets/key.pem </dev/null 2>&1 | grep -E '^New,|Verify return'"
+New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384
+Verify return code: 0 (ok)
+
+######## Fin del ensayo (t = 526 s, 02:43:43 UTC)
+
+$ en client-1 "sudo rm -f /srv/dfsha/client/video-copia.bin"

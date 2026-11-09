@@ -57,6 +57,7 @@ La versión final es la `v0.13.2`. Cinco pruebas con la versión final se hicier
 | Pérdida del estado de etcd en los tres servidores de metadatos | Restaurar la copia de S3 recupera lo anterior a ella; el nuevo líder tiene mayor época y los nodos de datos lo aceptan (§4.2, §11.3) | [`2026-11-07-restauracion-de-metadatos`](2026-11-07-restauracion-de-metadatos/) | Hecha |
 | Escenario 3: un nodo falla a mitad de un bloque | El bloque se repite en otros nodos, la carga termina y nadie la ve a medias; el nodo descarta su área temporal al volver (§11.3) | [`2026-11-07-escenario-3`](2026-11-07-escenario-3/) | Hecha |
 | Escenario 4: el cliente desconoce la ubicación de los bloques | Solo con los servidores de metadatos: sigue `NODE_NOT_LEADER` y recibe nombres de nodos, no IP (§11.4, RNF7) | [`2026-11-07-escenario-4`](2026-11-07-escenario-4/) | Hecha |
+| Ensayo del vídeo | Las escenas del vídeo con sus órdenes; mide la elección con el líder congelado según dónde está el líder de Raft de etcd | [`2026-11-09-ensayo-del-video`](2026-11-09-ensayo-del-video/) | Hecha |
 
 ## Plantilla del `README.md` de cada evidencia
 

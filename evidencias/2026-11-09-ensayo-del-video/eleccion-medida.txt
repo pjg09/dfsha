@@ -1,0 +1,25 @@
+# Medición precisa de la elección con el líder congelado (docker pause del servidor y de su etcd), 2026-11-09
+
+## Repetición 1: líder de DFSha metadata-3
+miembros de etcd (Endpoint, MemberID, Leader):
+  MemberID:776076453709774130	Leader:17222413816474978836	Endpoint:https://metadata-1:2379
+  MemberID:14655338711785729724	Leader:17222413816474978836	Endpoint:https://metadata-2:2379
+  MemberID:17222413816474978836	Leader:17222413816474978836	Endpoint:https://metadata-3:2379
+congelado a las 2026-11-09T02:49:53.333Z (reloj de metadata-3)
+  2026-11-09T02:50:01.468Z INFO metadata-1 dfsha.metadata.leader: Elegido líder con época 917
+  2026-11-09T02:50:04.299Z INFO metadata-1 dfsha.metadata.service: Fin del modo seguro a los 2.8 s de la elección
+  +8.13 s: metadata-1 dfsha.metadata.leader: Elegido líder con época 917
+  +10.97 s: metadata-1 dfsha.metadata.service: Fin del modo seguro a los 2.8 s de la elección
+recuperado a las 02:50:14
+
+## Repetición 2: líder de DFSha metadata-1
+miembros de etcd (Endpoint, MemberID, Leader):
+  MemberID:776076453709774130	Leader:776076453709774130	Endpoint:https://metadata-1:2379
+  MemberID:14655338711785729724	Leader:776076453709774130	Endpoint:https://metadata-2:2379
+  MemberID:17222413816474978836	Leader:776076453709774130	Endpoint:https://metadata-3:2379
+congelado a las 2026-11-09T02:50:57.131Z (reloj de metadata-1)
+  2026-11-09T02:51:05.207Z INFO metadata-3 dfsha.metadata.leader: Elegido líder con época 925
+  2026-11-09T02:51:08.127Z INFO metadata-3 dfsha.metadata.service: Fin del modo seguro a los 2.9 s de la elección
+  +8.08 s: metadata-3 dfsha.metadata.leader: Elegido líder con época 925
+  +11.00 s: metadata-3 dfsha.metadata.service: Fin del modo seguro a los 2.9 s de la elección
+recuperado a las 02:51:10

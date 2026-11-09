@@ -1,0 +1,151 @@
+
+######## Limpieza de lo que dejó el primer ensayo (t = 0 s, 02:44:25 UTC)
+
+$ dfsha ls /
+-   100.0 MiB  v1    2026-11-08 06:23  archivo.bin
+-    64.0 MiB  v5    2026-11-09 02:35  datos.bin
+-     1.0 GiB  v1    2026-11-08 06:24  grande.bin
+-     1.0 MiB  v1    2026-11-09 02:42  marca.txt
+-        20 B  v3    2026-11-09 02:34  nota.txt
+-     1.0 GiB  v1    2026-11-09 02:33  video.bin
+
+$ en client-1 "df -h / | tail -1"
+/dev/root       6.7G  4.3G  2.4G  64% /
+
+######## 4b. Concurrencia (repetida, con pausas reales) (t = 42 s, 02:45:07 UTC)
+[P1, órdenes enviadas]
+[02:45:16] envía: open /datos.bin w
+[02:45:18] envía: write 50331648 =P1-cambia-el-bloque-3
+[02:45:40] envía: close
+[P1, pantalla]
+Contraseña de pedro: 
+DFSha. Órdenes: ls, cd, pwd, mkdir, rmdir, rm, mv, put, get, stat, read, write, append, open, lock, unlock, close, useradd, exit
+dfsha:/> open /datos.bin w
+/datos.bin: abierto, versión 5, 64.0 MiB
+dfsha:/> write 50331648 =P1-cambia-el-bloque-3
+dfsha:/> close
+/datos.bin: versión 6
+dfsha:/> exit
+[P2, órdenes enviadas]
+[02:45:32] envía: open /datos.bin w
+[02:45:34] envía: write 50331648 =P2-cambia-el-bloque-3
+[02:45:50] envía: write 50331648 =P2-cambia-el-bloque-3
+[02:45:52] envía: close
+[02:45:54] envía: open /datos.bin w
+[02:45:56] envía: read 50331648 21
+[02:45:58] envía: write 50331669 =+P2
+[02:46:00] envía: close
+[P2, pantalla]
+Contraseña de pedro: 
+DFSha. Órdenes: ls, cd, pwd, mkdir, rmdir, rm, mv, put, get, stat, read, write, append, open, lock, unlock, close, useradd, exit
+dfsha:/> open /datos.bin w
+/datos.bin: abierto, versión 5, 64.0 MiB
+dfsha:/> write 50331648 =P2-cambia-el-bloque-3
+Error: Otro escritor tiene arrendado ese rango [LOCK_CONFLICT]
+dfsha:/> write 50331648 =P2-cambia-el-bloque-3
+dfsha:/> close
+Error: Otro escritor cambió esos bloques después de abrir el archivo; vuelve a abrirlo [VERSION_CONFLICT]
+dfsha:/> open /datos.bin w
+/datos.bin: abierto, versión 6, 64.0 MiB
+dfsha:/> read 50331648 21
+P1-cambia-el-bloque-3dfsha:/> write 50331669 =+P2
+dfsha:/> close
+/datos.bin: versión 7
+dfsha:/> exit
+
+$ dfsha read /datos.bin 50331648 24
+P1-cambia-el-bloque-3+P2
+######## 5. Lecturas con un nodo de datos caído (repetida, con disco libre) (t = 105 s, 02:46:10 UTC)
+
+$ en datanode-2 "sudo docker stop datanode-2"
+datanode-2
+
+$ dfsha get /video.bin /data/lectura.bin
+/data/lectura.bin: 1.0 GiB en 8.3 s (130 MB/s)
+
+$ dfsha get /video.bin /data/lectura.bin
+/data/lectura.bin: 1.0 GiB en 8.5 s (127 MB/s)
+
+$ en client-1 "sudo docker exec client-1 sha256sum /data/video.bin /data/lectura.bin"
+fafd11215a3a5b43722a726e4080f01d522d8901b05a69490b528b8c4f22eac2  /data/video.bin
+fafd11215a3a5b43722a726e4080f01d522d8901b05a69490b528b8c4f22eac2  /data/lectura.bin
+
+$ en datanode-2 "sudo docker start datanode-2"
+datanode-2
+
+######## 6. Caída del líder con un dfsha shell abierto (repetida) (t = 150 s, 02:46:55 UTC)
+
+$ lider
+líder: metadata-2 · época 760 · elegido a las 02:39:12 UTC
+
+$ en metadata-2 "sudo docker pause metadata-2 etcd"
+metadata-2
+etcd
+[shell, órdenes enviadas]
+[02:47:19] envía: ls /
+[02:47:33] envía: mkdir /tras-la-caida-1
+[02:47:35] envía: mkdir /tras-la-caida-2
+[02:47:37] envía: mkdir /tras-la-caida-3
+[02:47:39] envía: ls /
+[shell, pantalla]
+Contraseña de pedro: 
+DFSha. Órdenes: ls, cd, pwd, mkdir, rmdir, rm, mv, put, get, stat, read, write, append, open, lock, unlock, close, useradd, exit
+dfsha:/> ls /
+-   100.0 MiB  v1    2026-11-08 06:23  archivo.bin
+-    64.0 MiB  v7    2026-11-09 02:46  datos.bin
+-     1.0 GiB  v1    2026-11-08 06:24  grande.bin
+-     1.0 MiB  v1    2026-11-09 02:42  marca.txt
+-        20 B  v3    2026-11-09 02:34  nota.txt
+-     1.0 GiB  v1    2026-11-09 02:33  video.bin
+dfsha:/> mkdir /tras-la-caida-1
+mkdir /tras-la-caida-2
+mkdir /tras-la-caida-3
+ls /
+exit
+dfsha:/> dfsha:/> dfsha:/> -   100.0 MiB  v1    2026-11-08 06:23  archivo.bin
+-    64.0 MiB  v7    2026-11-09 02:46  datos.bin
+-     1.0 GiB  v1    2026-11-08 06:24  grande.bin
+-     1.0 MiB  v1    2026-11-09 02:42  marca.txt
+-        20 B  v3    2026-11-09 02:34  nota.txt
+d           -        2026-11-09 02:47  tras-la-caida-1/
+d           -        2026-11-09 02:47  tras-la-caida-2/
+d           -        2026-11-09 02:47  tras-la-caida-3/
+-     1.0 GiB  v1    2026-11-09 02:33  video.bin
+dfsha:/> 
+$ lider
+líder: metadata-3 · época 899 · elegido a las 02:47:34 UTC
+
+$ registro_lider 5m
+02:46:45 metadata-2: 83 bloques vivos tienen menos de 3 réplicas sanas: empieza la re-replicación
+02:46:45 metadata-2: Nodo de datos datanode-2 declarado caído (último latido hace 32.4 s)
+02:46:57 metadata-2: Nodo de datos datanode-2 vuelve a enviar latidos
+02:46:57 metadata-2: Todos los bloques vivos vuelven a tener 3 réplicas sanas
+02:47:34 metadata-3: Elegido líder con época 899
+02:47:34 metadata-3: Fin del modo seguro a los 0.2 s de la elección
+02:47:34 metadata-3: Líder con época 899; 5 nodos de datos registrados; entra en modo seguro
+metadata-2: 64 órdenes de re-replicación y 64 borrados de réplicas de más
+
+--- y desde la CLI, un proceso nuevo por orden, con metadata-2 congelado:
+
+$ time dfsha mkdir /desde-la-cli
+
+real	0m3,727s
+user	0m0,595s
+sys	0m0,122s
+
+$ en metadata-2 "sudo docker unpause etcd metadata-2"
+etcd
+metadata-2
+
+$ time dfsha mkdir /tras-volver
+
+real	0m2,855s
+user	0m0,594s
+sys	0m0,140s
+
+$ lider
+líder: metadata-3 · época 899 · elegido a las 02:47:34 UTC
+
+######## Fin del segundo ensayo (t = 254 s, 02:48:39 UTC)
+
+$ en client-1 "sudo rm -f /srv/dfsha/client/lectura.bin"
