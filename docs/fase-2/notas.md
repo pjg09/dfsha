@@ -44,6 +44,17 @@ Un cambio de diseño no va aquí: va en un ADR (ADR 0006). Una evidencia tampoco
 - **2026-11-07 · Despliegue desde cero con una orden** (etapa 7, `ddb9bc6`). Con la cuenta vacía,
   `deploy.sh all` levanta los 9 hosts en 6 min 50 s sin intervención, y el clúster pasa la prueba de carga y
   recuperación. `down` necesitó dos pasadas para borrar los grupos de seguridad, que se citan entre sí.
+- **2026-11-09 · La elección tarda unos 8 s si el etcd congelado es el líder de Raft** (etapa 12, ensayo del vídeo,
+  v0.13.2). Con el líder de DFSha y su etcd congelados, y ese etcd como líder de Raft de etcd, el nuevo líder de
+  DFSha se elige a los 8,1 s y el modo seguro termina 2,9 s después, unos 11 s en total (2 de 2 mediciones). Cuando
+  el líder de Raft es otro miembro, la elección tarda unos 5 s (E7). Confirma la hipótesis de E7. El informe la da
+  como «sin comprobar»; Pedro decide si lo actualiza.
+- **2026-11-09 · Un servidor de metadatos congelado retrasa cada orden de la CLI unos 10 s** (etapa 12, ensayo del
+  vídeo, v0.13.2). Cada orden `dfsha` es un proceso nuevo que empieza por `metadata-1`. Si ese servidor está
+  congelado, el cliente espera el plazo de la llamada (`RPC_TIMEOUT_S`, 10 s) antes de probar el siguiente, en cada
+  orden y mientras dure el congelado. Un `dfsha shell` lo paga una sola vez, porque recuerda al líder. Es el mismo
+  patrón que el ADR 0047 en los servidores de metadatos. Corregirlo (un plazo de conexión más corto con los servidores
+  de metadatos, o recordar el último líder entre procesos) sería un cambio de diseño con su ADR.
 - **2026-11-08 · El README seguido desde cero tenía dos fallos** (etapa 11, `evidencias/2026-11-08-readme-desde-cero/`):
   - el ejemplo del cliente cargaba `/data/archivo.bin` sin ningún paso que lo creara, en local y en AWS;
   - el texto de `unlock` no decía que se rechaza con escrituras sin confirmar.
