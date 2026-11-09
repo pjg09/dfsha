@@ -214,6 +214,8 @@ escenarios 3 y 4 (§11.3, §11.4), con sus evidencias registradas.
 **Terminada cuando:** el PDF está generado y revisado.
 
 ### 12. Vídeo
+- **Guion listo el 2026-11-09**, fuera del repositorio por decisión de Pedro (`~/Escritorio/dfsha-video/`), con
+  sus atajos de terminal y sus diapositivas. Sus órdenes se ensayaron en AWS (`evidencias/2026-11-09-ensayo-del-video/`).
 - Guion de 10–15 min: arquitectura, ejecución distribuida, fallos y resultados medidos (§5.3).
 - Revisión del guion y del vídeo grabado. La grabación en AWS se hace en una sola sesión del lab,
   ensayada antes. La entrega del vídeo la gestiona Pedro.
