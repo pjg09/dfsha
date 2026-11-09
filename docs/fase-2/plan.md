@@ -33,8 +33,8 @@ Qué hay que entregar: enunciado §5.3. Cómo se califica: enunciado §6.
 | 8 | RF3 en el cliente y concurrencia | Implementación RF1–RF3; consistencia | Terminada |
 | 9 | Tolerancia a fallos | Alta disponibilidad, replicación y consistencia | Terminada |
 | 10 | Experimentos y pruebas finales | Pruebas de rendimiento | Terminada |
-| 11 | Informe técnico final | Documentación | En curso |
-| 12 | Vídeo | Vídeo | Pendiente |
+| 11 | Informe técnico final | Documentación | Terminada |
+| 12 | Vídeo | Vídeo | En curso |
 | 13 | Entrega | — | Pendiente |
 | 14 | Defensa | Defensa | Pendiente |
 
@@ -202,8 +202,8 @@ escenarios 3 y 4 (§11.3, §11.4), con sus evidencias registradas.
 **Terminada cuando:** el índice de `evidencias/README.md` está completo.
 
 ### 11. Informe técnico final
-- **Borrador completo el 2026-11-08** en `docs/fase-2/informe.md`, con sus 9 figuras en `docs/diagramas/fase-2/`.
-  Falta pasarlo a Google Docs y generar y revisar el PDF.
+- **Cerrada el 2026-11-08.** El informe está en `docs/fase-2/informe.md`, con sus 9 figuras en
+  `docs/diagramas/fase-2/`. Pedro lo pasa a Google Docs, genera el PDF y lo revisa fuera del repositorio.
 - En `docs/fase-2/`: arquitectura, tabla de cambios frente a la fase I (ADR 0006), APIs, algoritmos,
   despliegue, pruebas, resultados y limitaciones (§5.3). Fuentes: ADR 0036.
 - Figuras actualizadas y PDF, sin límite de extensión (A9).
